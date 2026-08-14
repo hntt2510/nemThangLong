@@ -16,15 +16,15 @@ const defaultNavigation: SiteNavigation = {
     { label: "Luxury", href: "/nem/luxury" },
   ],
   needs: [
-    { label: "Êm ái", href: "/#shop-by-need" },
-    { label: "Nâng đỡ", href: "/#shop-by-need" },
-    { label: "Ngủ mát", href: "/#shop-by-need" },
-    { label: "Cặp đôi", href: "/#shop-by-need" },
-    { label: "Gia đình", href: "/#shop-by-need" },
-    { label: "Cao cấp", href: "/#shop-by-need" },
+    { label: "Tìm nệm phù hợp", href: "/tim-nem" },
+    { label: "Êm ái", href: "/tim-nem" },
+    { label: "Nâng đỡ", href: "/tim-nem" },
+    { label: "Ngủ mát", href: "/tim-nem" },
+    { label: "Cặp đôi & gia đình", href: "/tim-nem" },
+    { label: "Cao cấp", href: "/tim-nem" },
   ],
   primary: [
-    { label: "Theo nhu cầu", href: "/#shop-by-need" },
+    { label: "Theo nhu cầu", href: "/tim-nem" },
     { label: "Luxury", href: "/nem/luxury" },
     { label: "Khách sạn & dự án", href: "/#hotel-project" },
     { label: "Về Thăng Long", href: "/#about" },
@@ -33,10 +33,9 @@ const defaultNavigation: SiteNavigation = {
 
 function safeHref(value: unknown) {
   if (typeof value !== "string") return null;
-  const allowedRoutes = new Set(["/", "/nem", "/nem/america", "/nem/classic", "/nem/hoat-tinh", "/nem/memory-foam", "/nem/cao-su-thien-nhien", "/nem/luxury"]);
+  const allowedRoutes = new Set(["/", "/nem", "/tim-nem", "/so-sanh", "/nem/america", "/nem/classic", "/nem/hoat-tinh", "/nem/memory-foam", "/nem/cao-su-thien-nhien", "/nem/luxury"]);
   const allowedAnchors = new Set(["/#find-mattress", "/#product-range", "/#natural-latex", "/#shop-by-need", "/#compare", "/#hotel-project", "/#about", "/#contact"]);
-  if (allowedRoutes.has(value) || allowedAnchors.has(value)) return value;
-  return null;
+  return allowedRoutes.has(value) || allowedAnchors.has(value) ? value : null;
 }
 
 function parseItems(value: unknown, fallback: NavigationItem[]) {

@@ -36,7 +36,7 @@ export type ProductLayer = {
 };
 
 export type ProductContent = {
-  comfort?: { published: boolean; firmnessLabel?: string; firmnessScore?: number; support?: number; breathability?: number; motionIsolation?: number };
+  comfort?: { published: boolean; firmnessLabel?: string; firmnessScore?: number | null; support?: number | null; breathability?: number | null; motionIsolation?: number | null };
   audience?: { published: boolean; title: string; body: string };
   materialStory?: { published: boolean; title: string; body: string };
   delivery?: { published: boolean; title?: string; body: string };

@@ -17,7 +17,31 @@ type ProductRecord = Prisma.ProductGetPayload<{ include: typeof productInclude }
 
 function parseContent(value: Prisma.JsonValue | null): ProductContent | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  return value as unknown as ProductContent;
+  const source = value as Record<string, unknown>;
+  const score = (item: Record<string, unknown>, key: string) => typeof item[key] === "number" && Number.isFinite(item[key]) && item[key] >= 1 && item[key] <= 5 ? item[key] as number : null;
+  const section = (item: unknown) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return undefined;
+    const record = item as Record<string, unknown>;
+    if (record.published !== true || typeof record.title !== "string" || typeof record.body !== "string") return undefined;
+    const title = record.title.trim();
+    const body = record.body.trim();
+    return title && body ? { published: true, title, body } : undefined;
+  };
+  const rawComfort = source.comfort;
+  const comfort = rawComfort && typeof rawComfort === "object" && !Array.isArray(rawComfort) && (rawComfort as Record<string, unknown>).published === true
+    ? (() => {
+      const item = rawComfort as Record<string, unknown>;
+      return {
+        published: true,
+        firmnessLabel: typeof item.firmnessLabel === "string" && item.firmnessLabel.trim() ? item.firmnessLabel.trim() : undefined,
+        firmnessScore: score(item, "firmnessScore"),
+        support: score(item, "support"),
+        breathability: score(item, "breathability"),
+        motionIsolation: score(item, "motionIsolation"),
+      };
+    })()
+    : undefined;
+  return { comfort, audience: section(source.audience), materialStory: section(source.materialStory), delivery: section(source.delivery), warranty: section(source.warranty) };
 }
 
 export function mapProduct(record: ProductRecord, source: "database" | "demo"): Product {

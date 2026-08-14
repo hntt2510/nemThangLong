@@ -34,6 +34,7 @@ export function GenericProductPdp({ product, related, settings }: { product: Pro
       <main>
         <nav className="container breadcrumb-nav" aria-label="Breadcrumb">{breadcrumbs.map((crumb, index) => <span key={crumb.item}>{index > 0 && <b aria-hidden="true">/</b>}{index === breadcrumbs.length - 1 ? <span aria-current="page">{crumb.name}</span> : <Link href={crumb.item as never}>{crumb.name}</Link>}</span>)}</nav>
         <GenericProductPurchase product={product} contactHref={contactHref} />
+        <div className="container generic-compare-entry"><Link href={("/so-sanh?items=" + encodeURIComponent(product.slug)) as never} className="text-link">So sánh dòng nệm này <span aria-hidden="true">→</span></Link></div>
         {product.isDemo && <p className="container product-data-note">Hình ảnh minh họa · Sản phẩm chưa có giá, tồn kho hoặc tổ hợp mua được xác nhận.</p>}
 
         {audience && <section className="generic-editorial container"><div className="generic-editorial-media">{secondaryMedia && <Image src={secondaryMedia.url} alt={mediaAlt(product, secondaryMedia)} fill sizes="(max-width: 860px) 100vw, 55vw" style={{ objectFit: secondaryMedia.fit ?? "cover" }} />}{secondaryMedia && isDemoMedia(product, secondaryMedia) && <span className="demo-badge">Hình ảnh minh họa</span>}</div><div><p className="section-label">PHÙ HỢP VỚI</p><h2>{audience.title}</h2><p>{audience.body}</p></div></section>}

@@ -1,9 +1,9 @@
 import "server-only";
 
 import type { Product, ProductVariant } from "@/lib/types";
-import { getPrisma } from "@/lib/db";
-import { CATALOG_SLUGS, getDemoCatalogProducts, getDemoProduct } from "@/lib/product-data";
-import { mapProduct, productInclude } from "@/lib/products";
+import { CATALOG_SLUGS, getDemoProduct } from "@/lib/product-data";
+import { getDiscoveryProducts } from "@/lib/discovery";
+import { hasMatchingVariant } from "@/lib/variant-constraints";
 
 export type CatalogSort = "featured" | "price-asc" | "price-desc" | "name-asc";
 
@@ -103,7 +103,7 @@ export function toCatalogProduct(product: Product): CatalogProductSummary {
     image: media?.url ?? product.posterUrl ?? "",
     imageAlt: media?.alt ?? `Hình ảnh minh họa ${product.name}`,
     isDemo: product.isDemo,
-    imageIsDemo: product.isDemo || media?.isDemo === true,
+    imageIsDemo: product.isDemo || !media || media.isDemo === true,
     minPrice: priced.length > 0 ? Math.min(...priced) : null,
     maxPrice: priced.length > 0 ? Math.max(...priced) : null,
     purchasable: !product.isDemo && variants.some((variant) => variant.active && typeof variant.price === "number" && variant.price > 0 && variant.stock > 0),
@@ -130,19 +130,13 @@ function matches(product: CatalogProductSummary, query: CatalogQuery) {
     query.inStock;
   if (hasVariantFilters) {
     if (query.minPrice !== null && query.maxPrice !== null && query.minPrice > query.maxPrice) return false;
-    const validVariant = product.variants.some((variant) => {
-      if (!variant.active) return false;
-      if (query.widths.length > 0 && !query.widths.includes(variant.width)) return false;
-      if (query.thicknesses.length > 0 && !query.thicknesses.includes(variant.thickness)) return false;
-      if (query.inStock && variant.stock <= 0) return false;
-      if (query.minPrice !== null || query.maxPrice !== null) {
-        if (typeof variant.price !== "number" || variant.price <= 0) return false;
-        if (query.minPrice !== null && variant.price < query.minPrice) return false;
-        if (query.maxPrice !== null && variant.price > query.maxPrice) return false;
-      }
-      return true;
-    });
-    if (!validVariant) return false;
+    if (!hasMatchingVariant(product.variants, {
+      widths: query.widths,
+      thicknesses: query.thicknesses,
+      minPrice: query.minPrice,
+      maxPrice: query.maxPrice,
+      inStock: query.inStock,
+    })) return false;
   }
   return true;
 }
@@ -176,17 +170,12 @@ function facets(products: CatalogProductSummary[]): CatalogFacets {
 }
 
 export async function getCatalogProducts({ fallbackMissing = false } = {}): Promise<{ products: CatalogProductSummary[]; databaseAvailable: boolean }> {
-  let prisma;
-  try { prisma = getPrisma(); } catch { return { products: getDemoCatalogProducts().map(toCatalogProduct), databaseAvailable: false }; }
-  if (!prisma) return { products: getDemoCatalogProducts().map(toCatalogProduct), databaseAvailable: false };
-  try {
-    const records = (await prisma.product.findMany({ where: { slug: { in: [...CATALOG_SLUGS] }, status: "PUBLISHED" }, include: productInclude })).filter((record) => record.status === "PUBLISHED");
-    const bySlug = new Map(records.map((record) => [record.slug, toCatalogProduct(mapProduct(record, "database"))]));
-    const products = fallbackMissing ? CATALOG_SLUGS.map((slug) => bySlug.get(slug) ?? toCatalogProduct(getDemoProduct(slug))) : records.map((record) => bySlug.get(record.slug)!).filter(Boolean);
-    return { products, databaseAvailable: true };
-  } catch {
-    return { products: getDemoCatalogProducts().map(toCatalogProduct), databaseAvailable: false };
-  }
+  const source = await getDiscoveryProducts();
+  const bySlug = new Map(source.products.map((item) => [item.slug, toCatalogProduct(item.product)]));
+  const products = fallbackMissing
+    ? CATALOG_SLUGS.map((slug) => bySlug.get(slug) ?? toCatalogProduct(getDemoProduct(slug)))
+    : source.products.map((item) => bySlug.get(item.slug)!).filter(Boolean);
+  return { products, databaseAvailable: source.databaseAvailable };
 }
 
 export async function getCatalogData(params: RawSearchParams = {}) {
