@@ -7,8 +7,8 @@ const lora = Lora({ subsets: ["latin", "vietnamese"], variable: "--font-lora", d
 const beVietnam = Be_Vietnam_Pro({ subsets: ["latin", "vietnamese"], variable: "--font-be", display: "swap", weight: ["400", "500", "600", "700"] });
 
 export const metadata: Metadata = {
-  title: "Thăng Long Luxury — Built for comfort",
-  description: "Một trải nghiệm nghỉ ngơi cân bằng giữa độ êm, độ nâng đỡ và sự hồi đáp tự nhiên.",
+  title: "Nệm Thăng Long — Sleep, considered.",
+  description: "Khám phá những lựa chọn nệm được sắp xếp để bạn tìm thấy cảm giác phù hợp.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

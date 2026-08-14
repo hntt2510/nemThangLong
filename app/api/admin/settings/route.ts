@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { getPrisma } from "@/lib/db";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 
 const schema = z.object({ shippingFee: z.number().int().min(0).nullable(), freeShippingThreshold: z.number().int().min(0).nullable(), bankTransferReservationMinutes: z.number().int().min(5).max(10080).nullable(), bankTransferInfo: z.record(z.string()).nullable() });
 
@@ -27,5 +28,6 @@ export async function PUT(request: Request) {
   if (!prisma) return NextResponse.json({ error: "Database chưa được cấu hình." }, { status: 503 });
   const data = { shippingFee: parsed.data.shippingFee, freeShippingThreshold: parsed.data.freeShippingThreshold, bankTransferReservationMinutes: parsed.data.bankTransferReservationMinutes, bankTransferInfo: parsed.data.bankTransferInfo ? parsed.data.bankTransferInfo as Prisma.InputJsonValue : Prisma.JsonNull };
   const settings = await prisma.siteSettings.upsert({ where: { id: "default" }, update: data, create: { id: "default", ...data } });
+  revalidatePath("/");
   return NextResponse.json(settings);
 }

@@ -69,7 +69,7 @@ export async function PUT(request: Request, context: { params: Promise<{ slug: s
       }
       return tx.product.findUnique({ where: { id: current.id }, include: productInclude });
     });
-    revalidatePath(`/nem/${slug}`); revalidatePath(`/nem/${slug}/lab`);
+    revalidatePath(`/nem/${slug}`); revalidatePath(`/nem/${slug}/lab`); revalidatePath("/");
     return NextResponse.json(saved);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Không thể lưu sản phẩm.";
