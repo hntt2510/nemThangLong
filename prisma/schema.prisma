@@ -14,6 +14,22 @@ enum Role {
   EDITOR
 }
 
+enum LeadType {
+  CONSULTATION
+  B2B_PROJECT
+}
+
+enum LeadStatus {
+  NEW
+  IN_PROGRESS
+  CLOSED
+}
+
+enum LeadSource {
+  CONTACT_PAGE
+  B2B_PAGE
+}
+
 enum ProductStatus {
   DRAFT
   PUBLISHED
@@ -310,4 +326,26 @@ model UploadIntent {
 
   @@index([userId, createdAt])
   @@index([expiresAt, completedAt])
+}
+
+model Lead {
+  id              String     @id @default(cuid())
+  type            LeadType
+  status          LeadStatus @default(NEW)
+  fullName        String
+  phone           String
+  email           String?
+  organization    String?
+  projectLocation String?
+  estimatedQuantity Int?
+  productSlug     String?
+  message         String?    @db.Text
+  source          LeadSource
+  internalNote    String?    @db.Text
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([status, type, createdAt])
+  @@index([phone, createdAt])
+  @@index([createdAt])
 }

@@ -14,11 +14,12 @@ function jsonLdScript(value: unknown) {
 }
 
 export function GenericProductPdp({ product, related, settings }: { product: Product; related: CatalogProductSummary[]; settings: ProductSettings }) {
-  const contactHref = settings?.contactPhone
+  const directContactHref = settings?.contactPhone
     ? "tel:" + settings.contactPhone
     : settings?.contactEmail
       ? "mailto:" + settings.contactEmail
       : null;
+  const consultationHref = ("/lien-he?product=" + encodeURIComponent(product.slug)) as never;
   const breadcrumbs = catalogBreadcrumbs(product.slug, product.name);
   const productSchema = productJsonLd(product, "/nem/" + product.slug);
   const audience = product.content?.audience?.published && product.content.audience.title && product.content.audience.body ? product.content.audience : null;
@@ -33,7 +34,7 @@ export function GenericProductPdp({ product, related, settings }: { product: Pro
       {productSchema && jsonLdScript(productSchema)}
       <main>
         <nav className="container breadcrumb-nav" aria-label="Breadcrumb">{breadcrumbs.map((crumb, index) => <span key={crumb.item}>{index > 0 && <b aria-hidden="true">/</b>}{index === breadcrumbs.length - 1 ? <span aria-current="page">{crumb.name}</span> : <Link href={crumb.item as never}>{crumb.name}</Link>}</span>)}</nav>
-        <GenericProductPurchase product={product} contactHref={contactHref} />
+        <GenericProductPurchase product={product} contactHref={consultationHref} />
         <div className="container generic-compare-entry"><Link href={("/so-sanh?items=" + encodeURIComponent(product.slug)) as never} className="text-link">So sánh dòng nệm này <span aria-hidden="true">→</span></Link></div>
         {product.isDemo && <p className="container product-data-note">Hình ảnh minh họa · Sản phẩm chưa có giá, tồn kho hoặc tổ hợp mua được xác nhận.</p>}
 
@@ -41,7 +42,7 @@ export function GenericProductPdp({ product, related, settings }: { product: Pro
         {materialStory && <section className="generic-content-section container"><p className="section-label">MATERIAL STORY</p><h2>{materialStory.title}</h2><p>{materialStory.body}</p></section>}
         {(delivery || warranty) && <section className="generic-info-grid container">{delivery && <article><p className="section-label">GIAO HÀNG</p><h2>{delivery.title ?? "Giao hàng"}</h2><p>{delivery.body}</p></article>}{warranty && <article><p className="section-label">BẢO HÀNH</p><h2>{warranty.title ?? "Bảo hành"}</h2><p>{warranty.body}</p></article>}</section>}
         <section className="generic-related container"><div><p className="section-label">KHÁM PHÁ THÊM</p><h2>Các dòng nệm khác.</h2></div>{related.length > 0 ? <div className="catalog-grid">{related.map((item, index) => <ProductCard key={item.slug} product={item} index={index} />)}</div> : <p className="muted">Các lựa chọn liên quan đang được cập nhật.</p>}</section>
-        {!contactHref && <p className="container product-contact-pending">Thông tin tư vấn đang được cập nhật.</p>}
+        {directContactHref ? <p className="container product-direct-contact"><a href={directContactHref}>Liên hệ trực tiếp</a></p> : <p className="container product-contact-pending">Thông tin liên hệ trực tiếp đang được cập nhật.</p>}
       </main>
     </div>
   );

@@ -26,16 +26,18 @@ const defaultNavigation: SiteNavigation = {
   primary: [
     { label: "Theo nhu cầu", href: "/tim-nem" },
     { label: "Luxury", href: "/nem/luxury" },
-    { label: "Khách sạn & dự án", href: "/#hotel-project" },
+    { label: "Khách sạn & dự án", href: "/khach-san-du-an" },
     { label: "Về Thăng Long", href: "/#about" },
   ],
 };
 
 function safeHref(value: unknown) {
   if (typeof value !== "string") return null;
-  const allowedRoutes = new Set(["/", "/nem", "/tim-nem", "/so-sanh", "/nem/america", "/nem/classic", "/nem/hoat-tinh", "/nem/memory-foam", "/nem/cao-su-thien-nhien", "/nem/luxury"]);
-  const allowedAnchors = new Set(["/#find-mattress", "/#product-range", "/#natural-latex", "/#shop-by-need", "/#compare", "/#hotel-project", "/#about", "/#contact"]);
-  return allowedRoutes.has(value) || allowedAnchors.has(value) ? value : null;
+  const legacyAliases: Record<string, string> = { "/#hotel-project": "/khach-san-du-an", "/#contact": "/lien-he" };
+  const normalized = legacyAliases[value] ?? value;
+  const allowedRoutes = new Set(["/", "/nem", "/tim-nem", "/so-sanh", "/lien-he", "/khach-san-du-an", "/nem/america", "/nem/classic", "/nem/hoat-tinh", "/nem/memory-foam", "/nem/cao-su-thien-nhien", "/nem/luxury"]);
+  const allowedAnchors = new Set(["/#find-mattress", "/#product-range", "/#natural-latex", "/#shop-by-need", "/#compare", "/#about"]);
+  return allowedRoutes.has(normalized) || allowedAnchors.has(normalized) ? normalized : null;
 }
 
 function parseItems(value: unknown, fallback: NavigationItem[]) {
