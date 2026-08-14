@@ -2,7 +2,7 @@ import "server-only";
 
 import type { Prisma } from "@prisma/client";
 import { getPrisma } from "@/lib/db";
-import { demoProduct } from "@/lib/product-data";
+import { getDemoProduct } from "@/lib/product-data";
 import type { Product, ProductContent } from "@/lib/types";
 
 export const productInclude = {
@@ -20,16 +20,19 @@ function parseContent(value: Prisma.JsonValue | null): ProductContent | null {
 }
 
 export function mapProduct(record: ProductRecord, source: "database" | "demo"): Product {
-  const isDemo = source === "demo" || record.isDemo;
-  const variants = record.variants.map((variant) => ({ id: variant.id, width: variant.width, length: variant.length, thickness: variant.thickness, price: isDemo ? null : variant.price, compareAtPrice: isDemo ? null : variant.compareAtPrice, sku: variant.sku, stock: isDemo ? 0 : variant.stock, active: isDemo ? false : variant.active }));
+  const isDemo = source === "demo" || Boolean(record.isDemo);
+  const rawVariants = record.variants ?? [];
+  const rawMedia = record.media ?? [];
+  const variants = rawVariants.map((variant) => ({ id: variant.id, width: variant.width, length: variant.length, thickness: variant.thickness, price: isDemo ? null : variant.price, compareAtPrice: isDemo ? null : variant.compareAtPrice, sku: variant.sku, stock: isDemo ? 0 : (variant.stock ?? 0), active: isDemo ? false : (variant.active ?? true) }));
   const productionDemo = isDemo && process.env.NODE_ENV === "production" && process.env.VERCEL_ENV !== "preview";
+  const mediaRecords = rawMedia.length > 0 ? rawMedia : [getDemoProduct(record.slug).media[0]];
   return {
     id: record.id, slug: record.slug, name: record.name, eyebrow: record.eyebrow ?? "THE THĂNG LONG SIGNATURE", description: record.description ?? "",
-    media: record.media.map((media) => ({ id: media.id, type: media.type as "image" | "video" | "model", url: media.url, alt: media.alt, aspect: media.aspect ?? undefined, focalX: media.focalX, focalY: media.focalY, fit: media.fit as "cover" | "contain", isDemo: media.isDemo })),
+    media: mediaRecords.map((media) => ({ id: media.id, type: media.type as "image" | "video" | "model", url: media.url, alt: media.alt, aspect: media.aspect ?? undefined, focalX: media.focalX, focalY: media.focalY, fit: media.fit as "cover" | "contain", isDemo: media.isDemo ?? true })),
     variants,
-    layers: record.layers.map((layer) => ({ id: layer.id, sortOrder: layer.sortOrder, name: layer.name, material: layer.material, thickness: layer.thickness, description: layer.description, nodeName: layer.nodeName, explodeDistance: layer.explodeDistance, showHotspot: layer.showHotspot, published: productionDemo ? false : layer.published })),
+    layers: (record.layers ?? []).map((layer) => ({ id: layer.id, sortOrder: layer.sortOrder, name: layer.name, material: layer.material, thickness: layer.thickness, description: layer.description, nodeName: layer.nodeName, explodeDistance: layer.explodeDistance, showHotspot: layer.showHotspot, published: productionDemo ? false : layer.published })),
     modelUrl: productionDemo ? null : record.modelUrl, posterUrl: record.posterUrl, mattressLab: record.mattressLab,
-    reviews: record.reviews.map((review) => ({ rating: review.rating, comfort: review.comfort ?? undefined, quality: review.quality ?? undefined, value: review.value ?? undefined })),
+    reviews: (record.reviews ?? []).map((review) => ({ rating: review.rating, comfort: review.comfort ?? undefined, quality: review.quality ?? undefined, value: review.value ?? undefined })),
     content: parseContent(record.content), isDemo, source,
     purchasable: !isDemo && record.status === "PUBLISHED" && variants.some((variant) => variant.active && variant.price !== null && variant.price > 0 && variant.stock > 0),
   };
@@ -37,13 +40,13 @@ export function mapProduct(record: ProductRecord, source: "database" | "demo"): 
 
 export async function getStorefrontProduct(slug: string): Promise<Product> {
   let prisma;
-  try { prisma = getPrisma(); } catch { return demoProduct; }
-  if (!prisma) return demoProduct;
+  try { prisma = getPrisma(); } catch { return getDemoProduct(slug); }
+  if (!prisma) return getDemoProduct(slug);
   try {
     const record = await prisma.product.findFirst({ where: { slug, status: "PUBLISHED" }, include: productInclude });
-    return record ? mapProduct(record, "database") : demoProduct;
+    return record ? mapProduct(record, "database") : getDemoProduct(slug);
   } catch {
-    return demoProduct;
+    return getDemoProduct(slug);
   }
 }
 

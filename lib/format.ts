@@ -8,5 +8,5 @@ export function formatVnd(value: number | null | undefined) {
 }
 
 export function formatDimension(value: number) {
-  return `${value}cm`;
+  return value + "cm";
 }

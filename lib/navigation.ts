@@ -8,11 +8,11 @@ export type SiteNavigation = {
 
 const defaultNavigation: SiteNavigation = {
   mattressLines: [
-    { label: "America", href: "/#product-range" },
-    { label: "Classic", href: "/#product-range" },
-    { label: "Hoạt Tính", href: "/#product-range" },
-    { label: "Memory Foam", href: "/#product-range" },
-    { label: "Cao Su Thiên Nhiên", href: "/#natural-latex" },
+    { label: "America", href: "/nem/america" },
+    { label: "Classic", href: "/nem/classic" },
+    { label: "Hoạt Tính", href: "/nem/hoat-tinh" },
+    { label: "Memory Foam", href: "/nem/memory-foam" },
+    { label: "Cao Su Thiên Nhiên", href: "/nem/cao-su-thien-nhien" },
     { label: "Luxury", href: "/nem/luxury" },
   ],
   needs: [
@@ -33,7 +33,9 @@ const defaultNavigation: SiteNavigation = {
 
 function safeHref(value: unknown) {
   if (typeof value !== "string") return null;
-  if (value.startsWith("/#") || value.startsWith("/nem/") || value === "/") return value;
+  const allowedRoutes = new Set(["/", "/nem", "/nem/america", "/nem/classic", "/nem/hoat-tinh", "/nem/memory-foam", "/nem/cao-su-thien-nhien", "/nem/luxury"]);
+  const allowedAnchors = new Set(["/#find-mattress", "/#product-range", "/#natural-latex", "/#shop-by-need", "/#compare", "/#hotel-project", "/#about", "/#contact"]);
+  if (allowedRoutes.has(value) || allowedAnchors.has(value)) return value;
   return null;
 }
 

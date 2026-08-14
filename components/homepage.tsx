@@ -2,7 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { GsapReveal } from "@/components/gsap-reveal";
 import { MattressLabTeaser } from "@/components/mattress-lab-teaser";
-import { formatVnd } from "@/lib/format";
+import { ProductCard } from "@/components/product-card";
+import { SiteFooter } from "@/components/site-footer";
 import { getContactHref } from "@/lib/homepage";
 import type { HomepageProductSummary } from "@/lib/homepage";
 import type { Product } from "@/lib/types";
@@ -46,10 +47,7 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
 
       <GsapReveal><section id="product-range" className="home-range container">
         <div className="home-section-heading"><div><p className="section-label">PRODUCT RANGE</p><h2>Một dòng nệm cho mỗi cách ngủ.</h2></div><p>Giá và khả năng mua chỉ hiển thị khi đã được cấu hình và xác nhận trong CMS.</p></div>
-        <div className="home-product-grid">{products.map((product, index) => {
-          const card = <div className="home-product-card-inner"><div className="home-product-media"><Image src={product.image} alt={product.imageAlt} fill sizes="(max-width: 680px) 100vw, (max-width: 1100px) 50vw, 33vw" style={{ objectFit: "cover" }} /><span className="home-product-index">0{index + 1}</span>{product.imageIsDemo && <span className="demo-badge">Minh họa</span>}</div><div className="home-product-copy"><p className="eyebrow">{product.eyebrow}</p><h3>{product.name}</h3><p>{product.description}</p><div className="home-product-meta"><span>{product.minPrice ? `Từ ${formatVnd(product.minPrice)}` : "Liên hệ"}</span><span>{product.slug === "luxury" ? "Khám phá →" : contactHref ? "Tư vấn →" : "Đang cập nhật"}</span></div></div></div>;
-          return <article key={product.slug} className={`home-product-card home-product-card-${index + 1}`}>{product.slug === "luxury" ? <Link href="/nem/luxury" aria-label={`Xem ${product.name}`}>{card}</Link> : contactHref ? <Link href="#contact" aria-label={`Liên hệ tư vấn ${product.name}`}>{card}</Link> : card}</article>;
-        })}</div>
+        <div className="home-product-grid">{products.map((product, index) => <ProductCard key={product.slug} product={product} index={index} className={`home-product-card-${index + 1}`} />)}</div>
       </section></GsapReveal>
 
       <GsapReveal><section className="home-luxury-editorial"><div className="container home-luxury-grid"><div className="home-luxury-media"><Image src={luxury.image} alt={luxury.imageAlt} fill sizes="(max-width: 860px) 100vw, 55vw" style={{ objectFit: "cover" }} />{luxury.imageIsDemo && <span className="demo-badge">Hình ảnh minh họa</span>}</div><div className="home-luxury-copy"><p className="eyebrow">THE THĂNG LONG SIGNATURE</p><h2>Luxury, được cân nhắc từ trải nghiệm nằm.</h2><p>{luxury.description}</p><Link href="/nem/luxury" className="button button-dark">Khám phá Luxury <span aria-hidden="true">→</span></Link></div></div></section></GsapReveal>
@@ -71,6 +69,6 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
       <section id="contact" className="home-consultation"><div className="container"><p className="eyebrow">TƯ VẤN LỰA CHỌN</p><h2>Bắt đầu bằng một câu hỏi đơn giản.</h2><p>Chúng tôi sẽ lắng nghe cách bạn ngủ trước khi gợi ý một lựa chọn.</p>{contactHref ? <a className="button button-dark" href={contactHref}>Liên hệ Thăng Long <span aria-hidden="true">→</span></a> : <p className="home-contact-pending">Thông tin liên hệ đang được cập nhật.</p>}</div></section>
     </main>
 
-    <footer className="home-footer" id="about"><div className="container home-footer-grid"><div><Link href="/" className="brand"><span>THĂNG LONG</span><small>Sleep, considered.</small></Link><p>Comfortable. Trustworthy. Modern Vietnamese.</p></div><div><p className="footer-heading">Khám phá</p><Link href="#product-range">Dòng nệm</Link><Link href="#shop-by-need">Theo nhu cầu</Link><Link href="/nem/luxury">Luxury</Link></div><div><p className="footer-heading">Hỗ trợ</p><Link href="#find-mattress">Tìm nệm phù hợp</Link><Link href="#compare">So sánh</Link><Link href="#hotel-project">Khách sạn &amp; dự án</Link></div><div><p className="footer-heading">Liên hệ</p>{settings?.contactPhone && <a href={`tel:${settings.contactPhone}`}>{settings.contactPhone}</a>}{settings?.contactEmail && <a href={`mailto:${settings.contactEmail}`}>{settings.contactEmail}</a>}{!settings?.contactPhone && !settings?.contactEmail && <span>Thông tin đang cập nhật</span>}</div></div><div className="container home-footer-bottom"><span>© Thăng Long</span><span>Hình ảnh minh họa có thể được thay thế từ CMS.</span></div></footer>
+    <SiteFooter contactPhone={settings?.contactPhone} contactEmail={settings?.contactEmail} />
   </div>;
 }

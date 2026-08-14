@@ -39,6 +39,8 @@ export type ProductContent = {
   comfort?: { published: boolean; firmnessLabel?: string; firmnessScore?: number; support?: number; breathability?: number; motionIsolation?: number };
   audience?: { published: boolean; title: string; body: string };
   materialStory?: { published: boolean; title: string; body: string };
+  delivery?: { published: boolean; title?: string; body: string };
+  warranty?: { published: boolean; title?: string; body: string };
 };
 
 export type Product = {
