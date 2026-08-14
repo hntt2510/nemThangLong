@@ -1,7 +1,25 @@
+import type { Metadata } from "next";
 import type { Product } from "@/lib/types";
 import type { CatalogProductSummary } from "@/lib/catalog";
+import { isDemoMedia } from "@/lib/product-media";
 
 export type BreadcrumbItem = { name: string; item: string };
+
+export function productMetadata(product: Product, canonical: string): Metadata {
+  const media = product.media.find((item) => !isDemoMedia(product, item) && item.type === "image");
+  const title = product.name + " — Nệm Thăng Long";
+  return {
+    title,
+    description: product.description,
+    alternates: { canonical },
+    robots: product.isDemo ? { index: false, follow: true } : { index: true, follow: true },
+    openGraph: {
+      title,
+      description: product.description,
+      images: media ? [media.url] : undefined,
+    },
+  };
+}
 
 export function breadcrumbJsonLd(items: BreadcrumbItem[]) {
   return {
@@ -17,7 +35,7 @@ export function breadcrumbJsonLd(items: BreadcrumbItem[]) {
 }
 
 export function productJsonLd(product: Product, canonical: string) {
-  const media = product.media.find((item) => !item.isDemo && item.type === "image");
+  const media = product.media.find((item) => !isDemoMedia(product, item) && item.type === "image");
   const variants = product.variants.filter((variant) => variant.active && typeof variant.price === "number" && variant.price > 0);
   if (product.isDemo || !media || !product.description.trim() || variants.length === 0) return null;
   const prices = variants.map((variant) => variant.price as number);

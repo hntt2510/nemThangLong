@@ -4,24 +4,25 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatDimension, formatVnd } from "@/lib/format";
-import { activeVariants, dimensionOptions, resolveVariant, selectVariant, type VariantDimension } from "@/lib/variant-selection";
+import { activeVariants, dimensionOptions, initialSelection, resolveVariant, selectVariant, selectionFromVariant, type VariantDimension } from "@/lib/variant-selection";
 import { useCart } from "@/lib/cart-context";
 import type { Product } from "@/lib/types";
+import { isDemoMedia, mediaAlt } from "@/lib/product-media";
 
 export function GenericProductPurchase({ product, contactHref }: { product: Product; contactHref: string | null }) {
   const router = useRouter();
   const { addItem } = useCart();
   const variants = useMemo(() => activeVariants(product.variants), [product.variants]);
-  const [selectedId, setSelectedId] = useState(variants[0]?.id);
+  const [selection, setSelection] = useState(() => initialSelection(variants));
   const [mediaIndex, setMediaIndex] = useState(0);
-  const selected = resolveVariant(variants, selectedId);
+  const selected = resolveVariant(variants, selection);
   const media = product.media[mediaIndex] ?? product.media[0];
   const canPurchase = Boolean(!product.isDemo && selected && selected.price !== null && selected.price > 0 && selected.stock > 0);
   const price = !product.isDemo && selected?.price && selected.price > 0 ? formatVnd(selected.price) : "Liên hệ";
 
   function change(dimension: VariantDimension, value: number) {
     const candidate = selectVariant(variants, selected, dimension, value);
-    if (candidate) setSelectedId(candidate.id);
+    if (candidate) setSelection(selectionFromVariant(candidate));
   }
 
   function addToCart() {
@@ -36,7 +37,7 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
 
   return (
     <section className="generic-product-purchase container">
-      <div className="generic-gallery"><div className="gallery-layout"><div className="gallery-thumbs">{product.media.map((item, index) => <button key={item.id} type="button" className={index === mediaIndex ? "active" : ""} onClick={() => setMediaIndex(index)} aria-label={"Xem ảnh " + (index + 1)}><Image src={item.url} alt={item.alt} width={90} height={112} /></button>)}</div><div className="hero-image">{media && <Image src={media.url} alt={media.alt} fill priority sizes="(max-width: 860px) 100vw, 53vw" style={{ objectFit: media.fit ?? "cover", objectPosition: ((media.focalX ?? .5) * 100) + "% " + ((media.focalY ?? .5) * 100) + "%" }} />}{media?.isDemo && <span className="demo-badge">Hình ảnh minh họa</span>}</div></div></div>
+      <div className="generic-gallery"><div className="gallery-layout"><div className="gallery-thumbs">{product.media.map((item, index) => <button key={item.id} type="button" className={index === mediaIndex ? "active" : ""} onClick={() => setMediaIndex(index)} aria-label={"Xem ảnh " + (index + 1) + (isDemoMedia(product, item) ? ", hình ảnh minh họa" : "")}><Image src={item.url} alt={mediaAlt(product, item)} width={90} height={112} />{isDemoMedia(product, item) && <span className="demo-thumb-badge">Minh họa</span>}</button>)}</div><div className="hero-image">{media && <Image src={media.url} alt={mediaAlt(product, media)} fill priority sizes="(max-width: 860px) 100vw, 53vw" style={{ objectFit: media.fit ?? "cover", objectPosition: ((media.focalX ?? .5) * 100) + "% " + ((media.focalY ?? .5) * 100) + "%" }} />}{media && isDemoMedia(product, media) && <span className="demo-badge">Hình ảnh minh họa</span>}</div></div></div>
       <div className="generic-product-copy">
         <p className="eyebrow">{product.eyebrow}</p><h1>{product.name}</h1><p className="hero-description">{product.description}</p>
         <div className="price-row" aria-live="polite"><strong>{price}</strong></div>

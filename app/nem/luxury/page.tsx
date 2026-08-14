@@ -2,15 +2,13 @@ import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
 import { LuxuryPdp } from "@/components/luxury-pdp";
 import { getStorefrontProduct } from "@/lib/products";
-import { breadcrumbJsonLd, productJsonLd } from "@/lib/seo";
+import { breadcrumbJsonLd, productJsonLd, productMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Luxury — Nệm Thăng Long",
-  description: "Khám phá dòng Luxury của Thăng Long với thông tin được xác nhận từ CMS.",
-  alternates: { canonical: "/nem/luxury" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return productMetadata(await getStorefrontProduct("luxury"), "/nem/luxury");
+}
 
 export default async function LuxuryPage() {
   const product = await getStorefrontProduct("luxury");

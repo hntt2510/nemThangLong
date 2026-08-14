@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client";
 import { getPrisma } from "@/lib/db";
 import { getDemoProduct } from "@/lib/product-data";
 import type { Product, ProductContent } from "@/lib/types";
+import { mediaAlt } from "@/lib/product-media";
 
 export const productInclude = {
   variants: { orderBy: [{ width: "asc" }, { length: "asc" }, { thickness: "asc" }] },
@@ -26,9 +27,23 @@ export function mapProduct(record: ProductRecord, source: "database" | "demo"): 
   const variants = rawVariants.map((variant) => ({ id: variant.id, width: variant.width, length: variant.length, thickness: variant.thickness, price: isDemo ? null : variant.price, compareAtPrice: isDemo ? null : variant.compareAtPrice, sku: variant.sku, stock: isDemo ? 0 : (variant.stock ?? 0), active: isDemo ? false : (variant.active ?? true) }));
   const productionDemo = isDemo && process.env.NODE_ENV === "production" && process.env.VERCEL_ENV !== "preview";
   const mediaRecords = rawMedia.length > 0 ? rawMedia : [getDemoProduct(record.slug).media[0]];
+  const media = mediaRecords.map((item) => {
+    const normalized = {
+      id: item.id,
+      type: item.type as "image" | "video" | "model",
+      url: item.url,
+      alt: item.alt,
+      aspect: item.aspect ?? undefined,
+      focalX: item.focalX,
+      focalY: item.focalY,
+      fit: item.fit as "cover" | "contain",
+      isDemo: isDemo || item.isDemo === true,
+    };
+    return { ...normalized, alt: mediaAlt({ isDemo }, normalized) };
+  });
   return {
     id: record.id, slug: record.slug, name: record.name, eyebrow: record.eyebrow ?? "THE THĂNG LONG SIGNATURE", description: record.description ?? "",
-    media: mediaRecords.map((media) => ({ id: media.id, type: media.type as "image" | "video" | "model", url: media.url, alt: media.alt, aspect: media.aspect ?? undefined, focalX: media.focalX, focalY: media.focalY, fit: media.fit as "cover" | "contain", isDemo: media.isDemo ?? true })),
+    media,
     variants,
     layers: (record.layers ?? []).map((layer) => ({ id: layer.id, sortOrder: layer.sortOrder, name: layer.name, material: layer.material, thickness: layer.thickness, description: layer.description, nodeName: layer.nodeName, explodeDistance: layer.explodeDistance, showHotspot: layer.showHotspot, published: productionDemo ? false : layer.published })),
     modelUrl: productionDemo ? null : record.modelUrl, posterUrl: record.posterUrl, mattressLab: record.mattressLab,

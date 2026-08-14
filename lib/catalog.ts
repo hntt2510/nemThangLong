@@ -122,15 +122,27 @@ function matches(product: CatalogProductSummary, query: CatalogQuery) {
     const haystack = [product.name, product.description, ...product.skus].join(" ").toLocaleLowerCase("vi");
     if (!haystack.includes(query.search.toLocaleLowerCase("vi"))) return false;
   }
-  if (query.inStock && !product.inStock) return false;
-  if (query.minPrice !== null && !product.variants.some((variant) => typeof variant.price === "number" && variant.price >= query.minPrice!)) return false;
-  if (query.maxPrice !== null && !product.variants.some((variant) => typeof variant.price === "number" && variant.price <= query.maxPrice!)) return false;
-  if (query.widths.length > 0 || query.thicknesses.length > 0) {
-    const validCombination = product.variants.some((variant) =>
-      (query.widths.length === 0 || query.widths.includes(variant.width)) &&
-      (query.thicknesses.length === 0 || query.thicknesses.includes(variant.thickness)),
-    );
-    if (!validCombination) return false;
+  const hasVariantFilters =
+    query.widths.length > 0 ||
+    query.thicknesses.length > 0 ||
+    query.minPrice !== null ||
+    query.maxPrice !== null ||
+    query.inStock;
+  if (hasVariantFilters) {
+    if (query.minPrice !== null && query.maxPrice !== null && query.minPrice > query.maxPrice) return false;
+    const validVariant = product.variants.some((variant) => {
+      if (!variant.active) return false;
+      if (query.widths.length > 0 && !query.widths.includes(variant.width)) return false;
+      if (query.thicknesses.length > 0 && !query.thicknesses.includes(variant.thickness)) return false;
+      if (query.inStock && variant.stock <= 0) return false;
+      if (query.minPrice !== null || query.maxPrice !== null) {
+        if (typeof variant.price !== "number" || variant.price <= 0) return false;
+        if (query.minPrice !== null && variant.price < query.minPrice) return false;
+        if (query.maxPrice !== null && variant.price > query.maxPrice) return false;
+      }
+      return true;
+    });
+    if (!validVariant) return false;
   }
   return true;
 }

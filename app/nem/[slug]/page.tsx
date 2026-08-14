@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getRelatedCatalogProducts } from "@/lib/catalog";
 import { getStorefrontProduct, getSiteSettings } from "@/lib/products";
+import { productMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -18,12 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   if (!isPdpSlug(slug)) return { title: "Dòng nệm — Nệm Thăng Long" };
   const product = await getStorefrontProduct(slug);
-  return {
-    title: product.name + " — Nệm Thăng Long",
-    description: product.description,
-    alternates: { canonical: "/nem/" + slug },
-    openGraph: { title: product.name + " — Nệm Thăng Long", description: product.description, images: product.media[0] ? [product.media[0].url] : undefined },
-  };
+  return productMetadata(product, "/nem/" + slug);
 }
 
 export default async function GenericProductRoute({ params }: { params: Promise<{ slug: string }> }) {

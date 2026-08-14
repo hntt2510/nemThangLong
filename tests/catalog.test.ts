@@ -69,4 +69,25 @@ describe("catalog query and filtering", () => {
     const priced = toCatalogProduct({ ...getDemoProduct("america"), isDemo: false, source: "database", variants: [{ id: "v", width: 160, length: 200, thickness: 15, price: 4000000, sku: "A", stock: 1, active: true }] } as Product);
     expect(sortCatalogProducts([demo, priced], "price-asc").map((item) => item.slug)).toEqual(["america", "classic"]);
   });
+
+  it("requires every variant-level filter to match one active variant", () => {
+    const product = toCatalogProduct({
+      ...getDemoProduct("america"),
+      isDemo: false,
+      source: "database",
+      variants: [
+        { id: "a", width: 160, length: 200, thickness: 10, price: 5000000, sku: "A", stock: 0, active: true },
+        { id: "b", width: 180, length: 200, thickness: 20, price: 10000000, sku: "B", stock: 2, active: true },
+      ],
+    } as Product);
+
+    expect(filterCatalogProducts([product], parseCatalogQuery({ width: "160", inStock: "1" }))).toHaveLength(0);
+    expect(filterCatalogProducts([product], parseCatalogQuery({ width: "160", minPrice: "6000000" }))).toHaveLength(0);
+    expect(filterCatalogProducts([product], parseCatalogQuery({ width: "180", minPrice: "6000000" }))).toHaveLength(1);
+    expect(filterCatalogProducts([product], parseCatalogQuery({ thickness: "10", inStock: "1" }))).toHaveLength(0);
+    expect(filterCatalogProducts([product], parseCatalogQuery({ minPrice: "6000000", maxPrice: "9000000" }))).toHaveLength(0);
+    expect(filterCatalogProducts([product], parseCatalogQuery({ minPrice: "9000000", maxPrice: "6000000" }))).toHaveLength(0);
+    expect(filterCatalogProducts([product], parseCatalogQuery({ minPrice: "4000000", maxPrice: "6000000" }))).toHaveLength(1);
+    expect(filterCatalogProducts([product], parseCatalogQuery({ width: ["160", "180"], thickness: ["20"] }))).toHaveLength(1);
+  });
 });
