@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { getPrisma } from "@/lib/db";
 import { getEnv } from "@/lib/env";
 import { checkoutSchema } from "@/lib/validation";
+import { getPaymentExpiry } from "@/lib/payment-lifecycle";
 
 export const runtime = "nodejs";
 
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
     const settings = await prisma.siteSettings.findUnique({ where: { id: "default" } });
     if (!settings || settings.shippingFee === null) return NextResponse.json({ error: "Chính sách phí vận chuyển chưa được cấu hình." }, { status: 503 });
     const shippingFee = settings.shippingFee;
-    if (input.paymentMethod === "BANK_TRANSFER" && !settings.bankTransferInfo) return NextResponse.json({ error: "Thông tin chuyển khoản chưa được cấu hình." }, { status: 503 });
+    if (input.paymentMethod === "BANK_TRANSFER" && (!settings.bankTransferInfo || !settings.bankTransferReservationMinutes || settings.bankTransferReservationMinutes < 5 || settings.bankTransferReservationMinutes > 10080)) return NextResponse.json({ error: "Thông tin hoặc thời hạn chuyển khoản chưa được cấu hình." }, { status: 503 });
     const env = getEnv();
     if (input.paymentMethod === "MOMO" && (!env.MOMO_PARTNER_CODE || !env.MOMO_ACCESS_KEY || !env.MOMO_SECRET_KEY)) return NextResponse.json({ error: "MoMo chưa được cấu hình." }, { status: 503 });
 
@@ -36,20 +37,19 @@ export async function POST(request: Request) {
     const subtotal = lines.reduce((sum, line) => sum + (line.variant.price ?? 0) * line.item.quantity, 0);
     const total = subtotal + shippingFee;
     const code = makeOrderCode();
-    const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+    const reservationExpiresAt = getPaymentExpiry(input.paymentMethod, new Date(), settings.bankTransferReservationMinutes);
     const order = await prisma.$transaction(async (tx) => {
       for (const line of lines) {
         const updated = await tx.productVariant.updateMany({ where: { id: line.variant.id, stock: { gte: line.item.quantity } }, data: { stock: { decrement: line.item.quantity } } });
         if (updated.count !== 1) throw new Error("Sản phẩm vừa hết tồn kho.");
       }
-      const isMomo = input.paymentMethod === "MOMO";
       return tx.order.create({ data: {
         code, userId: session?.user?.id || null, guestEmail: input.guestEmail || null, customerName: input.customerName, customerPhone: input.customerPhone,
         shippingAddress: input.address, subtotal, shippingFee, total, paymentMethod: input.paymentMethod,
         status: input.paymentMethod === "COD" ? "CONFIRMED" : "PENDING", paymentStatus: "PENDING",
         items: { create: lines.map(({ item, variant }) => ({ variantId: variant.id, productName: variant.product.name, sku: variant.sku, width: variant.width, length: variant.length, thickness: variant.thickness, quantity: item.quantity, unitPrice: variant.price ?? 0 })) },
-        payments: { create: { provider: input.paymentMethod, amount: total, expiresAt: isMomo ? expiresAt : null, providerOrderId: code } },
-        reservations: isMomo ? { create: lines.map(({ item, variant }) => ({ variantId: variant.id, quantity: item.quantity, expiresAt })) } : undefined,
+        payments: { create: { provider: input.paymentMethod, amount: total, expiresAt: reservationExpiresAt, providerOrderId: code } },
+        reservations: reservationExpiresAt ? { create: lines.map(({ item, variant }) => ({ variantId: variant.id, quantity: item.quantity, expiresAt: reservationExpiresAt })) } : undefined,
       } });
     });
     return NextResponse.json({ orderCode: order.code, resultToken: order.publicToken, total, nextAction: input.paymentMethod === "COD" ? "cod_result" : input.paymentMethod === "BANK_TRANSFER" ? "bank_pending" : "momo_redirect", paymentPath: input.paymentMethod === "MOMO" ? "/api/payments/momo/create" : undefined });

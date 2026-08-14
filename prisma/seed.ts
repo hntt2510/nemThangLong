@@ -50,8 +50,8 @@ async function main() {
 
   await prisma.siteSettings.upsert({
     where: { id: "default" },
-    update: { shippingFee: null, freeShippingThreshold: null, bankTransferInfo: Prisma.JsonNull },
-    create: { id: "default", shippingFee: null, freeShippingThreshold: null, bankTransferInfo: Prisma.JsonNull },
+    update: { shippingFee: null, freeShippingThreshold: null, bankTransferReservationMinutes: null, bankTransferInfo: Prisma.JsonNull },
+    create: { id: "default", shippingFee: null, freeShippingThreshold: null, bankTransferReservationMinutes: null, bankTransferInfo: Prisma.JsonNull },
   });
 }
 

@@ -23,6 +23,8 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/thanglong_test
       DIRECT_URL: postgresql://postgres:postgres@localhost:5432/thanglong_test
       AUTH_SECRET: ci-secret-with-at-least-32-characters-long
+      CRON_SECRET: ci-cron-secret-with-at-least-32-characters
+      RUN_INTEGRATION: "true"
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
@@ -37,4 +39,5 @@ jobs:
       - run: npm run typecheck
       - run: npx prisma validate
       - run: npm test
+      - run: npm run test:integration
       - run: npm run build

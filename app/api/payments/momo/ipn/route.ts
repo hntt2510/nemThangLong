@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
+import type { Prisma } from "@prisma/client";
 import { getPrisma } from "@/lib/db";
 import { getEnv } from "@/lib/env";
-
-const pendingCodes = new Set([1000, 9000]);
+import { applyMomoIpn } from "@/lib/payment-lifecycle";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null) as Record<string, string | number> | null;
@@ -14,33 +14,14 @@ export async function POST(request: Request) {
   const expected = createHmac("sha256", secretKey).update(raw).digest("hex");
   const received = String(body.signature ?? "");
   if (String(body.partnerCode) !== env.MOMO_PARTNER_CODE || received.length !== expected.length || !timingSafeEqual(Buffer.from(received), Buffer.from(expected))) return new NextResponse(null, { status: 204 });
-  const prisma = getPrisma();
-  if (!prisma) return new NextResponse(null, { status: 204 });
-  const resultCode = Number(body.resultCode);
-  const order = await prisma.order.findUnique({ where: { code: String(body.orderId) } });
+  let prisma;
+  try { prisma = getPrisma(); } catch { return NextResponse.json({ error: "Database hiện chưa khả dụng." }, { status: 503 }); }
+  if (!prisma) return NextResponse.json({ error: "Database hiện chưa khả dụng." }, { status: 503 });
+  let order;
+  try { order = await prisma.order.findUnique({ where: { code: String(body.orderId) }, select: { total: true, paymentMethod: true } }); } catch { return NextResponse.json({ error: "Database hiện chưa khả dụng." }, { status: 503 }); }
   if (!order || order.total !== Number(body.amount) || order.paymentMethod !== "MOMO") return new NextResponse(null, { status: 204 });
-
-  await prisma.$transaction(async (tx) => {
-    const attempt = await tx.paymentAttempt.findFirst({ where: { orderId: order.id, provider: "MOMO" }, orderBy: { createdAt: "desc" } });
-    if (!attempt || attempt.status === "PAID" || order.paymentStatus === "PAID" || order.paymentStatus === "FAILED") return;
-    if (pendingCodes.has(resultCode)) {
-      await tx.paymentAttempt.update({ where: { id: attempt.id }, data: { lastResultCode: resultCode, rawResponse: body } });
-      return;
-    }
-    if (resultCode === 0) {
-      await tx.paymentAttempt.update({ where: { id: attempt.id }, data: { status: "PAID", lastResultCode: resultCode, providerTransactionId: String(body.transId), rawResponse: body } });
-      await tx.order.updateMany({ where: { id: order.id, paymentStatus: { not: "PAID" } }, data: { paymentStatus: "PAID", status: "CONFIRMED" } });
-      const reservations = await tx.inventoryReservation.findMany({ where: { orderId: order.id, status: "ACTIVE" } });
-      for (const reservation of reservations) await tx.inventoryReservation.updateMany({ where: { id: reservation.id, status: "ACTIVE" }, data: { status: "COMMITTED", committedAt: new Date() } });
-      return;
-    }
-    await tx.paymentAttempt.updateMany({ where: { id: attempt.id, status: "PENDING" }, data: { status: "FAILED", lastResultCode: resultCode, rawResponse: body } });
-    await tx.order.updateMany({ where: { id: order.id, paymentStatus: { not: "PAID" } }, data: { paymentStatus: "FAILED", status: "CANCELLED" } });
-    const reservations = await tx.inventoryReservation.findMany({ where: { orderId: order.id, status: "ACTIVE" } });
-    for (const reservation of reservations) {
-      const released = await tx.inventoryReservation.updateMany({ where: { id: reservation.id, status: "ACTIVE" }, data: { status: "RELEASED", releasedAt: new Date() } });
-      if (released.count === 1) await tx.productVariant.update({ where: { id: reservation.variantId }, data: { stock: { increment: reservation.quantity } } });
-    }
-  });
+  try {
+    await applyMomoIpn(prisma, { orderCode: String(body.orderId), amount: Number(body.amount), resultCode: Number(body.resultCode), transactionId: String(body.transId), rawResponse: body as Prisma.InputJsonValue });
+  } catch { return NextResponse.json({ error: "Không thể lưu kết quả MoMo." }, { status: 503 }); }
   return new NextResponse(null, { status: 204 });
 }

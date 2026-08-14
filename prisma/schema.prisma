@@ -38,6 +38,7 @@ enum PaymentStatus {
   PENDING
   PAID
   FAILED
+  REVIEW_REQUIRED
   REFUNDED
 }
 
@@ -287,6 +288,7 @@ model SiteSettings {
   id                    String   @id @default("default")
   shippingFee           Int?
   freeShippingThreshold Int?
+  bankTransferReservationMinutes Int?
   bankTransferInfo      Json?
   contactPhone          String?
   contactEmail          String?
