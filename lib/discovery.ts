@@ -5,8 +5,10 @@ import { CATALOG_SLUGS, getDemoCatalogProducts } from "@/lib/product-data";
 import { mapProduct, productInclude } from "@/lib/products";
 import { mediaAlt } from "@/lib/product-media";
 import type { Product, ProductMedia, ProductVariant } from "@/lib/types";
+import { sanitizePublishedContent, type PublishedBodySection, type PublishedTitledSection } from "@/lib/product-content";
 
-export type PublishedTextSection = { title: string; body: string };
+export type PublishedTextSection = PublishedTitledSection;
+export type DiscoveryBodySection = PublishedBodySection;
 export type DiscoveryComfort = {
   firmnessLabel: string | null;
   firmnessScore: number | null;
@@ -38,46 +40,21 @@ export type DiscoveryProduct = {
   comfort: DiscoveryComfort | null;
   audience: PublishedTextSection | null;
   materialStory: PublishedTextSection | null;
-  delivery: PublishedTextSection | null;
-  warranty: PublishedTextSection | null;
+  delivery: DiscoveryBodySection | null;
+  warranty: DiscoveryBodySection | null;
+  hasVerifiedPrices: boolean;
   source: "database" | "demo";
   catalogueIndex: number;
 };
 
-function finiteScore(value: unknown) {
-  return typeof value === "number" && Number.isFinite(value) && value >= 1 && value <= 5 ? value : null;
-}
-
-function publishedText(value: unknown): PublishedTextSection | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const item = value as Record<string, unknown>;
-  if (item.published !== true || typeof item.title !== "string" || typeof item.body !== "string") return null;
-  const title = item.title.trim();
-  const body = item.body.trim();
-  return title && body ? { title, body } : null;
-}
-
-export function sanitizeProductContent(content: unknown) {
-  if (!content || typeof content !== "object" || Array.isArray(content)) return { comfort: null, audience: null, materialStory: null, delivery: null, warranty: null };
-  const source = content as Record<string, unknown>;
-  const rawComfort = source.comfort;
-  let comfort: DiscoveryComfort | null = null;
-  if (rawComfort && typeof rawComfort === "object" && !Array.isArray(rawComfort) && (rawComfort as Record<string, unknown>).published === true) {
-    const item = rawComfort as Record<string, unknown>;
-    comfort = {
-      firmnessLabel: typeof item.firmnessLabel === "string" && item.firmnessLabel.trim() ? item.firmnessLabel.trim() : null,
-      firmnessScore: finiteScore(item.firmnessScore),
-      support: finiteScore(item.support),
-      breathability: finiteScore(item.breathability),
-      motionIsolation: finiteScore(item.motionIsolation),
-    };
-  }
+export function sanitizeProductContent(value: unknown) {
+  const sanitized = sanitizePublishedContent(value);
   return {
-    comfort,
-    audience: publishedText(source.audience),
-    materialStory: publishedText(source.materialStory),
-    delivery: publishedText(source.delivery),
-    warranty: publishedText(source.warranty),
+    comfort: sanitized.comfort ? { ...sanitized.comfort, firmnessLabel: sanitized.comfort.firmnessLabel ?? null } : null,
+    audience: sanitized.audience,
+    materialStory: sanitized.materialStory,
+    delivery: sanitized.delivery,
+    warranty: sanitized.warranty,
   };
 }
 
@@ -112,24 +89,31 @@ export function toDiscoveryProduct(product: Product, catalogueIndex = CATALOG_SL
     materialStory: content.materialStory,
     delivery: content.delivery,
     warranty: content.warranty,
+    hasVerifiedPrices: !product.isDemo && priced.length > 0,
     source: product.source,
     catalogueIndex: catalogueIndex < 0 ? CATALOG_SLUGS.length : catalogueIndex,
   };
 }
 
-export async function getDiscoveryProducts(): Promise<{ products: DiscoveryProduct[]; databaseAvailable: boolean }> {
+export type DiscoveryData = { products: DiscoveryProduct[]; databaseAvailable: boolean; hasVerifiedPrices: boolean };
+
+function discoveryData(products: DiscoveryProduct[], databaseAvailable: boolean): DiscoveryData {
+  return { products, databaseAvailable, hasVerifiedPrices: products.some((product) => product.hasVerifiedPrices) };
+}
+
+export async function getDiscoveryProducts(): Promise<DiscoveryData> {
   let prisma;
   try { prisma = getPrisma(); } catch { prisma = null; }
-  if (!prisma) return { products: getDemoCatalogProducts().map((product, index) => toDiscoveryProduct(product, index)), databaseAvailable: false };
+  if (!prisma) return discoveryData(getDemoCatalogProducts().map((product, index) => toDiscoveryProduct(product, index)), false);
   try {
     const records = await prisma.product.findMany({ where: { slug: { in: [...CATALOG_SLUGS] }, status: "PUBLISHED" }, include: productInclude });
     const products = records
       .filter((record) => record.status === "PUBLISHED")
       .map((record) => toDiscoveryProduct(mapProduct(record, "database"), CATALOG_SLUGS.indexOf(record.slug as (typeof CATALOG_SLUGS)[number])))
       .sort((a, b) => a.catalogueIndex - b.catalogueIndex);
-    return { products, databaseAvailable: true };
+    return discoveryData(products, true);
   } catch {
-    return { products: getDemoCatalogProducts().map((product, index) => toDiscoveryProduct(product, index)), databaseAvailable: false };
+    return discoveryData(getDemoCatalogProducts().map((product, index) => toDiscoveryProduct(product, index)), false);
   }
 }
 

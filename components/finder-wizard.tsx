@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { FinderFeel, FinderPriority, FinderQuery } from "@/lib/finder";
 import type { DiscoveryProduct } from "@/lib/discovery";
 
-export function FinderWizard({ products, query }: { products: DiscoveryProduct[]; query: FinderQuery }) {
+export function FinderWizard({ products, query, hasVerifiedPrices }: { products: DiscoveryProduct[]; query: FinderQuery; hasVerifiedPrices: boolean }) {
   const router = useRouter();
   const pathname = usePathname();
   const [step, setStep] = useState(0);
@@ -42,7 +42,7 @@ export function FinderWizard({ products, query }: { products: DiscoveryProduct[]
   }
 
   return (
-    <form className="finder-wizard" onSubmit={submit}>
+    <form id="finder-form" className="finder-wizard" onSubmit={submit}>
       <p className="finder-progress" aria-live="polite">Bước {step + 1} / 3</p>
       {step === 0 && <fieldset><legend>Kích thước bạn đang tìm</legend><div className="finder-fields">
         <label>Rộng<select value={state.width ?? ""} onChange={(event) => update("width", event.target.value ? Number(event.target.value) : null)}><option value="">Tất cả</option>{widths.map((value) => <option key={value} value={value}>{value} cm</option>)}</select></label>
@@ -51,7 +51,7 @@ export function FinderWizard({ products, query }: { products: DiscoveryProduct[]
       </div></fieldset>}
       {step === 1 && <fieldset><legend>Cảm giác và ngân sách</legend><div className="finder-fields">
         <label>Cảm giác<select value={state.feel} onChange={(event) => update("feel", event.target.value as FinderFeel)}><option value="unsure">Chưa chắc</option><option value="soft">Êm hơn</option><option value="balanced">Cân bằng</option><option value="firm">Vững hơn</option></select></label>
-        <label>Ngân sách tối đa (VND)<input type="number" min="1" value={state.maxPrice ?? ""} onChange={(event) => update("maxPrice", event.target.value ? Number(event.target.value) : null)} /></label>
+        {hasVerifiedPrices && <label>Ngân sách tối đa (VND)<input type="number" min="1" value={state.maxPrice ?? ""} onChange={(event) => update("maxPrice", event.target.value ? Number(event.target.value) : null)} /></label>}
       </div></fieldset>}
       {step === 2 && <fieldset><legend>Ưu tiên khi ngủ</legend><div className="finder-fields">
         <label>Ưu tiên<select value={state.priority} onChange={(event) => update("priority", event.target.value as FinderPriority)}><option value="unsure">Chưa chắc</option><option value="support">Nâng đỡ</option><option value="breathability">Thoáng khí</option><option value="motion-isolation">Giảm truyền động</option></select></label>

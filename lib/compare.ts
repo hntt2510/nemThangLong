@@ -26,9 +26,14 @@ function show(value: string | number | null | undefined) {
   return value === null || value === undefined || value === "" ? null : value;
 }
 
+function sectionText(section: { title?: string; body: string } | null) {
+  if (!section) return null;
+  return section.title ? section.title + ": " + section.body : section.body;
+}
+
 export function buildCompareRows(products: DiscoveryProduct[]): CompareRow[] {
   const rows: CompareRow[] = [
-    { key: "description", label: "Mô tả đã công bố", values: products.map((product) => show(product.description)) },
+    { key: "description", label: "Mô tả đã công bố", values: products.map((product) => product.isDemo ? null : show(product.description)) },
     { key: "price", label: "Khoảng giá đã xác nhận", values: products.map((product) => product.minPrice === null ? null : `${product.minPrice}-${product.maxPrice ?? product.minPrice} VND`) },
     { key: "purchasable", label: "Khả năng mua", values: products.map((product) => product.isDemo ? null : product.purchasable ? "Có" : "Chưa sẵn sàng") },
     { key: "stock", label: "Tồn kho", values: products.map((product) => product.isDemo ? null : product.inStock ? "Còn biến thể" : "Hết hàng") },
@@ -40,9 +45,9 @@ export function buildCompareRows(products: DiscoveryProduct[]): CompareRow[] {
     { key: "support", label: "Nâng đỡ", values: products.map((product) => product.comfort?.support ?? null), kind: "number" },
     { key: "breathability", label: "Thoáng khí", values: products.map((product) => product.comfort?.breathability ?? null), kind: "number" },
     { key: "motionIsolation", label: "Cách truyền động", values: products.map((product) => product.comfort?.motionIsolation ?? null), kind: "number" },
-    { key: "material", label: "Câu chuyện vật liệu", values: products.map((product) => product.materialStory?.body ?? null) },
-    { key: "delivery", label: "Giao hàng", values: products.map((product) => product.delivery?.body ?? null) },
-    { key: "warranty", label: "Bảo hành", values: products.map((product) => product.warranty?.body ?? null) },
+    { key: "material", label: "Câu chuyện vật liệu", values: products.map((product) => sectionText(product.materialStory)) },
+    { key: "delivery", label: "Giao hàng", values: products.map((product) => sectionText(product.delivery)) },
+    { key: "warranty", label: "Bảo hành", values: products.map((product) => sectionText(product.warranty)) },
   ];
   return rows.filter((row) => row.values.some((value) => value !== null));
 }

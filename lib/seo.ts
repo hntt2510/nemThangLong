@@ -5,6 +5,16 @@ import { isDemoMedia } from "@/lib/product-media";
 
 export type BreadcrumbItem = { name: string; item: string };
 
+export function discoveryPageMetadata(kind: "finder" | "compare", hasQuery: boolean): Metadata {
+  const finder = kind === "finder";
+  const canonical = finder ? "/tim-nem" : "/so-sanh";
+  const title = finder ? "Tìm nệm phù hợp — Nệm Thăng Long" : "So sánh dòng nệm — Nệm Thăng Long";
+  const description = finder
+    ? "Khám phá dòng nệm theo kích thước và nhu cầu đã công bố."
+    : "Đặt cạnh các dòng nệm với dữ liệu đã được công bố.";
+  return { title, description, alternates: { canonical }, robots: hasQuery ? { index: false, follow: true } : { index: true, follow: true } };
+}
+
 export function productMetadata(product: Product, canonical: string): Metadata {
   const media = product.media.find((item) => !isDemoMedia(product, item) && item.type === "image");
   const title = product.name + " — Nệm Thăng Long";

@@ -6,12 +6,13 @@ import { SiteHeader } from "@/components/site-header";
 import { buildCompareRows, parseCompareItems, selectCompareProducts } from "@/lib/compare";
 import { getDiscoveryProducts } from "@/lib/discovery";
 import { getSiteSettings } from "@/lib/products";
+import { discoveryPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }): Promise<Metadata> {
   const params = await searchParams;
-  return { title: "So sánh dòng nệm — Nệm Thăng Long", description: "Đặt cạnh các dòng nệm với dữ liệu đã được công bố.", alternates: { canonical: "/so-sanh" }, robots: Object.keys(params).length ? { index: false, follow: true } : { index: true, follow: true } };
+  return discoveryPageMetadata("compare", Object.keys(params).length > 0);
 }
 
 export default async function ComparePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
