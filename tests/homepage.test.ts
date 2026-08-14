@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const { getPrisma } = vi.hoisted(() => ({ getPrisma: vi.fn() }));
 vi.mock("@/lib/db", () => ({ getPrisma }));
 
-import { getHomepageData } from "@/lib/homepage";
+import { getContactHref, getHomepageData } from "@/lib/homepage";
 import { parseNavigation } from "@/lib/navigation";
 
 describe("homepage repository", () => {
@@ -13,22 +13,45 @@ describe("homepage repository", () => {
     getPrisma.mockReturnValue(null);
     const data = await getHomepageData();
     expect(data.products).toHaveLength(6);
-    expect(data.products.every((product) => product.isDemo && !product.purchasable && product.minPrice === null)).toBe(true);
+    expect(data.products.every((product) => product.isDemo && product.imageIsDemo && !product.purchasable && product.minPrice === null)).toBe(true);
+    expect(new Set(data.products.map((product) => product.image)).size).toBe(6);
   });
 
-  it("uses published database prices and stock without trusting demo values", async () => {
+  it("separates product demo status from media demo status", async () => {
     getPrisma.mockReturnValue({
       product: { findMany: vi.fn().mockResolvedValue([
         {
           slug: "america",
-          name: "America thật",
+          name: "America",
           eyebrow: "EVERYDAY COMFORT",
           description: "Nội dung đã xác nhận.",
           status: "PUBLISHED",
           isDemo: false,
           content: null,
-          media: [{ url: "/america.jpg", alt: "America", isDemo: false }],
+          media: [{ url: "/america-demo.jpg", alt: "America", isDemo: true }],
           variants: [{ price: 4900000, stock: 2 }, { price: 5900000, stock: 0 }],
+        },
+        {
+          slug: "classic",
+          name: "Classic",
+          eyebrow: "CLASSIC",
+          description: "Nội dung đã xác nhận.",
+          status: "PUBLISHED",
+          isDemo: false,
+          content: null,
+          media: [],
+          variants: [{ price: 3900000, stock: 2 }],
+        },
+        {
+          slug: "hoat-tinh",
+          name: "Hoạt Tính",
+          eyebrow: "RESPONSIVE",
+          description: "Nội dung đã xác nhận.",
+          status: "PUBLISHED",
+          isDemo: false,
+          content: null,
+          media: [{ url: "/hoat-tinh.jpg", alt: "Hoạt Tính", isDemo: false }],
+          variants: [{ price: 4900000, stock: 2 }],
         },
         {
           slug: "luxury",
@@ -46,9 +69,13 @@ describe("homepage repository", () => {
     } as never);
     const data = await getHomepageData();
     const america = data.products.find((product) => product.slug === "america");
+    const classic = data.products.find((product) => product.slug === "classic");
+    const hoatTinh = data.products.find((product) => product.slug === "hoat-tinh");
     const luxury = data.products.find((product) => product.slug === "luxury");
-    expect(america).toMatchObject({ minPrice: 4900000, purchasable: true, isDemo: false });
-    expect(luxury).toMatchObject({ minPrice: null, purchasable: false, isDemo: true });
+    expect(america).toMatchObject({ minPrice: 4900000, purchasable: true, isDemo: false, imageIsDemo: true });
+    expect(classic).toMatchObject({ minPrice: 3900000, purchasable: true, isDemo: false, imageIsDemo: true });
+    expect(hoatTinh).toMatchObject({ minPrice: 4900000, purchasable: true, isDemo: false, imageIsDemo: false });
+    expect(luxury).toMatchObject({ minPrice: null, purchasable: false, isDemo: true, imageIsDemo: true });
   });
 
   it("falls back safely when a product query fails", async () => {
@@ -64,5 +91,14 @@ describe("navigation parser", () => {
     const navigation = parseNavigation({ mattressLines: [{ label: "Unsafe", href: "https://example.com" }, { label: "Luxury", href: "/nem/luxury" }] });
     expect(navigation.mattressLines).toEqual([{ label: "Luxury", href: "/nem/luxury" }]);
     expect(navigation.needs.length).toBeGreaterThan(0);
+  });
+});
+
+describe("homepage contact fallback", () => {
+  it("does not create a self-anchor without a configured contact method", () => {
+    expect(getContactHref(null)).toBeNull();
+    expect(getContactHref({ shippingFee: null, contactPhone: null, contactEmail: null, navigation: null })).toBeNull();
+    expect(getContactHref({ shippingFee: null, contactPhone: "0900000000", contactEmail: "hello@example.com", navigation: null })).toBe("tel:0900000000");
+    expect(getContactHref({ shippingFee: null, contactPhone: null, contactEmail: "hello@example.com", navigation: null })).toBe("mailto:hello@example.com");
   });
 });

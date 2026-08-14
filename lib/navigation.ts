@@ -24,6 +24,7 @@ const defaultNavigation: SiteNavigation = {
     { label: "Cao cấp", href: "/#shop-by-need" },
   ],
   primary: [
+    { label: "Theo nhu cầu", href: "/#shop-by-need" },
     { label: "Luxury", href: "/nem/luxury" },
     { label: "Khách sạn & dự án", href: "/#hotel-project" },
     { label: "Về Thăng Long", href: "/#about" },

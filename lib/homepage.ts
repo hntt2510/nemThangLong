@@ -20,6 +20,7 @@ export type HomepageProductSummary = {
   image: string;
   imageAlt: string;
   isDemo: boolean;
+  imageIsDemo: boolean;
   minPrice: number | null;
   purchasable: boolean;
   materialStory?: { title: string; body: string } | null;
@@ -34,6 +35,10 @@ export type HomepageData = {
     navigation: unknown;
   } | null;
 };
+
+export function getContactHref(settings: HomepageData["settings"]): string | null {
+  return settings?.contactPhone ? `tel:${settings.contactPhone}` : settings?.contactEmail ? `mailto:${settings.contactEmail}` : null;
+}
 
 type HomepageProductRecord = Prisma.ProductGetPayload<{
   select: {
@@ -61,9 +66,9 @@ const defaultNames: Record<(typeof HOMEPAGE_SLUGS)[number], { name: string; eyeb
 const defaultImages: Record<(typeof HOMEPAGE_SLUGS)[number], string> = {
   america: "/images/homepage-range.webp",
   classic: "/images/homepage-hero.webp",
-  "hoat-tinh": "/images/homepage-range.webp",
-  "memory-foam": "/images/homepage-range.webp",
-  "cao-su-thien-nhien": "/images/homepage-latex.webp",
+  "hoat-tinh": "/images/homepage-hoat-tinh.webp",
+  "memory-foam": "/images/homepage-memory-foam.webp",
+  "cao-su-thien-nhien": "/images/homepage-natural-latex.webp",
   luxury: "/images/luxury-hero.png",
 };
 
@@ -77,6 +82,7 @@ function fallbackProduct(slug: (typeof HOMEPAGE_SLUGS)[number]): HomepageProduct
     image: defaultImages[slug],
     imageAlt: `Hình ảnh minh họa ${defaults.name}`,
     isDemo: true,
+    imageIsDemo: true,
     minPrice: null,
     purchasable: false,
     materialStory: null,
@@ -99,14 +105,16 @@ function mapProduct(record: HomepageProductRecord): HomepageProductSummary {
   const minPrice = validPrices.length > 0 ? Math.min(...validPrices) : null;
   const purchasable = !isDemo && record.status === "PUBLISHED" && record.variants.some((variant) => typeof variant.price === "number" && variant.price > 0 && variant.stock > 0);
   const media = record.media[0];
+  const imageIsDemo = isDemo || !media || media.isDemo;
   return {
     slug: record.slug,
     name: record.name,
     eyebrow: record.eyebrow ?? defaultNames[record.slug as (typeof HOMEPAGE_SLUGS)[number]]?.eyebrow ?? "NỆM THĂNG LONG",
     description: record.description?.trim() || "Thông tin sản phẩm đang được cập nhật từ CMS.",
     image: media?.url ?? defaultImages[record.slug as (typeof HOMEPAGE_SLUGS)[number]] ?? "/images/homepage-range.webp",
-    imageAlt: media?.alt || `Hình ảnh ${record.name}`,
+    imageAlt: media?.alt || `Hình ảnh minh họa ${record.name}`,
     isDemo,
+    imageIsDemo,
     minPrice,
     purchasable,
     materialStory: parseMaterialStory(record.content),
