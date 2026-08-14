@@ -20,7 +20,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const saved = window.localStorage.getItem("thang-long-cart");
     if (saved) {
-      try { setItems(JSON.parse(saved) as CartItem[]); } catch { window.localStorage.removeItem("thang-long-cart"); }
+      try { // eslint-disable-next-line react-hooks/set-state-in-effect
+        setItems(JSON.parse(saved) as CartItem[]);
+      } catch { window.localStorage.removeItem("thang-long-cart"); }
     }
   }, []);
 

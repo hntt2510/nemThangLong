@@ -1,0 +1,19 @@
+"use client";
+
+import { useState } from "react";
+import { formatVnd } from "@/lib/format";
+
+type Order = { id: string; code: string; customerName: string; guestEmail: string | null; total: number; status: string; paymentMethod: string; paymentStatus: string; items: Array<{ id: string; productName: string; quantity: number }> };
+
+export function AdminOrdersTable({ initialOrders }: { initialOrders: Order[] }) {
+  const [orders, setOrders] = useState(initialOrders);
+  const [error, setError] = useState("");
+  async function update(id: string, action: "confirm_paid" | "cancel") {
+    setError("");
+    const response = await fetch(`/api/admin/orders/${id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ action }) });
+    const body = await response.json().catch(() => null) as { status?: string; paymentStatus?: string; error?: string } | null;
+    if (!response.ok) { setError(body?.error ?? "Không thể cập nhật đơn hàng."); return; }
+    setOrders((current) => current.map((order) => order.id === id ? { ...order, status: body?.status ?? order.status, paymentStatus: body?.paymentStatus ?? order.paymentStatus } : order));
+  }
+  return <div className="admin-orders-table">{error && <p className="form-error" role="alert">{error}</p>}{orders.length === 0 ? <div className="admin-note">Chưa có đơn hàng.</div> : orders.map((order) => <article className="admin-order-card" key={order.id}><div><strong>{order.code}</strong><span>{order.customerName} · {order.guestEmail ?? "account"}</span><small>{order.items.map((item) => `${item.productName} × ${item.quantity}`).join(", ")}</small></div><div><strong>{formatVnd(order.total)}</strong><span>{order.paymentMethod} · {order.paymentStatus} · {order.status}</span>{order.paymentMethod === "BANK_TRANSFER" && order.paymentStatus === "PENDING" && <button className="button button-secondary" onClick={() => void update(order.id, "confirm_paid")}>Confirm paid</button>}{order.status !== "CANCELLED" && order.paymentStatus !== "PAID" && <button className="button button-dark" onClick={() => void update(order.id, "cancel")}>Cancel</button>}</div></article>)}</div>;
+}

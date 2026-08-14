@@ -1,12 +1,13 @@
 import { z } from "zod";
 
 const optionalString = z.preprocess((value) => value === "" ? undefined : value, z.string().optional());
+const optionalSecret = z.preprocess((value) => value === "" ? undefined : value, z.string().min(32, "must be at least 32 characters").optional());
 const optionalUrl = z.preprocess((value) => value === "" ? undefined : value, z.string().url().optional());
 
 const envSchema = z.object({
   DATABASE_URL: optionalUrl,
   DIRECT_URL: optionalUrl,
-  AUTH_SECRET: optionalString,
+  AUTH_SECRET: optionalSecret,
   AUTH_URL: optionalUrl,
   RESEND_API_KEY: optionalString,
   MAIL_FROM: optionalString,
@@ -20,6 +21,8 @@ const envSchema = z.object({
   MOMO_SECRET_KEY: optionalString,
   MOMO_ENDPOINT: z.string().url().default("https://test-payment.momo.vn/v2/gateway/api/create"),
   NEXT_PUBLIC_SITE_URL: z.string().url().default("http://localhost:3000"),
+}).superRefine((value, context) => {
+  if (process.env.NODE_ENV === "production" && !value.AUTH_SECRET) context.addIssue({ code: z.ZodIssueCode.custom, path: ["AUTH_SECRET"], message: "required in production" });
 });
 
 export function getEnv() {

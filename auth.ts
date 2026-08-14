@@ -3,9 +3,12 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { getPrisma } from "@/lib/db";
+import { getEnv } from "@/lib/env";
+
+const authSecret = getEnv().AUTH_SECRET ?? (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test" ? "thang-long-local-dev-secret-change-me" : undefined);
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  secret: process.env.AUTH_SECRET ?? "thang-long-local-dev-secret-change-me",
+  secret: authSecret,
   trustHost: true,
   session: { strategy: "jwt" },
   providers: [

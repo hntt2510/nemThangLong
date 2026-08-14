@@ -35,6 +35,12 @@ export type ProductLayer = {
   published?: boolean;
 };
 
+export type ProductContent = {
+  comfort?: { published: boolean; firmnessLabel?: string; firmnessScore?: number; support?: number; breathability?: number; motionIsolation?: number };
+  audience?: { published: boolean; title: string; body: string };
+  materialStory?: { published: boolean; title: string; body: string };
+};
+
 export type Product = {
   id: string;
   slug: string;
@@ -48,6 +54,10 @@ export type Product = {
   posterUrl?: string | null;
   mattressLab: boolean;
   reviews: Array<{ rating: number; comfort?: number; quality?: number; value?: number }>;
+  content?: ProductContent | null;
+  isDemo: boolean;
+  source: "database" | "demo";
+  purchasable: boolean;
 };
 
 export type CartItem = {

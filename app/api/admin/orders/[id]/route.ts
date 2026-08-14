@@ -1,0 +1,44 @@
+import { NextResponse } from "next/server";
+import { auth } from "@/auth";
+import { getPrisma } from "@/lib/db";
+
+async function isEditor() {
+  const session = await auth();
+  return Boolean(session?.user?.role && ["ADMIN", "EDITOR"].includes(session.user.role));
+}
+
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+  if (!(await isEditor())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const body = await request.json().catch(() => null) as { action?: "confirm_paid" | "cancel" } | null;
+  if (!body?.action) return NextResponse.json({ error: "Action không hợp lệ." }, { status: 400 });
+  const prisma = getPrisma();
+  if (!prisma) return NextResponse.json({ error: "Database chưa được cấu hình." }, { status: 503 });
+  const { id } = await context.params;
+  try {
+    const order = await prisma.$transaction(async (tx) => {
+      const current = await tx.order.findUnique({ where: { id }, include: { items: true, reservations: true } });
+      if (!current) throw new Error("NOT_FOUND");
+      if (body.action === "confirm_paid") {
+        if (current.paymentMethod !== "BANK_TRANSFER" || current.paymentStatus !== "PENDING") throw new Error("INVALID_STATE");
+        await tx.paymentAttempt.updateMany({ where: { orderId: current.id, provider: "BANK_TRANSFER", status: "PENDING" }, data: { status: "PAID" } });
+        return tx.order.update({ where: { id: current.id }, data: { paymentStatus: "PAID", status: "CONFIRMED" } });
+      }
+      if (current.paymentStatus === "PAID" || current.status === "CANCELLED") throw new Error("INVALID_STATE");
+      for (const reservation of current.reservations) {
+        if (reservation.status === "ACTIVE") {
+          const released = await tx.inventoryReservation.updateMany({ where: { id: reservation.id, status: "ACTIVE" }, data: { status: "RELEASED", releasedAt: new Date() } });
+          if (released.count === 1) await tx.productVariant.update({ where: { id: reservation.variantId }, data: { stock: { increment: reservation.quantity } } });
+        }
+      }
+      if (current.paymentMethod !== "MOMO" && current.reservations.length === 0) for (const item of current.items) await tx.productVariant.update({ where: { id: item.variantId }, data: { stock: { increment: item.quantity } } });
+      await tx.paymentAttempt.updateMany({ where: { orderId: current.id, status: "PENDING" }, data: { status: "FAILED" } });
+      return tx.order.update({ where: { id: current.id }, data: { status: "CANCELLED", paymentStatus: "FAILED" } });
+    });
+    return NextResponse.json({ id: order.id, status: order.status, paymentStatus: order.paymentStatus });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Không thể cập nhật đơn hàng.";
+    if (message === "NOT_FOUND") return NextResponse.json({ error: "Không tìm thấy đơn hàng." }, { status: 404 });
+    if (message === "INVALID_STATE") return NextResponse.json({ error: "Đơn hàng không ở trạng thái có thể cập nhật." }, { status: 409 });
+    return NextResponse.json({ error: "Không thể cập nhật đơn hàng." }, { status: 503 });
+  }
+}
