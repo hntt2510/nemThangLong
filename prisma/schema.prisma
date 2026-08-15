@@ -30,6 +30,11 @@ enum LeadSource {
   B2B_PAGE
 }
 
+enum LeadRateLimitKind {
+  IP
+  PHONE
+}
+
 enum ProductStatus {
   DRAFT
   PUBLISHED
@@ -348,4 +353,17 @@ model Lead {
   @@index([status, type, createdAt])
   @@index([phone, createdAt])
   @@index([createdAt])
+}
+
+model LeadRateLimitBucket {
+  id          String             @id @default(cuid())
+  kind        LeadRateLimitKind
+  keyHash     String
+  windowStart DateTime
+  count       Int
+  expiresAt   DateTime
+  updatedAt   DateTime            @updatedAt
+
+  @@unique([kind, keyHash])
+  @@index([expiresAt])
 }

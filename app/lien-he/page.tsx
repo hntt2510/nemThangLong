@@ -4,14 +4,13 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getDiscoveryProducts } from "@/lib/discovery";
 import { getSiteSettings } from "@/lib/products";
-import { breadcrumbJsonLd, discoveryPageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd, contactPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }): Promise<Metadata> {
   const params = await searchParams;
-  const base = discoveryPageMetadata("finder", Object.keys(params).length > 0);
-  return { ...base, title: "Liên hệ tư vấn — Nệm Thăng Long", alternates: { canonical: "/lien-he" } };
+  return contactPageMetadata(Object.keys(params).length > 0);
 }
 
 export default async function ContactPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {

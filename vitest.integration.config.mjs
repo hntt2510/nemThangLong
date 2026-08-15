@@ -5,5 +5,5 @@ const root = process.cwd();
 
 export default defineConfig({
   resolve: { alias: { "@/": `${root}/`, "server-only": path.resolve(root, "tests/server-only-stub.ts") } },
-  test: { include: ["tests/**/*.integration.test.ts"], testTimeout: 30000, hookTimeout: 30000 },
+  test: { include: ["tests/**/*.integration.test.ts"], fileParallelism: false, testTimeout: 30000, hookTimeout: 30000 },
 });

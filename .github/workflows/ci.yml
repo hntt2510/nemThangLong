@@ -24,6 +24,7 @@ jobs:
       DIRECT_URL: postgresql://postgres:postgres@localhost:5432/thanglong_test
       AUTH_SECRET: ci-secret-with-at-least-32-characters-long
       CRON_SECRET: ci-cron-secret-with-at-least-32-characters
+      LEAD_RATE_LIMIT_SECRET: ci-lead-rate-limit-secret-with-at-least-32-characters
       RUN_INTEGRATION: "true"
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
     steps:

@@ -9,6 +9,7 @@ const envSchema = z.object({
   DIRECT_URL: optionalUrl,
   AUTH_SECRET: optionalSecret,
   CRON_SECRET: optionalSecret,
+  LEAD_RATE_LIMIT_SECRET: optionalSecret,
   AUTH_URL: optionalUrl,
   RESEND_API_KEY: optionalString,
   MAIL_FROM: optionalString,
@@ -25,6 +26,7 @@ const envSchema = z.object({
 }).superRefine((value, context) => {
   if (process.env.NODE_ENV === "production" && !value.AUTH_SECRET) context.addIssue({ code: z.ZodIssueCode.custom, path: ["AUTH_SECRET"], message: "required in production" });
   if (process.env.NODE_ENV === "production" && !value.CRON_SECRET) context.addIssue({ code: z.ZodIssueCode.custom, path: ["CRON_SECRET"], message: "required in production" });
+  if (process.env.NODE_ENV === "production" && !value.LEAD_RATE_LIMIT_SECRET) context.addIssue({ code: z.ZodIssueCode.custom, path: ["LEAD_RATE_LIMIT_SECRET"], message: "required in production" });
 });
 
 export function getEnv() {

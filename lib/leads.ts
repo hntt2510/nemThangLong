@@ -1,31 +1,13 @@
+import "server-only";
+
 import type { PrismaClient, LeadStatus, LeadType, LeadSource } from "@prisma/client";
 import { CATALOG_SLUGS } from "@/lib/product-data";
 import { normalizePhone, type PublicLeadInput, type LeadTypeValue } from "@/lib/lead-validation";
-
-const IP_WINDOW_MS = 10 * 60 * 1000;
-const PHONE_WINDOW_MS = 15 * 60 * 1000;
-const IP_LIMIT = 5;
-const PHONE_LIMIT = 3;
-const ipAttempts = new Map<string, { count: number; resetAt: number }>();
+import { consumeLeadRateLimitBucket, getLeadRateLimitSecret, hashLeadRateLimitKey, LEAD_IP_LIMIT, LEAD_IP_WINDOW_MS, LEAD_PHONE_LIMIT, LEAD_PHONE_WINDOW_MS, cleanupExpiredLeadRateLimitBuckets } from "@/lib/lead-rate-limit";
 
 export class LeadDatabaseError extends Error {}
 export class LeadValidationError extends Error {}
 export class LeadRateLimitError extends Error {}
-
-export function consumeLeadIpLimit(ip: string, now = Date.now()) {
-  const current = ipAttempts.get(ip);
-  if (!current || current.resetAt <= now) {
-    ipAttempts.set(ip, { count: 1, resetAt: now + IP_WINDOW_MS });
-    return true;
-  }
-  if (current.count >= IP_LIMIT) return false;
-  current.count += 1;
-  return true;
-}
-
-export function resetLeadIpLimitForTests() {
-  ipAttempts.clear();
-}
 
 export function leadSourceForType(type: LeadTypeValue): LeadSource {
   return type === "B2B_PROJECT" ? "B2B_PAGE" : "CONTACT_PAGE";
@@ -53,12 +35,23 @@ async function publishedProductExists(prisma: Pick<PrismaClient, "product">, pro
   return product.slug;
 }
 
-export async function createPublicLead(prisma: PrismaClient, input: PublicLeadInput) {
+export type CreatePublicLeadOptions = {
+  ipAddress?: string;
+  rateLimitSecret?: string;
+  now?: Date;
+};
+
+export async function createPublicLead(prisma: PrismaClient, input: PublicLeadInput, options: CreatePublicLeadOptions = {}) {
+  const now = options.now ?? new Date();
+  const ipAddress = options.ipAddress ?? "unknown";
+  const secret = options.rateLimitSecret ?? getLeadRateLimitSecret();
   const run = async (tx: PrismaClient) => {
     const productSlug = await publishedProductExists(tx, requestedProductSlug(input));
     const phone = normalizePhone(input.phone);
-    const recent = await tx.lead.count({ where: { phone, createdAt: { gte: new Date(Date.now() - PHONE_WINDOW_MS) } } });
-    if (recent >= PHONE_LIMIT) throw new LeadRateLimitError("Vui lòng thử lại sau.");
+    const ipCount = await consumeLeadRateLimitBucket(tx, "IP", hashLeadRateLimitKey("IP", ipAddress, secret), now, LEAD_IP_WINDOW_MS);
+    if (ipCount > LEAD_IP_LIMIT) throw new LeadRateLimitError("Vui lòng thử lại sau.");
+    const phoneCount = await consumeLeadRateLimitBucket(tx, "PHONE", hashLeadRateLimitKey("PHONE", phone, secret), now, LEAD_PHONE_WINDOW_MS);
+    if (phoneCount > LEAD_PHONE_LIMIT) throw new LeadRateLimitError("Vui lòng thử lại sau.");
     const common = {
       type: input.type as LeadType,
       fullName: input.fullName,
@@ -73,7 +66,9 @@ export async function createPublicLead(prisma: PrismaClient, input: PublicLeadIn
       : tx.lead.create({ data: common });
   };
   try {
-    return await prisma.$transaction((tx) => run(tx as PrismaClient));
+    const lead = await prisma.$transaction((tx) => run(tx as PrismaClient));
+    await cleanupExpiredLeadRateLimitBuckets(prisma).catch(() => undefined);
+    return lead;
   } catch (error) {
     if (error instanceof LeadValidationError || error instanceof LeadRateLimitError) throw error;
     throw new LeadDatabaseError("Lead database unavailable.");

@@ -6,7 +6,7 @@ vi.mock("@/lib/db", () => ({ getPrisma }));
 import { buildCompareRows, selectCompareProducts } from "@/lib/compare";
 import { getDiscoveryProducts, sanitizeProductContent, toDiscoveryProduct } from "@/lib/discovery";
 import { getDemoProduct } from "@/lib/product-data";
-import { discoveryPageMetadata } from "@/lib/seo";
+import { contactPageMetadata, discoveryPageMetadata } from "@/lib/seo";
 import type { Product } from "@/lib/types";
 
 function record(slug: string, status: "PUBLISHED" | "DRAFT" = "PUBLISHED") {
@@ -66,5 +66,12 @@ describe("shared discovery regression", () => {
     expect(discoveryPageMetadata("finder", true)).toMatchObject({ alternates: { canonical: "/tim-nem" }, robots: { index: false, follow: true } });
     expect(discoveryPageMetadata("compare", false)).toMatchObject({ alternates: { canonical: "/so-sanh" }, robots: { index: true, follow: true } });
     expect(discoveryPageMetadata("compare", true)).toMatchObject({ alternates: { canonical: "/so-sanh" }, robots: { index: false, follow: true } });
+  });
+
+  it("uses contact-specific index and noindex metadata", () => {
+    expect(contactPageMetadata(false)).toMatchObject({ alternates: { canonical: "/lien-he" }, robots: { index: true, follow: true } });
+    expect(contactPageMetadata(true)).toMatchObject({ alternates: { canonical: "/lien-he" }, robots: { index: false, follow: true } });
+    expect(contactPageMetadata(false).description).toMatch(/liên hệ/i);
+    expect(contactPageMetadata(false).description).not.toContain("Finder");
   });
 });

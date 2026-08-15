@@ -15,6 +15,15 @@ export function discoveryPageMetadata(kind: "finder" | "compare", hasQuery: bool
   return { title, description, alternates: { canonical }, robots: hasQuery ? { index: false, follow: true } : { index: true, follow: true } };
 }
 
+export function contactPageMetadata(hasQuery: boolean): Metadata {
+  return {
+    title: "Liên hệ tư vấn — Nệm Thăng Long",
+    description: "Liên hệ Nệm Thăng Long để gửi nhu cầu và trao đổi hướng tư vấn phù hợp.",
+    alternates: { canonical: "/lien-he" },
+    robots: hasQuery ? { index: false, follow: true } : { index: true, follow: true },
+  };
+}
+
 export function productMetadata(product: Product, canonical: string): Metadata {
   const media = product.media.find((item) => !isDemoMedia(product, item) && item.type === "image");
   const title = product.name + " — Nệm Thăng Long";
