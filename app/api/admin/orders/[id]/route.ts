@@ -2,14 +2,11 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/db";
 import { confirmBankTransfer } from "@/lib/payment-lifecycle";
-
-async function isEditor() {
-  const session = await auth();
-  return Boolean(session?.user?.role && ["ADMIN", "EDITOR"].includes(session.user.role));
-}
+import { authStatus } from "@/lib/admin-auth";
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
-  if (!(await isEditor())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const status = authStatus(await auth(), ["ADMIN", "EDITOR"]);
+  if (status !== 200) return NextResponse.json({ error: status === 401 ? "Unauthorized" : "Forbidden" }, { status });
   const body = await request.json().catch(() => null) as { action?: "confirm_paid" | "cancel" } | null;
   if (!body?.action) return NextResponse.json({ error: "Action không hợp lệ." }, { status: 400 });
   const prisma = getPrisma();
@@ -36,10 +33,9 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     });
     return NextResponse.json({ id: order.id, status: order.status, paymentStatus: order.paymentStatus });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Không thể cập nhật đơn hàng.";
+    const message = error instanceof Error ? error.message : "";
     if (message === "NOT_FOUND") return NextResponse.json({ error: "Không tìm thấy đơn hàng." }, { status: 404 });
-    if (message === "EXPIRED") return NextResponse.json({ error: "Reservation chuyển khoản đã hết hạn." }, { status: 409 });
-    if (message === "INVALID_STATE") return NextResponse.json({ error: "Đơn hàng không ở trạng thái có thể cập nhật." }, { status: 409 });
+    if (message === "EXPIRED" || message === "INVALID_STATE") return NextResponse.json({ error: "Đơn hàng không ở trạng thái có thể cập nhật." }, { status: 409 });
     return NextResponse.json({ error: "Không thể cập nhật đơn hàng." }, { status: 503 });
   }
 }

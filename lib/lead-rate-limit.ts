@@ -1,7 +1,8 @@
 import "server-only";
 
 import { createHmac, randomUUID } from "node:crypto";
-import { Prisma, type PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
+import { sqltag } from "@prisma/client/runtime/library";
 import { getEnv } from "@/lib/env";
 
 export const LEAD_IP_LIMIT = 5;
@@ -33,7 +34,7 @@ export async function consumeLeadRateLimitBucket(
   windowMs: number,
 ): Promise<number> {
   const expiresAt = new Date(now.getTime() + windowMs);
-  const rows = await tx.$queryRaw<Array<{ count: number }>>(Prisma.sql`
+  const rows = await tx.$queryRaw<Array<{ count: number }>>(sqltag`
     INSERT INTO "LeadRateLimitBucket" ("id", "kind", "keyHash", "windowStart", "count", "expiresAt", "updatedAt")
     VALUES (${randomUUID()}, CAST(${kind} AS "LeadRateLimitKind"), ${keyHash}, ${now}, 1, ${expiresAt}, ${now})
     ON CONFLICT ("kind", "keyHash") DO UPDATE
@@ -53,7 +54,7 @@ export async function cleanupExpiredLeadRateLimitBuckets(
   batchSize = RATE_LIMIT_CLEANUP_BATCH_SIZE,
 ) {
   const safeBatchSize = Math.max(1, Math.min(Math.floor(batchSize), RATE_LIMIT_CLEANUP_BATCH_SIZE));
-  return prisma.$executeRaw(Prisma.sql`
+  return prisma.$executeRaw(sqltag`
     DELETE FROM "LeadRateLimitBucket"
     WHERE "id" IN (
       SELECT "id"

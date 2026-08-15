@@ -88,12 +88,14 @@ export default async function AdminPage() {
           THĂNG LONG<small>Commerce OS</small>
         </Link>
         <nav>
+          <Link href={"/admin/dashboard" as never}>Dashboard</Link>
           <Link className="active" href="/admin">
             Product
           </Link>
           <Link href="/admin/orders">Orders</Link>
           <Link href="/admin/reviews">Reviews</Link>
           <Link href={"/admin/leads" as never}>Leads</Link>
+          <Link href={"/admin/after-sales" as never}>After-sales</Link>
           <Link href="/admin/settings">Site settings</Link>
         </nav>
         <Link href="/nem/luxury" className="admin-back">
