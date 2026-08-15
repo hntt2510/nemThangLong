@@ -1,12 +1,10 @@
 import "server-only";
 
-import { z } from "zod";
 import type { OrderStatus, PaymentMethod, PaymentStatus, PrismaClient } from "@prisma/client";
 import { withSerializable } from "@/lib/transaction";
+import { adminOrderActionSchema, fulfillmentSchema, orderFiltersSchema, orderStatusSchema } from "@/lib/admin-order-validation";
 
-export const orderStatusSchema = z.enum(["CONFIRMED", "PROCESSING", "SHIPPED", "COMPLETED"]);
-export const orderFiltersSchema = z.object({ status: z.enum(["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "COMPLETED", "CANCELLED"]).optional(), paymentStatus: z.enum(["PENDING", "PAID", "FAILED", "REVIEW_REQUIRED", "REFUNDED"]).optional(), paymentMethod: z.enum(["COD", "BANK_TRANSFER", "MOMO"]).optional(), q: z.string().trim().max(100).optional(), page: z.number().int().positive().max(1000).default(1) }).strict();
-export const fulfillmentSchema = z.object({ status: orderStatusSchema }).strict();
+export { adminOrderActionSchema, fulfillmentSchema, orderFiltersSchema, orderStatusSchema } from "@/lib/admin-order-validation";
 
 export function parseOrderFilters(params: URLSearchParams) {
   const page = Number(params.get("page") ?? "1");

@@ -39,6 +39,7 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npx prisma validate
+      - run: npm run production:check
       - run: npm test
       - run: npm run test:integration
       - run: npm run build

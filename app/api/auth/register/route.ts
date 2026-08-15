@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { z } from "zod";
 import { getPrisma } from "@/lib/db";
-
-const schema = z.object({ name: z.string().min(2).max(100), email: z.string().email(), password: z.string().min(8).max(100) });
+import { registerSchema } from "@/lib/api-validation";
 
 export async function POST(request: Request) {
-  const parsed = schema.safeParse(await request.json().catch(() => null));
+  const parsed = registerSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Thông tin đăng ký chưa hợp lệ." }, { status: 400 });
   const prisma = getPrisma();
   if (!prisma) return NextResponse.json({ error: "Tài khoản cần database được cấu hình." }, { status: 503 });

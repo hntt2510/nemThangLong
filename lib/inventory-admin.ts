@@ -1,17 +1,11 @@
 import "server-only";
 
-import { z } from "zod";
 import type { PrismaClient, InventoryAdjustmentReason } from "@prisma/client";
 import { withSerializable } from "@/lib/transaction";
+import { inventoryAdjustmentSchema, type InventoryAdjustmentInput } from "@/lib/inventory-validation";
 
-export const inventoryAdjustmentSchema = z.object({
-  variantId: z.string().min(1),
-  delta: z.number().int().refine((value) => value !== 0, "delta must not be zero"),
-  reason: z.enum(["RECEIPT", "CORRECTION", "DAMAGE", "OTHER"]),
-  note: z.string().trim().max(4000).optional(),
-}).strict();
-
-export type InventoryAdjustmentInput = z.infer<typeof inventoryAdjustmentSchema>;
+export { inventoryAdjustmentSchema } from "@/lib/inventory-validation";
+export type { InventoryAdjustmentInput } from "@/lib/inventory-validation";
 
 export function parseInventoryFilters(searchParams: URLSearchParams) {
   const page = Number(searchParams.get("page") ?? "1");

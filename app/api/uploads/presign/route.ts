@@ -5,6 +5,7 @@ import { randomUUID } from "crypto";
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/db";
 import { getR2Config } from "@/lib/r2";
+import { uploadPresignSchema } from "@/lib/api-validation";
 
 const rules = {
   image: { max: 12 * 1024 * 1024, extensions: { "image/jpeg": ["jpg", "jpeg"], "image/png": ["png"], "image/webp": ["webp"] } },
@@ -14,15 +15,14 @@ const rules = {
 
 export async function POST(request: Request) {
   const session = await auth();
-  if (!session?.user?.id || !["ADMIN", "EDITOR"].includes(session.user.role ?? "")) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!["ADMIN", "EDITOR"].includes(session.user.role ?? "")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const prisma = getPrisma();
   const config = getR2Config();
   if (!prisma || !config) return NextResponse.json({ error: "Media storage chưa được cấu hình." }, { status: 503 });
-  const body = await request.json().catch(() => null) as { kind?: keyof typeof rules; contentType?: string; fileName?: string; size?: number } | null;
-  const kind = body?.kind;
-  const contentType = body?.contentType;
-  const fileName = body?.fileName;
-  const size = body?.size;
+  const parsed = uploadPresignSchema.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) return NextResponse.json({ error: "File không được hỗ trợ hoặc quá lớn." }, { status: 400 });
+  const { kind, contentType, fileName, size } = parsed.data;
   const rule = kind ? rules[kind] : undefined;
   const extension = fileName?.split(".").pop()?.toLowerCase();
   const extensions = rule && contentType ? (rule.extensions as Record<string, readonly string[]>)[contentType] : undefined;

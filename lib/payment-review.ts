@@ -1,10 +1,10 @@
 import "server-only";
 
 import { Prisma, type PrismaClient } from "@prisma/client";
-import { z } from "zod";
 import { withSerializable } from "@/lib/transaction";
+import { paymentReviewResolutionSchema } from "@/lib/payment-review-validation";
 
-export const paymentReviewResolutionSchema = z.object({ action: z.enum(["FULFILL", "MANUAL_REFUND_RECORDED"]), confirmation: z.literal(true).optional(), note: z.string().trim().min(2).max(2000).optional() }).strict().superRefine((value, context) => { if (value.action === "MANUAL_REFUND_RECORDED" && (value.confirmation !== true || !value.note)) context.addIssue({ code: z.ZodIssueCode.custom, path: ["confirmation"], message: "Explicit confirmation and note are required." }); });
+export { paymentReviewResolutionSchema } from "@/lib/payment-review-validation";
 
 const reviewSelect = { id: true, code: true, total: true, status: true, paymentStatus: true, customerName: true, customerPhone: true, guestEmail: true, createdAt: true, items: { select: { id: true, variantId: true, productName: true, sku: true, width: true, length: true, thickness: true, quantity: true, variant: { select: { stock: true } } } }, payments: { where: { provider: "MOMO" }, orderBy: { createdAt: "desc" }, take: 1, select: { id: true, status: true, amount: true, providerTransactionId: true, expiresAt: true, updatedAt: true } }, reservations: { select: { id: true, variantId: true, quantity: true, status: true, expiresAt: true, releasedAt: true } } } satisfies Prisma.OrderSelect;
 

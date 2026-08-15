@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: thanglong_dev
+      POSTGRES_USER: thanglong
+      POSTGRES_PASSWORD: thanglong_dev
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - thanglong-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U thanglong -d thanglong_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  thanglong-postgres-data:

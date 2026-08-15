@@ -4,12 +4,15 @@ import { getPrisma } from "@/lib/db";
 import { getEnv } from "@/lib/env";
 import { Prisma, type Prisma as PrismaTypes } from "@prisma/client";
 import { canStartMomoPayment } from "@/lib/payment-lifecycle";
+import { momoCreateSchema } from "@/lib/api-validation";
 
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => null) as { token?: string } | null;
+  const parsed = momoCreateSchema.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) return NextResponse.json({ error: "Yêu cầu MoMo không hợp lệ." }, { status: 400 });
+  const body = parsed.data;
   const prisma = getPrisma();
   const env = getEnv();
-  if (!body?.token || !prisma) return NextResponse.json({ error: "MoMo chưa được cấu hình." }, { status: 503 });
+  if (!prisma) return NextResponse.json({ error: "MoMo chưa được cấu hình." }, { status: 503 });
   let order;
   try {
     order = await prisma.$transaction(async (tx) => {

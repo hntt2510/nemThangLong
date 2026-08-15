@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/db";
-import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { adminSettingsSchema } from "@/lib/api-validation";
 
-const schema = z.object({ shippingFee: z.number().int().min(0).nullable(), freeShippingThreshold: z.number().int().min(0).nullable(), bankTransferReservationMinutes: z.number().int().min(5).max(10080).nullable(), bankTransferInfo: z.record(z.string()).nullable() });
-
-async function isEditor() {
+async function authorize() {
   const session = await auth();
-  return Boolean(session?.user?.role && ["ADMIN", "EDITOR"].includes(session.user.role));
+  if (!session?.user) return 401 as const;
+  return ["ADMIN", "EDITOR"].includes(session.user.role ?? "") ? 200 as const : 403 as const;
 }
 
 export async function GET() {
-  if (!(await isEditor())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const status = await authorize();
+  if (status !== 200) return NextResponse.json({ error: status === 401 ? "Unauthorized" : "Forbidden" }, { status });
   const prisma = getPrisma();
   if (!prisma) return NextResponse.json({ error: "Database chưa được cấu hình." }, { status: 503 });
   const settings = await prisma.siteSettings.findUnique({ where: { id: "default" } });
@@ -21,8 +21,9 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
-  if (!(await isEditor())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const parsed = schema.safeParse(await request.json().catch(() => null));
+  const status = await authorize();
+  if (status !== 200) return NextResponse.json({ error: status === 401 ? "Unauthorized" : "Forbidden" }, { status });
+  const parsed = adminSettingsSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Site settings không hợp lệ." }, { status: 400 });
   const prisma = getPrisma();
   if (!prisma) return NextResponse.json({ error: "Database chưa được cấu hình." }, { status: 503 });
