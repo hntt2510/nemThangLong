@@ -1,0 +1,10 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+export function AdminOrderActions({ orderId, status, paymentMethod, paymentStatus }: { orderId: string; status: string; paymentMethod: string; paymentStatus: string }) {
+  const router = useRouter(); const [pending, setPending] = useState(""); const [error, setError] = useState("");
+  async function update(action: string, nextStatus?: string) { setPending(action); setError(""); const response = await fetch(`/api/admin/orders/${orderId}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(nextStatus ? { status: nextStatus } : { action }) }); const body = await response.json().catch(() => null) as { error?: string } | null; setPending(""); if (!response.ok) { setError(body?.error ?? "Không thể cập nhật đơn hàng."); return; } router.refresh(); }
+  return <div className="admin-order-actions">{paymentMethod === "BANK_TRANSFER" && paymentStatus === "PENDING" && <button className="button button-secondary" disabled={Boolean(pending)} onClick={() => void update("confirm_paid")}>{pending === "confirm_paid" ? "Đang xác nhận…" : "Xác nhận đã nhận chuyển khoản"}</button>}{status === "CONFIRMED" && <button className="button button-secondary" disabled={Boolean(pending)} onClick={() => void update("status", "PROCESSING")}>Chuyển sang Processing</button>}{status === "PROCESSING" && <button className="button button-secondary" disabled={Boolean(pending)} onClick={() => void update("status", "SHIPPED")}>Chuyển sang Shipped</button>}{status === "SHIPPED" && <button className="button button-secondary" disabled={Boolean(pending)} onClick={() => void update("status", "COMPLETED")}>Đánh dấu Completed</button>}{status !== "CANCELLED" && paymentStatus !== "PAID" && paymentStatus !== "REVIEW_REQUIRED" && <button className="button button-dark" disabled={Boolean(pending)} onClick={() => void update("cancel")}>{pending === "cancel" ? "Đang hủy…" : "Hủy đơn"}</button>}{error && <p className="form-error" role="alert">{error}</p>}</div>;
+}

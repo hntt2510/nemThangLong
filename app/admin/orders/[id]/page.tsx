@@ -1,0 +1,17 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { auth } from "@/auth";
+import { getPrisma } from "@/lib/db";
+import { getAdminOrder } from "@/lib/admin-orders";
+import { formatVnd } from "@/lib/format";
+import { AdminOrderActions } from "@/components/admin-order-actions";
+
+export const dynamic = "force-dynamic";
+
+export default async function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const session = await auth(); if (!session?.user) return <main className="admin-placeholder"><Link href="/dang-nhap">Đăng nhập</Link></main>; if (session.user.role !== "ADMIN" && session.user.role !== "EDITOR") return <main className="admin-placeholder"><h1>Không có quyền.</h1></main>;
+  const prisma = getPrisma(); if (!prisma) return <main className="admin-placeholder"><h1>Không thể tải đơn hàng.</h1><p>Database chưa sẵn sàng.</p></main>;
+  const order = await getAdminOrder(prisma, (await params).id).catch(() => null); if (!order) notFound();
+  const payment = order.payments[0];
+  return <main className="admin-placeholder"><Link href="/admin/orders">← Orders</Link><p className="eyebrow">ADMIN / ORDER DETAIL</p><h1>{order.code}</h1><p className="muted">Tạo lúc {order.createdAt.toLocaleString("vi-VN")}</p><div className="admin-detail-grid"><section className="dashboard-section"><h2>Khách hàng</h2><dl><dt>Tên</dt><dd>{order.customerName}</dd><dt>Số điện thoại</dt><dd>{order.customerPhone}</dd><dt>Email</dt><dd>{order.guestEmail ?? "Tài khoản"}</dd></dl><h2>Địa chỉ giao hàng</h2><pre>{JSON.stringify(order.shippingAddress, null, 2)}</pre></section><section className="dashboard-section"><h2>Trạng thái</h2><p>{order.status} · {order.paymentMethod} · {order.paymentStatus}</p>{order.paymentStatus === "REVIEW_REQUIRED" && <Link className="button button-secondary" href={`/admin/payment-reviews/${order.id}` as never}>Mở Payment Review</Link>}<AdminOrderActions orderId={order.id} status={order.status} paymentMethod={order.paymentMethod} paymentStatus={order.paymentStatus} /><h2>Payment summary</h2><dl><dt>Provider</dt><dd>{payment?.provider ?? "—"}</dd><dt>Status</dt><dd>{payment?.status ?? "—"}</dd><dt>Amount</dt><dd>{payment ? formatVnd(payment.amount) : "—"}</dd><dt>Expires</dt><dd>{payment?.expiresAt?.toLocaleString("vi-VN") ?? "—"}</dd><dt>Updated</dt><dd>{payment?.updatedAt.toLocaleString("vi-VN") ?? "—"}</dd></dl></section></div><section className="dashboard-section"><h2>Items</h2><ul>{order.items.map((item) => <li key={item.id}><span>{item.productName} · {item.sku} · {item.width}×{item.length}×{item.thickness} cm · {item.quantity}</span><strong>{formatVnd(item.unitPrice)} / unit</strong></li>)}</ul><dl><dt>Subtotal</dt><dd>{formatVnd(order.subtotal)}</dd><dt>Shipping</dt><dd>{formatVnd(order.shippingFee)}</dd><dt>Total</dt><dd>{formatVnd(order.total)}</dd></dl></section><section className="dashboard-section"><h2>Reservations</h2>{order.reservations.length === 0 ? <p className="muted">Không có reservation.</p> : <ul>{order.reservations.map((reservation) => <li key={`${reservation.variantId}-${reservation.expiresAt.toISOString()}`}><span>{reservation.variantId} · {reservation.quantity} · {reservation.status}</span><strong>{reservation.releasedAt ? `Released ${reservation.releasedAt.toLocaleString("vi-VN")}` : `Hết hạn ${reservation.expiresAt.toLocaleString("vi-VN")}`}</strong></li>)}</ul>}</section></main>;
+}

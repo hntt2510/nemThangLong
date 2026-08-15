@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { getPrisma } from "@/lib/db";
 import { getR2Config } from "@/lib/r2";
 import { CATALOG_SLUGS } from "@/lib/product-data";
+import { buildFinalizedMediaData } from "@/lib/media-upload";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
   if (head.ContentLength !== intent.size || head.ContentType !== intent.contentType) return NextResponse.json({ error: "Media metadata không khớp." }, { status: 400 });
   const media = await prisma.$transaction(async (tx) => {
     await tx.uploadIntent.update({ where: { id: intent.id }, data: { completedAt: new Date() } });
-    return tx.mediaAsset.create({ data: { productId: body.productId!, type: intent.kind, url: `${config.env.R2_PUBLIC_URL}/${intent.key}`, alt: body.alt!, aspect: body.aspect } });
+    return tx.mediaAsset.create({ data: buildFinalizedMediaData({ productId: body.productId!, type: intent.kind, url: `${config.env.R2_PUBLIC_URL}/${intent.key}`, alt: body.alt!, aspect: body.aspect }) });
   });
   return NextResponse.json(media);
 }

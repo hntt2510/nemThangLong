@@ -3,6 +3,8 @@ import { adminProductDocumentSchema, catalogSlugSchema } from "@/lib/admin-produ
 import { canTransitionOrderStatus, parseOrderFilters } from "@/lib/admin-orders";
 import { inventoryAdjustmentSchema } from "@/lib/inventory-admin";
 import { paymentReviewResolutionSchema } from "@/lib/payment-review";
+import { normalizeContent, serializeContent } from "@/components/admin-product-editor";
+import { buildFinalizedMediaData } from "@/lib/media-upload";
 
 describe("admin operations contracts", () => {
   it("keeps product initialization restricted to the catalog allowlist", () => {
@@ -31,5 +33,20 @@ describe("admin operations contracts", () => {
   it("requires explicit external-refund confirmation", () => {
     expect(paymentReviewResolutionSchema.safeParse({ action: "MANUAL_REFUND_RECORDED", note: "done" }).success).toBe(false);
     expect(paymentReviewResolutionSchema.safeParse({ action: "MANUAL_REFUND_RECORDED", confirmation: true, note: "Refund ref 123" }).success).toBe(true);
+  });
+
+  it("keeps absent CMS content unpublished and does not invent copy", () => {
+    const content = normalizeContent(null);
+    expect(content.audience).toMatchObject({ published: false, title: "", body: "" });
+    expect(serializeContent(content)).toBeUndefined();
+    content.audience.title = "Audience draft";
+    expect(serializeContent(content)).toBeUndefined();
+    content.audience.published = true;
+    content.audience.title = "";
+    expect(serializeContent(content)).toBeUndefined();
+  });
+
+  it("marks newly finalized media as demo until CMS verification", () => {
+    expect(buildFinalizedMediaData({ productId: "p", type: "image", url: "/asset.webp", alt: "Asset" }).isDemo).toBe(true);
   });
 });

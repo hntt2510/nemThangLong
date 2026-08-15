@@ -5,6 +5,7 @@ import { getPrisma } from "@/lib/db";
 import { getEnv } from "@/lib/env";
 import { checkoutSchema } from "@/lib/validation";
 import { getPaymentExpiry } from "@/lib/payment-lifecycle";
+import { decrementCheckoutStock } from "@/lib/checkout-stock";
 
 export const runtime = "nodejs";
 
@@ -39,10 +40,7 @@ export async function POST(request: Request) {
     const code = makeOrderCode();
     const reservationExpiresAt = getPaymentExpiry(input.paymentMethod, new Date(), settings.bankTransferReservationMinutes);
     const order = await prisma.$transaction(async (tx) => {
-      for (const line of lines) {
-        const updated = await tx.productVariant.updateMany({ where: { id: line.variant.id, stock: { gte: line.item.quantity } }, data: { stock: { decrement: line.item.quantity } } });
-        if (updated.count !== 1) throw new Error("Sản phẩm vừa hết tồn kho.");
-      }
+      await decrementCheckoutStock(tx, lines.map(({ item, variant }) => ({ variantId: variant.id, quantity: item.quantity })));
       return tx.order.create({ data: {
         code, userId: session?.user?.id || null, guestEmail: input.guestEmail || null, customerName: input.customerName, customerPhone: input.customerPhone,
         shippingAddress: input.address, subtotal, shippingFee, total, paymentMethod: input.paymentMethod,
