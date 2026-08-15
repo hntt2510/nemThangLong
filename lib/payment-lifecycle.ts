@@ -1,6 +1,7 @@
 import "server-only";
 
 import { Prisma, type PaymentStatus, type PrismaClient } from "@prisma/client";
+import { withSerializable } from "@/lib/transaction";
 
 export const MOMO_PENDING_CODES = new Set([1000, 9000]);
 
@@ -27,17 +28,6 @@ export function canStartMomoPayment(snapshot: MomoPaymentSnapshot, now = new Dat
     && Boolean(snapshot.attemptExpiresAt && snapshot.attemptExpiresAt > now)
     && snapshot.reservations.length > 0
     && snapshot.reservations.every((reservation) => reservation.status === "ACTIVE" && reservation.expiresAt > now);
-}
-
-async function serializable<T>(prisma: PrismaClient, callback: (tx: Tx) => Promise<T>, retries = 3): Promise<T> {
-  for (let attempt = 0; attempt < retries; attempt += 1) {
-    try {
-      return await prisma.$transaction(callback, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
-    } catch (error) {
-      if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2034" || attempt === retries - 1) throw error;
-    }
-  }
-  throw new Error("Serializable transaction failed");
 }
 
 async function releaseReservationsForOrder(tx: Tx, orderId: string, now: Date, onlyExpired: boolean) {
@@ -68,8 +58,8 @@ export async function releaseExpiredReservations(prisma: PrismaClient, now = new
   const orderIds = [...new Set(candidates.map((reservation) => reservation.orderId))];
   let released = 0;
   for (const orderId of orderIds) {
-    released += await serializable(prisma, async (tx) => {
-      const releasedForOrder = await releaseReservationsForOrder(tx, orderId, now, true);
+    released += await withSerializable(prisma, async (tx) => {
+      const releasedForOrder = await releaseReservationsForOrder(tx, orderId, now, false);
       if (!releasedForOrder) return 0;
       const remaining = await tx.inventoryReservation.count({ where: { orderId, status: "ACTIVE" } });
       if (remaining === 0) {
@@ -89,11 +79,11 @@ export async function applyMomoIpn(
   input: { orderCode: string; amount: number; resultCode: number; transactionId: string; rawResponse: Prisma.InputJsonValue },
   now = new Date(),
 ): Promise<MomoIpnResult> {
-  return serializable(prisma, async (tx) => {
+  return withSerializable(prisma, async (tx) => {
     const order = await tx.order.findUnique({ where: { code: input.orderCode }, include: { payments: { where: { provider: "MOMO" }, orderBy: { createdAt: "desc" }, take: 1 }, reservations: true } });
     if (!order || order.total !== input.amount || order.paymentMethod !== "MOMO") return "ignored";
     const attempt = order.payments[0];
-    if (!attempt || attempt.status === "PAID" || order.paymentStatus === "PAID") return "ignored";
+    if (!attempt || attempt.status === "PAID" || attempt.status === "REFUNDED" || order.paymentStatus === "PAID" || order.paymentStatus === "REFUNDED") return "ignored";
     if (attempt.status === "REVIEW_REQUIRED" || order.paymentStatus === "REVIEW_REQUIRED") return "ignored";
     if (MOMO_PENDING_CODES.has(input.resultCode)) {
       await tx.paymentAttempt.update({ where: { id: attempt.id }, data: { lastResultCode: input.resultCode, rawResponse: input.rawResponse } });
@@ -119,12 +109,32 @@ export async function applyMomoIpn(
 }
 
 export async function confirmBankTransfer(prisma: PrismaClient, orderId: string, now = new Date()) {
-  return serializable(prisma, async (tx) => {
+  return withSerializable(prisma, async (tx) => {
     const order = await tx.order.findUnique({ where: { id: orderId }, include: { reservations: true } });
     if (!order) throw new Error("NOT_FOUND");
     if (order.paymentMethod !== "BANK_TRANSFER" || order.paymentStatus !== "PENDING" || order.status !== "PENDING") throw new Error("INVALID_STATE");
     if (!(await commitReservationsForOrder(tx, order.id, now))) throw new Error("EXPIRED");
     await tx.paymentAttempt.updateMany({ where: { orderId: order.id, provider: "BANK_TRANSFER", status: "PENDING" }, data: { status: "PAID" } });
     return tx.order.update({ where: { id: order.id }, data: { paymentStatus: "PAID", status: "CONFIRMED" } });
+  });
+}
+
+export async function cancelOrder(prisma: PrismaClient, orderId: string, now = new Date()) {
+  return withSerializable(prisma, async (tx) => {
+    const order = await tx.order.findUnique({ where: { id: orderId }, include: { items: true, reservations: true } });
+    if (!order) throw new Error("NOT_FOUND");
+    if (order.status === "CANCELLED") return order;
+    if (order.paymentStatus === "PAID" || order.paymentStatus === "REVIEW_REQUIRED" || order.paymentStatus === "REFUNDED") throw new Error("INVALID_STATE");
+    const activeReservations = order.reservations.filter((reservation) => reservation.status === "ACTIVE");
+    if (activeReservations.length) {
+      for (const reservation of activeReservations) {
+        const released = await tx.inventoryReservation.updateMany({ where: { id: reservation.id, status: "ACTIVE" }, data: { status: "RELEASED", releasedAt: now } });
+        if (released.count === 1) await tx.productVariant.update({ where: { id: reservation.variantId }, data: { stock: { increment: reservation.quantity } } });
+      }
+    } else if (!order.reservations.length) {
+      for (const item of order.items) await tx.productVariant.update({ where: { id: item.variantId }, data: { stock: { increment: item.quantity } } });
+    }
+    await tx.paymentAttempt.updateMany({ where: { orderId: order.id, status: "PENDING" }, data: { status: "FAILED" } });
+    return tx.order.update({ where: { id: order.id }, data: { status: "CANCELLED", paymentStatus: "FAILED" } });
   });
 }

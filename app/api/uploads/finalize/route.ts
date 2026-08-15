@@ -3,6 +3,7 @@ import { HeadObjectCommand } from "@aws-sdk/client-s3";
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/db";
 import { getR2Config } from "@/lib/r2";
+import { CATALOG_SLUGS } from "@/lib/product-data";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -14,6 +15,8 @@ export async function POST(request: Request) {
   if (!body?.intentId || !body.productId || !body.alt) return NextResponse.json({ error: "Thiếu thông tin media." }, { status: 400 });
   const intent = await prisma.uploadIntent.findFirst({ where: { id: body.intentId, userId: session.user.id, completedAt: null, expiresAt: { gt: new Date() } } });
   if (!intent) return NextResponse.json({ error: "Upload intent không còn hợp lệ." }, { status: 409 });
+  const product = await prisma.product.findFirst({ where: { id: body.productId, slug: { in: [...CATALOG_SLUGS] } }, select: { id: true } });
+  if (!product) return NextResponse.json({ error: "Product không thuộc catalog CMS." }, { status: 400 });
   const head = await config.client.send(new HeadObjectCommand({ Bucket: config.env.R2_BUCKET!, Key: intent.key }));
   if (head.ContentLength !== intent.size || head.ContentType !== intent.contentType) return NextResponse.json({ error: "Media metadata không khớp." }, { status: 400 });
   const media = await prisma.$transaction(async (tx) => {

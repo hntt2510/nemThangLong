@@ -81,22 +81,36 @@ enum ReservationStatus {
   RELEASED
 }
 
+enum InventoryAdjustmentReason {
+  RECEIPT
+  CORRECTION
+  DAMAGE
+  OTHER
+}
+
+enum PaymentReviewAction {
+  FULFILL
+  MANUAL_REFUND_RECORDED
+}
+
 model User {
-  id                 String              @id @default(cuid())
-  email              String              @unique
-  name               String?
-  phone              String?
-  passwordHash       String?
-  emailVerified      DateTime?
-  role               Role                @default(CUSTOMER)
-  accounts           Account[]
-  sessions           Session[]
-  orders             Order[]
-  addresses          Address[]
-  afterSalesRequests AfterSalesRequest[]
-  uploadIntents      UploadIntent[]
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  id                       String                    @id @default(cuid())
+  email                    String                    @unique
+  name                     String?
+  phone                    String?
+  passwordHash             String?
+  emailVerified            DateTime?
+  role                     Role                      @default(CUSTOMER)
+  accounts                 Account[]
+  sessions                 Session[]
+  orders                   Order[]
+  addresses                Address[]
+  afterSalesRequests       AfterSalesRequest[]
+  uploadIntents            UploadIntent[]
+  inventoryAdjustments     InventoryAdjustment[]
+  paymentReviewResolutions PaymentReviewResolution[]
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
 }
 
 model Account {
@@ -161,21 +175,22 @@ model Product {
 }
 
 model ProductVariant {
-  id             String                 @id @default(cuid())
-  productId      String
-  width          Int
-  length         Int
-  thickness      Int
-  price          Int?
-  compareAtPrice Int?
-  sku            String                 @unique
-  stock          Int                    @default(0)
-  active         Boolean                @default(true)
-  product        Product                @relation(fields: [productId], references: [id], onDelete: Cascade)
-  orderItems     OrderItem[]
-  reservations   InventoryReservation[]
-  createdAt      DateTime               @default(now())
-  updatedAt      DateTime               @updatedAt
+  id                   String                 @id @default(cuid())
+  productId            String
+  width                Int
+  length               Int
+  thickness            Int
+  price                Int?
+  compareAtPrice       Int?
+  sku                  String                 @unique
+  stock                Int                    @default(0)
+  active               Boolean                @default(true)
+  product              Product                @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems           OrderItem[]
+  reservations         InventoryReservation[]
+  inventoryAdjustments InventoryAdjustment[]
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
 
   @@unique([productId, width, length, thickness])
   @@index([productId, active])
@@ -243,29 +258,30 @@ model Address {
 }
 
 model Order {
-  id                 String                 @id @default(cuid())
-  code               String                 @unique
-  publicToken        String                 @unique @default(uuid())
-  userId             String?
-  guestEmail         String?
-  customerName       String
-  customerPhone      String
-  shippingAddress    Json
-  subtotal           Int
-  shippingFee        Int
-  total              Int
-  status             OrderStatus            @default(PENDING)
-  paymentMethod      PaymentMethod
-  paymentStatus      PaymentStatus          @default(PENDING)
-  user               User?                  @relation(fields: [userId], references: [id], onDelete: SetNull)
-  addressId          String?
-  address            Address?               @relation(fields: [addressId], references: [id], onDelete: SetNull)
-  items              OrderItem[]
-  payments           PaymentAttempt[]
-  reservations       InventoryReservation[]
-  afterSalesRequests AfterSalesRequest[]
-  createdAt          DateTime               @default(now())
-  updatedAt          DateTime               @updatedAt
+  id                       String                    @id @default(cuid())
+  code                     String                    @unique
+  publicToken              String                    @unique @default(uuid())
+  userId                   String?
+  guestEmail               String?
+  customerName             String
+  customerPhone            String
+  shippingAddress          Json
+  subtotal                 Int
+  shippingFee              Int
+  total                    Int
+  status                   OrderStatus               @default(PENDING)
+  paymentMethod            PaymentMethod
+  paymentStatus            PaymentStatus             @default(PENDING)
+  user                     User?                     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  addressId                String?
+  address                  Address?                  @relation(fields: [addressId], references: [id], onDelete: SetNull)
+  items                    OrderItem[]
+  payments                 PaymentAttempt[]
+  reservations             InventoryReservation[]
+  afterSalesRequests       AfterSalesRequest[]
+  paymentReviewResolutions PaymentReviewResolution[]
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
 
   @@index([userId, createdAt])
 }
@@ -310,20 +326,21 @@ model AfterSalesRequest {
 }
 
 model PaymentAttempt {
-  id                    String        @id @default(cuid())
-  orderId               String
-  provider              PaymentMethod
-  providerOrderId       String?
-  providerTransactionId String?       @unique
-  requestId             String?
-  amount                Int
-  status                PaymentStatus @default(PENDING)
-  lastResultCode        Int?
-  expiresAt             DateTime?
-  rawResponse           Json?
-  order                 Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
+  id                      String                   @id @default(cuid())
+  orderId                 String
+  provider                PaymentMethod
+  providerOrderId         String?
+  providerTransactionId   String?                  @unique
+  requestId               String?
+  amount                  Int
+  status                  PaymentStatus            @default(PENDING)
+  lastResultCode          Int?
+  expiresAt               DateTime?
+  rawResponse             Json?
+  order                   Order                    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  paymentReviewResolution PaymentReviewResolution?
 
   @@unique([provider, providerOrderId])
 }
@@ -404,4 +421,37 @@ model LeadRateLimitBucket {
 
   @@unique([kind, keyHash])
   @@index([expiresAt])
+}
+
+model InventoryAdjustment {
+  id             String                    @id @default(cuid())
+  variantId      String
+  delta          Int
+  reason         InventoryAdjustmentReason
+  note           String?                   @db.Text
+  actorId        String
+  resultingStock Int
+  createdAt      DateTime                  @default(now())
+  variant        ProductVariant            @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  actor          User                      @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([variantId, createdAt])
+  @@index([actorId, createdAt])
+}
+
+model PaymentReviewResolution {
+  id               String              @id @default(cuid())
+  orderId          String
+  paymentAttemptId String
+  action           PaymentReviewAction
+  actorId          String
+  note             String?             @db.Text
+  createdAt        DateTime            @default(now())
+  order            Order               @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  paymentAttempt   PaymentAttempt      @relation(fields: [paymentAttemptId], references: [id], onDelete: Restrict)
+  actor            User                @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@unique([orderId])
+  @@unique([paymentAttemptId])
+  @@index([action, createdAt])
 }
