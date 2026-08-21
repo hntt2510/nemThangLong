@@ -20,7 +20,12 @@ export function ProductCard({ product, index, className = "" }: { product: Produ
         <p className="eyebrow">{product.eyebrow}</p>
         <h3><Link href={"/nem/" + product.slug as never}>{product.name}</Link></h3>
         <p>{product.description}</p>
-        <div className="home-product-meta"><span className="product-card-price">{priceLabel}</span><Link href={("/so-sanh?items=" + encodeURIComponent(product.slug)) as never} className="text-link">So sánh</Link></div>
+        <div className="home-product-meta">
+          <span className="product-card-price">{priceLabel}</span>
+          <Link href={("/so-sanh?items=" + encodeURIComponent(product.slug)) as never} className="text-link">
+            So sánh <span aria-hidden="true">→</span>
+          </Link>
+        </div>
       </div>
     </article>
   );
