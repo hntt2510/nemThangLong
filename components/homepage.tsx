@@ -34,7 +34,7 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
                 <Link href={"/tim-nem" as never} className="button button-primary">Tìm nệm phù hợp</Link>
                 <Link href="#product-range" className="button button-secondary">Khám phá sản phẩm</Link>
               </div>
-              <p className="home-demo-note">Ảnh minh họa · Thông tin sản phẩm được cập nhật từ CMS.</p>
+              <p className="home-demo-note">Ảnh minh họa · Thông tin sản phẩm đang được cập nhật.</p>
             </div>
             <div className="home-hero-media">
               <Image src="/images/homepage-hero.webp" alt="Hình ảnh minh họa phòng ngủ với nệm Thăng Long" fill priority sizes="(max-width: 860px) 100vw, 58vw" />
@@ -47,8 +47,8 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
           <div className="container trust-strip-grid">
             <span><b>01</b> Chọn theo nhu cầu</span>
             <span><b>02</b> Tư vấn trước khi chọn</span>
-            <span><b>03</b> {deliveryConfigured ? "Chính sách giao hàng đã cấu hình" : "Chính sách giao hàng đang cập nhật"}</span>
-            <span><b>04</b> Thông tin giá từ CMS</span>
+            <span><b>03</b> {deliveryConfigured ? "Giao hàng tận nơi toàn quốc" : "Chính sách giao hàng đang cập nhật"}</span>
+            <span><b>04</b> Giá niêm yết minh bạch</span>
           </div>
         </section>
 
@@ -59,7 +59,7 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
                 <p className="section-label">PRODUCT RANGE</p>
                 <h2>Một dòng nệm cho mỗi cách ngủ.</h2>
               </div>
-              <p>Giá và khả năng mua chỉ hiển thị khi đã được cấu hình và xác nhận trong CMS.</p>
+              <p>Giá bán và khả năng đặt hàng được hiển thị rõ ràng theo từng kích thước.</p>
             </div>
             <div className="home-product-grid">
               {products.map((product, index) => (
@@ -72,15 +72,15 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
         <GsapReveal>
           <section id="find-mattress" className="home-find container">
             <div className="home-find-intro">
-              <p className="section-label">FIND YOUR MATTRESS</p>
-              <h2>Bắt đầu từ cách bạn muốn được nghỉ ngơi.</h2>
-              <p>Trả lời vài câu hỏi về kích thước và cảm giác bạn tìm kiếm để xem những lựa chọn có dữ liệu phù hợp.</p>
-              <Link href={"/tim-nem" as never} className="text-link">Bắt đầu tìm nệm <span aria-hidden="true">→</span></Link>
+              <p className="section-label">HOW TO CHOOSE</p>
+              <h2>Không cần thử hết mọi tấm nệm.</h2>
+              <p>Chỉ cần hiểu tư thế nằm, thói quen và cảm giác bạn muốn khi thức dậy.</p>
+              <Link href={"/tim-nem" as never} className="text-link">Bắt đầu chọn nệm <span aria-hidden="true">→</span></Link>
             </div>
             <div className="home-find-steps">
               <div>
                 <span>01</span>
-                <strong>Êm hay vững?</strong>
+                <strong>Tìm cảm giác bạn muốn mỗi đêm</strong>
                 <p>Nhận diện cảm giác bạn tìm kiếm trước khi xem thông số.</p>
               </div>
               <div>
@@ -121,7 +121,7 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
             <div className="home-latex-copy">
               <p className="section-label">NATURAL LATEX</p>
               <h2>Một câu chuyện về cảm giác tự nhiên.</h2>
-              <p>{latex.materialStory?.body ?? "Nội dung về Cao Su Thiên Nhiên đang được cập nhật từ CMS. Hình ảnh chỉ mang tính minh họa và không đại diện cho cấu tạo sản phẩm."}</p>
+              <p>Thông tin chi tiết về dòng Cao Su Thiên Nhiên đang được cập nhật. Hình ảnh mang tính chất minh họa trải nghiệm.</p>
               <Link href="/nem/cao-su-thien-nhien" className="text-link">Xem dòng Cao Su Thiên Nhiên <span aria-hidden="true">→</span></Link>
             </div>
             <div className="home-latex-media">
@@ -198,11 +198,11 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
             <div className="home-trust-copy">
               <div>
                 <strong>{deliveryConfigured ? "Giao hàng" : "Giao hàng đang cập nhật"}</strong>
-                <p>{deliveryConfigured ? "Thông tin phí vận chuyển được quản lý trong Site settings." : "Chính sách giao hàng sẽ hiển thị khi được cấu hình."}</p>
+                <p>{deliveryConfigured ? "Hỗ trợ giao hàng và lắp đặt tận phòng ngủ." : "Chính sách giao hàng sẽ hiển thị khi được công bố."}</p>
               </div>
               <div>
                 <strong>Bảo hành</strong>
-                <p>Chính sách bảo hành chỉ hiển thị sau khi được xác nhận trong CMS.</p>
+                <p>Chính sách bảo hành chính hãng được tư vấn chi tiết theo từng dòng sản phẩm.</p>
               </div>
               <div>
                 <strong>Hỏi trước khi mua</strong>
@@ -220,7 +220,7 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
             </div>
             <div className="home-journal-empty">
               <p>Nội dung đang được chuẩn bị.</p>
-              <span>Journal articles sẽ được quản lý từ CMS khi sẵn sàng.</span>
+              <span>Các bài viết chia sẻ về giấc ngủ sẽ sớm được cập nhật.</span>
             </div>
           </section>
         </GsapReveal>

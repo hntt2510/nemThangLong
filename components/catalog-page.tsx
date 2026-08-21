@@ -117,7 +117,7 @@ export function CatalogPage({ data, settings }: { data: CatalogData; settings: C
             </div>
           </form>
         </section>
-        {!data.databaseAvailable && <p className="catalog-demo-note container">Danh mục minh họa · Giá, tồn kho và khả năng mua sẽ hiển thị sau khi dữ liệu CMS được cấu hình.</p>}
+        {!data.databaseAvailable && <p className="catalog-demo-note container">Ảnh minh họa · Thông tin giá bán và tình trạng còn hàng đang được cập nhật.</p>}
         <section className="catalog-results container" aria-live="polite">
           <div className="catalog-results-heading"><h2>{data.total > 0 ? "Các dòng nệm" : "Chưa có lựa chọn phù hợp"}</h2><span>{data.total} sản phẩm</span></div>
           {data.total > 0 ? <div className="catalog-grid">{data.products.map((product, index) => <ProductCard key={product.slug} product={product} index={index} className="catalog-card" />)}</div> : <div className="catalog-empty"><p>Hãy thử bỏ bớt bộ lọc hoặc tìm kiếm khác.</p><Link href={"/nem" as never} className="button button-secondary">Xem toàn bộ danh mục</Link></div>}

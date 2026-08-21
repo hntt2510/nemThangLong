@@ -4612,7 +4612,11 @@ h4 {
     font-size: 13px;
     color: var(--accent);
   }
-  .mobile-sticky-cta button {
+  .mobile-sticky-cta button,
+  .mobile-sticky-cta a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-height: 44px;
     padding: 0 18px;
     border: 0;
@@ -4622,6 +4626,12 @@ h4 {
     font-weight: 700;
     font-size: 12px;
     text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .mobile-sticky-cta button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   /* Finder & Compare Mobile */

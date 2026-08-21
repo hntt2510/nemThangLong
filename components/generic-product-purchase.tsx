@@ -8,6 +8,7 @@ import { activeVariants, dimensionOptions, initialSelection, resolveVariant, sel
 import { useCart } from "@/lib/cart-context";
 import type { Product } from "@/lib/types";
 import { isDemoMedia, mediaAlt } from "@/lib/product-media";
+import { resolvePdpCta } from "@/lib/product-cta";
 
 export function GenericProductPurchase({ product, contactHref }: { product: Product; contactHref: string | null }) {
   const router = useRouter();
@@ -19,6 +20,11 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
   const media = product.media[mediaIndex] ?? product.media[0];
   const canPurchase = Boolean(!product.isDemo && selected && selected.price !== null && selected.price > 0 && selected.stock > 0);
   const price = !product.isDemo && selected?.price && selected.price > 0 ? formatVnd(selected.price) : "Liên hệ";
+  const cta = resolvePdpCta(canPurchase, contactHref, {
+    purchase: "Mua ngay",
+    contact: "Tư vấn",
+    disabled: "Liên hệ",
+  });
 
   function change(dimension: VariantDimension, value: number) {
     const candidate = selectVariant(variants, selected, dimension, value);
@@ -106,7 +112,7 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
             ))}
           </div>
         ) : (
-          <div className="variant-placeholder">Kích thước và tổ hợp bán đang được cập nhật từ CMS.</div>
+          <div className="variant-placeholder">Thông tin kích thước và giá bán đang được cập nhật.</div>
         )}
         {selected && (
           <p className="generic-availability" aria-live="polite">
@@ -114,7 +120,7 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
             {selected.price === null || selected.price <= 0 ? " · Giá đang cập nhật" : ""}
           </p>
         )}
-        {canPurchase ? (
+        {cta.type === "purchase" ? (
           <div className="hero-ctas">
             <button className="button button-primary" type="button" onClick={buyNow}>
               Mua ngay
@@ -123,16 +129,16 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
               Thêm vào giỏ
             </button>
           </div>
-        ) : contactHref ? (
-          <a className="button button-primary contact-button" href={contactHref}>
+        ) : cta.type === "contact" ? (
+          <a className="button button-primary contact-button" href={cta.href}>
             Liên hệ tư vấn
           </a>
         ) : (
           <p className="generic-contact-pending">Thông tin tư vấn đang được cập nhật.</p>
         )}
         <div className="trust-list">
-          <span>✓ Thông tin sản phẩm theo cấu hình CMS</span>
-          <span>✓ Không hiển thị tổ hợp chưa được xác nhận</span>
+          <span>✓ Thông tin kích thước rõ ràng, minh bạch</span>
+          <span>✓ Tư vấn trực tiếp theo nhu cầu sử dụng</span>
         </div>
       </div>
 
@@ -141,18 +147,19 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
           <span>{product.name}</span>
           <strong>{price}</strong>
         </div>
-        <button
-          type="button"
-          onClick={
-            canPurchase
-              ? buyNow
-              : () => {
-                  if (contactHref) router.push(contactHref as never);
-                }
-          }
-        >
-          {canPurchase ? "Mua ngay" : "Tư vấn"}
-        </button>
+        {cta.type === "purchase" ? (
+          <button type="button" onClick={buyNow}>
+            {cta.label}
+          </button>
+        ) : cta.type === "contact" ? (
+          <a href={cta.href}>
+            {cta.label}
+          </a>
+        ) : (
+          <button type="button" disabled>
+            {cta.label}
+          </button>
+        )}
       </div>
     </section>
   );

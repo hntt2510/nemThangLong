@@ -9,7 +9,7 @@ export function SiteFooter({ contactPhone, contactEmail }: { contactPhone?: stri
         <div><p className="footer-heading">Hỗ trợ</p><Link href={"/tim-nem" as never}>Tìm nệm phù hợp</Link><Link href={"/so-sanh" as never}>So sánh</Link><Link href={"/lien-he" as never}>Liên hệ tư vấn</Link></div>
         <div><p className="footer-heading">Liên hệ</p>{contactPhone && <a href={"tel:" + contactPhone}>{contactPhone}</a>}{contactEmail && <a href={"mailto:" + contactEmail}>{contactEmail}</a>}{!contactPhone && !contactEmail && <span>Thông tin đang cập nhật</span>}</div>
       </div>
-      <div className="container home-footer-bottom"><span>© Thăng Long</span><span>Hình ảnh minh họa có thể được thay thế từ CMS.</span></div>
+      <div className="container home-footer-bottom"><span>© Thăng Long</span><span>Hình ảnh mang tính chất minh họa trải nghiệm.</span></div>
     </footer>
   );
 }

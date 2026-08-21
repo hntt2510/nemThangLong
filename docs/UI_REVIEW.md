@@ -19,36 +19,40 @@ Tài liệu này phục vụ đợt đánh giá giao diện (**UI Freeze — Cus
 
 ---
 
-## 2. Nguyên Tắc Dữ Liệu & Bản Quyền Nội Dung
+## 2. Nguyên Tắc Dữ Liệu & Hiển Thị Minh Họa
 
-- **Minh bạch thông số**: Mọi thông số kích thước, độ dày, giá bán và khả năng mua hàng trực tuyến đều được liên kết trực tiếp từ hệ thống quản trị (CMS).
-- **Ảnh minh họa & Dữ liệu chờ xác nhận**:
+- **Thông số sản phẩm**: Mọi thông số kích thước, độ dày, giá bán và khả năng đặt hàng trực tuyến được quản lý theo cấu hình dữ liệu của hệ thống.
+- **Ảnh minh họa & Dữ liệu chờ công bố**:
   - Các hình ảnh mẫu demo được gắn nhãn rõ ràng: `Ảnh minh họa` / `Minh họa`.
-  - Các thông tin chưa được phê duyệt chính thức (chính sách bảo hành từng dòng, chứng nhận quốc tế, số lượng đối tác khách sạn) được ghi rõ `Đang cập nhật từ CMS` hoặc `Liên hệ tư vấn`, tuyệt đối không đưa ra các tuyên bố y khoa hoặc số liệu chưa kiểm chứng.
+  - Các nội dung chi tiết chưa được phê duyệt chính thức (chính sách bảo hành từng dòng, chứng nhận, đối tác dự án) được ghi nhận ở trạng thái chờ cập nhật hoặc liên hệ tư vấn trực tiếp, không tự ý công bố các tuyên bố y khoa, số năm bảo hành hay số liệu chưa được kiểm chứng.
 
 ---
 
-## 3. Danh Mục Các Trang Trọng Tâm Cần Đánh Giá (Review Checklist)
+## 3. Danh Mục Các Tuyến Đường Storefront Cần Đánh Giá (Review Checklist)
 
-| STT | Tuyến đường (Route) | Nội dung & Mục tiêu trải nghiệm |
+| STT | Tuyến đường (Route) | Nội dung & Mục tiêu trải nghiệm cần review |
 | :--- | :--- | :--- |
-| **01** | [`/`](file:///D:/HOCTAP/latvat/nemThangLong/app/page.tsx) | **Trang chủ**: Hero banner, 4 trụ cột an tâm, danh mục 6 dòng nệm, Mattress Finder intro, Luxury signature, Latex story, Phân loại theo nhu cầu, B2B teaser, Tư vấn nhanh. |
-| **02** | [`/nem`](file:///D:/HOCTAP/latvat/nemThangLong/app/nem/page.tsx) | **Danh mục sản phẩm**: Bộ lọc đa chiều (dòng nệm, khoảng giá, chiều rộng, độ dày, tình trạng tồn kho, sắp xếp), lưới sản phẩm responsive. |
-| **03** | [`/nem/luxury`](file:///D:/HOCTAP/latvat/nemThangLong/app/nem/luxury/page.tsx) | **Dòng nệm Signature Luxury**: Hero gallery đa góc nhìn, cấu hình kích thước/độ dày, biểu đồ cảm giác nằm (Comfort Meter), câu chuyện vật liệu, sticky purchase bar trên mobile. |
-| **04** | [`/nem/america`](file:///D:/HOCTAP/latvat/nemThangLong/app/nem/america/page.tsx) | **Dòng nệm America**: Trang chi tiết sản phẩm chuẩn (Generic PDP), chọn kích thước, kiểm tra tồn kho theo biến thể, danh sách cam kết. |
-| **05** | [`/nem/classic`](file:///D:/HOCTAP/latvat/nemThangLong/app/nem/classic/page.tsx) | **Dòng nệm Classic**: Bố cục chuẩn, hình ảnh minh họa rõ ràng, khối đặt hàng / liên hệ tư vấn. |
-| **06** | [`/nem/hoat-tinh`](file:///D:/HOCTAP/latvat/nemThangLong/app/nem/hoat-tinh/page.tsx) | **Dòng nệm Hoạt Tính**: Bố cục chuẩn, câu chuyện vật liệu than hoạt tính, gợi ý sản phẩm liên quan. |
-| **07** | [`/nem/memory-foam`](file:///D:/HOCTAP/latvat/nemThangLong/app/nem/memory-foam/page.tsx) | **Dòng nệm Memory Foam**: Trải nghiệm nâng đỡ, bộ chọn biến thể mượt mà. |
-| **08** | [`/nem/cao-su-thien-nhien`](file:///D:/HOCTAP/latvat/nemThangLong/app/nem/cao-su-thien-nhien/page.tsx) | **Dòng nệm Cao Su Thiên Nhiên**: Khám phá nguồn gốc tự nhiên, độ bền và thông số kỹ thuật. |
-| **09** | [`/tim-nem`](file:///D:/HOCTAP/latvat/nemThangLong/app/tim-nem/page.tsx) | **Công cụ Tìm nệm (Mattress Finder)**: Wizard 3 bước (Kích thước → Cảm giác & Ngân sách → Ưu tiên khi ngủ), hiển thị gợi ý chính & các lựa chọn tham khảo phù hợp. |
-| **10** | [`/so-sanh`](file:///D:/HOCTAP/latvat/nemThangLong/app/so-sanh/page.tsx) | **Trang So sánh nệm**: Chọn các dòng nệm cần so sánh, bảng thông số ma trận trực quan với cột tiêu chí cố định (sticky). |
-| **11** | [`/khach-san-du-an`](file:///D:/HOCTAP/latvat/nemThangLong/app/khach-san-du-an/page.tsx) | **Khách sạn & Dự án (B2B)**: Quy trình 3 bước hợp tác, checklist năng lực cung ứng, form đăng ký nhận hồ sơ dự án & mẫu thử. |
-| **12** | [`/lien-he`](file:///D:/HOCTAP/latvat/nemThangLong/app/lien-he/page.tsx) | **Liên hệ & Tư vấn chuyên sâu**: Form gửi yêu cầu tư vấn (kèm thông tin sản phẩm quan tâm nếu chuyển tiếp từ PDP), thông tin hotline/email trực tiếp. |
-| **13** | [`/gio-hang`](file:///D:/HOCTAP/latvat/nemThangLong/app/gio-hang/page.tsx) | **Giỏ hàng**: Danh sách biến thể đã chọn, thay đổi số lượng / xóa, tóm tắt tạm tính và chuyển bước thanh toán. |
-| **14** | [`/checkout`](file:///D:/HOCTAP/latvat/nemThangLong/app/checkout/page.tsx) | **Thanh toán**: Form địa chỉ giao hàng, lựa chọn phương thức thanh toán (COD, Chuyển khoản ngân hàng, MoMo QR), bảng tóm tắt đơn hàng. |
-| **15** | [`/checkout/result`](file:///D:/HOCTAP/latvat/nemThangLong/app/checkout/result/page.tsx) | **Kết quả đơn hàng**: Trạng thái đơn hàng, thông tin chuyển khoản ngân hàng (nếu chọn chuyển khoản), điều hướng quay lại mua sắm. |
-| **16** | [`/dang-nhap`](file:///D:/HOCTAP/latvat/nemThangLong/app/dang-nhap/page.tsx) & [`/dang-ky`](file:///D:/HOCTAP/latvat/nemThangLong/app/dang-ky/page.tsx) | **Đăng nhập & Đăng ký**: Giao diện đăng nhập tài khoản khách hàng chuẩn tone thương hiệu. |
-| **17** | [`/tai-khoan`](file:///D:/HOCTAP/latvat/nemThangLong/app/tai-khoan/page.tsx) | **Khu vực tài khoản khách hàng**: Dashboard hồ sơ cá nhân, lịch sử đơn hàng ([`/tai-khoan/don-hang`](file:///D:/HOCTAP/latvat/nemThangLong/app/tai-khoan/don-hang/page.tsx)), sổ địa chỉ ([`/tai-khoan/dia-chi`](file:///D:/HOCTAP/latvat/nemThangLong/app/tai-khoan/dia-chi/page.tsx)), gửi yêu cầu bảo hành ([`/tai-khoan/ho-tro`](file:///D:/HOCTAP/latvat/nemThangLong/app/tai-khoan/ho-tro/page.tsx)). |
+| **01** | `/` | **Trang chủ**: Hero banner, 4 trụ cột an tâm, danh mục 6 dòng nệm, Mattress Finder intro, Luxury signature editorial, khu vực giới thiệu chất liệu, phân loại theo nhu cầu, B2B teaser, form liên hệ tư vấn nhanh. |
+| **02** | `/nem` | **Danh mục sản phẩm**: Bộ lọc đa chiều (dòng nệm, khoảng giá, chiều rộng, độ dày, tình trạng còn hàng, sắp xếp), lưới sản phẩm responsive. |
+| **03** | `/nem/luxury` | **Dòng nệm Signature Luxury**: Hero gallery đa góc nhìn, cấu hình kích thước/độ dày, biểu đồ cảm giác nằm (Comfort Meter), khu vực câu chuyện vật liệu khi dữ liệu được công bố, sticky purchase bar trên mobile. |
+| **04** | `/nem/america` | **Dòng nệm America**: Bố cục trang chi tiết sản phẩm chuẩn (Generic PDP), chọn kích thước, kiểm tra tình trạng còn hàng theo biến thể, danh sách cam kết. |
+| **05** | `/nem/classic` | **Dòng nệm Classic**: Bố cục trang chi tiết sản phẩm, hình ảnh minh họa, khu vực đặt hàng / liên hệ tư vấn. |
+| **06** | `/nem/hoat-tinh` | **Dòng nệm Hoạt Tính**: Bố cục trang chi tiết sản phẩm, khu vực giới thiệu đặc tính vật liệu than hoạt tính khi dữ liệu được công bố, gợi ý sản phẩm liên quan. |
+| **07** | `/nem/memory-foam` | **Dòng nệm Memory Foam**: Bố cục trang chi tiết sản phẩm, bộ chọn kích thước và độ dày, trạng thái hiển thị giá và đặt hàng. |
+| **08** | `/nem/cao-su-thien-nhien` | **Dòng nệm Cao Su Thiên Nhiên**: Bố cục trang chi tiết sản phẩm, gallery ảnh, lựa chọn biến thể và khu vực câu chuyện chất liệu khi dữ liệu được công bố. |
+| **09** | `/tim-nem` | **Công cụ Tìm nệm (Mattress Finder)**: Wizard 3 bước (Kích thước → Cảm giác & Ngân sách → Ưu tiên khi ngủ), hiển thị gợi ý chính & các lựa chọn tham khảo phù hợp. |
+| **10** | `/so-sanh` | **Trang So sánh nệm**: Chọn các dòng nệm cần so sánh, bảng thông số ma trận trực quan với cột tiêu chí cố định khi cuộn trên thiết bị di động. |
+| **11** | `/khach-san-du-an` | **Khách sạn & Dự án (B2B)**: Quy trình 3 bước hợp tác, checklist tiêu chuẩn cung ứng, form đăng ký nhận hồ sơ dự án & mẫu thử. |
+| **12** | `/lien-he` | **Liên hệ & Tư vấn chuyên sâu**: Form gửi yêu cầu tư vấn (tiếp nhận thông tin sản phẩm quan tâm nếu chuyển tiếp từ PDP), thông tin hotline và email trực tiếp. |
+| **13** | `/gio-hang` | **Giỏ hàng**: Danh sách biến thể đã chọn, thay đổi số lượng / xóa, tóm tắt tạm tính và chuyển bước thanh toán. |
+| **14** | `/checkout` | **Thanh toán**: Form địa chỉ giao hàng, lựa chọn phương thức thanh toán (COD, Chuyển khoản ngân hàng, MoMo QR), bảng tóm tắt đơn hàng. |
+| **15** | `/checkout/result` | **Kết quả đơn hàng**: Trạng thái đơn hàng, thông tin chuyển khoản ngân hàng (nếu chọn chuyển khoản), điều hướng quay lại mua sắm. |
+| **16** | `/dang-nhap` | **Đăng nhập**: Giao diện đăng nhập tài khoản khách hàng chuẩn nhận diện thương hiệu. |
+| **17** | `/dang-ky` | **Đăng ký**: Giao diện đăng ký tài khoản khách hàng mới. |
+| **18** | `/tai-khoan` | **Tổng quan tài khoản**: Dashboard quản lý hồ sơ, truy cập nhanh đơn hàng, sổ địa chỉ và yêu cầu hỗ trợ sau mua. |
+| **19** | `/tai-khoan/don-hang` | **Lịch sử đơn hàng**: Danh sách đơn hàng đã đặt, trạng thái đơn và xem chi tiết từng đơn hàng. |
+| **20** | `/tai-khoan/dia-chi` | **Sổ địa chỉ**: Danh sách địa chỉ nhận hàng và form thêm địa chỉ mới. |
+| **21** | `/tai-khoan/ho-tro` | **Hỗ trợ sau mua**: Gửi yêu cầu bảo hành, đổi trả và theo dõi tiến độ xử lý. |
 
 ---
 
