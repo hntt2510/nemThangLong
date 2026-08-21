@@ -24,24 +24,26 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
   return (
     <div className="homepage">
       <main>
-        <section className="home-hero">
-          <div className="container home-hero-grid">
-            <div className="home-hero-copy">
-              <p className="eyebrow">THĂNG LONG / SLEEP, CONSIDERED.</p>
-              <h1>Ngủ ngon hơn,<br />mỗi ngày.</h1>
-              <p className="home-hero-lede">Những lựa chọn nệm được sắp xếp để bạn dễ tìm thấy cảm giác phù hợp.</p>
-              <div className="home-hero-actions">
-                <Link href={"/tim-nem" as never} className="button button-primary">Tìm nệm phù hợp</Link>
-                <Link href="#product-range" className="button button-secondary">Khám phá sản phẩm</Link>
+        <GsapReveal variant="hero" parallax>
+          <section className="home-hero">
+            <div className="container home-hero-grid">
+              <div className="home-hero-copy">
+                <p className="eyebrow">THĂNG LONG / SLEEP, CONSIDERED.</p>
+                <h1>Ngủ ngon hơn,<br />mỗi ngày.</h1>
+                <p className="home-hero-lede">Những lựa chọn nệm được sắp xếp để bạn dễ tìm thấy cảm giác phù hợp.</p>
+                <div className="home-hero-actions">
+                  <Link href={"/tim-nem" as never} className="button button-primary">Tìm nệm phù hợp</Link>
+                  <Link href="#product-range" className="button button-secondary">Khám phá sản phẩm</Link>
+                </div>
+                <p className="home-demo-note">Ảnh minh họa · Thông tin sản phẩm đang được cập nhật.</p>
               </div>
-              <p className="home-demo-note">Ảnh minh họa · Thông tin sản phẩm đang được cập nhật.</p>
+              <div className="home-hero-media">
+                <Image src="/images/homepage-hero.webp" alt="Hình ảnh minh họa phòng ngủ với nệm Thăng Long" fill priority sizes="(max-width: 860px) 100vw, 58vw" />
+                <span className="demo-badge">Ảnh minh họa</span>
+              </div>
             </div>
-            <div className="home-hero-media">
-              <Image src="/images/homepage-hero.webp" alt="Hình ảnh minh họa phòng ngủ với nệm Thăng Long" fill priority sizes="(max-width: 860px) 100vw, 58vw" />
-              <span className="demo-badge">Ảnh minh họa</span>
-            </div>
-          </div>
-        </section>
+          </section>
+        </GsapReveal>
 
         <section className="trust-strip" aria-label="Thông tin mua sắm">
           <div className="container trust-strip-grid">
@@ -52,7 +54,7 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
           </div>
         </section>
 
-        <GsapReveal>
+        <GsapReveal variant="stagger" staggerSelector=".home-product-card">
           <section id="product-range" className="home-range container">
             <div className="home-section-heading">
               <div>
@@ -97,7 +99,7 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
           </section>
         </GsapReveal>
 
-        <GsapReveal>
+        <GsapReveal variant="editorial" parallax>
           <section className="home-luxury-editorial">
             <div className="container home-luxury-grid">
               <div className="home-luxury-media">
@@ -116,7 +118,7 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
 
         <MattressLabTeaser product={luxuryProduct} />
 
-        <GsapReveal>
+        <GsapReveal variant="editorial" parallax>
           <section id="natural-latex" className="home-latex container">
             <div className="home-latex-copy">
               <p className="section-label">NATURAL LATEX</p>
@@ -174,7 +176,7 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
           </section>
         </GsapReveal>
 
-        <GsapReveal>
+        <GsapReveal variant="editorial">
           <section id="hotel-project" className="home-project container">
             <div className="home-project-media">
               <Image src="/images/homepage-hotel.webp" alt="Hình ảnh minh họa phòng ngủ khách sạn" fill sizes="(max-width: 860px) 100vw, 58vw" />
@@ -189,7 +191,7 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
           </section>
         </GsapReveal>
 
-        <GsapReveal>
+        <GsapReveal variant="stagger" staggerSelector=".home-trust-copy > div">
           <section className="home-trust container">
             <div>
               <p className="section-label">DELIVERY &amp; WARRANTY</p>

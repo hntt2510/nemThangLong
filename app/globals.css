@@ -175,7 +175,7 @@ h4 {
 }
 
 .button:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1.5px);
 }
 
 .button:active {
@@ -666,12 +666,14 @@ h4 {
   transition: transform var(--transition-slow);
 }
 
-.home-product-card a:hover .home-product-media {
+.home-product-card:hover .home-product-media,
+.home-product-card:focus-within .home-product-media {
   box-shadow: var(--shadow-md);
   transform: translateY(-3px);
 }
 
-.home-product-card a:hover .home-product-media img {
+.home-product-card:hover .home-product-media img,
+.home-product-card:focus-within .home-product-media img {
   transform: scale(1.035);
 }
 
@@ -701,8 +703,15 @@ h4 {
   transition: color var(--transition-fast);
 }
 
-.home-product-card a:hover h3 {
+.home-product-card:hover h3 a,
+.home-product-card:focus-within h3 a {
   color: var(--accent);
+}
+
+.home-product-card:hover .text-link,
+.home-product-card:focus-within .text-link {
+  color: var(--accent-hover);
+  gap: 12px;
 }
 
 .home-product-copy > p:not(.eyebrow) {
@@ -1031,7 +1040,6 @@ h4 {
 
 .home-trust-copy > div {
   padding: 24px 20px;
-  border-top: 2px solid var(--warm);
   background: var(--surface);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-sm);
