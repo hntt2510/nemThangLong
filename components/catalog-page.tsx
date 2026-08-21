@@ -26,13 +26,95 @@ export function CatalogPage({ data, settings }: { data: CatalogData; settings: C
         <section className="catalog-toolbar container" aria-label="Bộ lọc sản phẩm">
           <div className="catalog-toolbar-top"><p className="section-label">COLLECTION</p><span>{data.total} lựa chọn</span></div>
           <form method="get" className="catalog-filter-form">
-            <fieldset><legend>Tìm kiếm</legend><label className="catalog-search"><span className="sr-only">Tìm theo tên hoặc SKU</span><input type="search" name="q" value={data.query.search} placeholder="Tên sản phẩm hoặc SKU" /></label></fieldset>
-            <fieldset><legend>Dòng nệm</legend><div className="catalog-check-list">{[["america", "America"], ["classic", "Classic"], ["hoat-tinh", "Hoạt Tính"], ["memory-foam", "Memory Foam"], ["cao-su-thien-nhien", "Cao Su Thiên Nhiên"], ["luxury", "Luxury"]].map(([value, label]) => <label key={value}><input type="checkbox" name="line" value={value} checked={data.query.lines.includes(value)} readOnly /> <span>{label}</span></label>)}</div></fieldset>
-            {data.facets.hasVerifiedPrices && <fieldset><legend>Khoảng giá (VND)</legend><div className="catalog-price-inputs"><label><span className="sr-only">Giá từ</span><input type="number" name="minPrice" min={data.facets.minPrice ?? undefined} value={data.query.minPrice ?? ""} placeholder="Từ" /></label><label><span className="sr-only">Giá đến</span><input type="number" name="maxPrice" max={data.facets.maxPrice ?? undefined} value={data.query.maxPrice ?? ""} placeholder="Đến" /></label></div></fieldset>}
-            {data.facets.widths.length > 0 && <fieldset><legend>Chiều rộng</legend><div className="catalog-check-list catalog-check-list-inline">{data.facets.widths.map((width) => <label key={width}><input type="checkbox" name="width" value={width} checked={checked(data.query.widths, width)} readOnly /> <span>{width}cm</span></label>)}</div></fieldset>}
-            {data.facets.thicknesses.length > 0 && <fieldset><legend>Độ dày</legend><div className="catalog-check-list catalog-check-list-inline">{data.facets.thicknesses.map((thickness) => <label key={thickness}><input type="checkbox" name="thickness" value={thickness} checked={checked(data.query.thicknesses, thickness)} readOnly /> <span>{thickness}cm</span></label>)}</div></fieldset>}
-            <fieldset><legend>Sắp xếp</legend><label className="catalog-sort"><span className="sr-only">Sắp xếp sản phẩm</span><select name="sort" defaultValue={data.query.sort}><option value="featured">Nổi bật</option>{data.facets.hasVerifiedPrices && <><option value="price-asc">Giá thấp → cao</option><option value="price-desc">Giá cao → thấp</option></>}<option value="name-asc">Tên A–Z</option></select></label><label className="catalog-stock"><input type="checkbox" name="inStock" value="1" checked={data.query.inStock} readOnly /> <span>Còn hàng</span></label></fieldset>
-            <div className="catalog-filter-actions"><button type="submit" className="button button-primary">Áp dụng</button><Link href={"/nem" as never} className="text-link">Xóa bộ lọc</Link></div>
+            <fieldset>
+              <legend>Tìm kiếm</legend>
+              <label className="catalog-search">
+                <span className="sr-only">Tìm theo tên hoặc SKU</span>
+                <input type="search" name="q" defaultValue={data.query.search} placeholder="Tên sản phẩm hoặc SKU" />
+              </label>
+            </fieldset>
+            <fieldset>
+              <legend>Dòng nệm</legend>
+              <div className="catalog-check-list">
+                {[
+                  ["america", "America"],
+                  ["classic", "Classic"],
+                  ["hoat-tinh", "Hoạt Tính"],
+                  ["memory-foam", "Memory Foam"],
+                  ["cao-su-thien-nhien", "Cao Su Thiên Nhiên"],
+                  ["luxury", "Luxury"],
+                ].map(([value, label]) => (
+                  <label key={value}>
+                    <input type="checkbox" name="line" value={value} defaultChecked={data.query.lines.includes(value)} />{" "}
+                    <span>{label}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            {data.facets.hasVerifiedPrices && (
+              <fieldset>
+                <legend>Khoảng giá (VND)</legend>
+                <div className="catalog-price-inputs">
+                  <label>
+                    <span className="sr-only">Giá từ</span>
+                    <input type="number" name="minPrice" min={data.facets.minPrice ?? undefined} defaultValue={data.query.minPrice ?? ""} placeholder="Từ" />
+                  </label>
+                  <label>
+                    <span className="sr-only">Giá đến</span>
+                    <input type="number" name="maxPrice" max={data.facets.maxPrice ?? undefined} defaultValue={data.query.maxPrice ?? ""} placeholder="Đến" />
+                  </label>
+                </div>
+              </fieldset>
+            )}
+            {data.facets.widths.length > 0 && (
+              <fieldset>
+                <legend>Chiều rộng</legend>
+                <div className="catalog-check-list catalog-check-list-inline">
+                  {data.facets.widths.map((width) => (
+                    <label key={width}>
+                      <input type="checkbox" name="width" value={width} defaultChecked={checked(data.query.widths, width)} />{" "}
+                      <span>{width}cm</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+            {data.facets.thicknesses.length > 0 && (
+              <fieldset>
+                <legend>Độ dày</legend>
+                <div className="catalog-check-list catalog-check-list-inline">
+                  {data.facets.thicknesses.map((thickness) => (
+                    <label key={thickness}>
+                      <input type="checkbox" name="thickness" value={thickness} defaultChecked={checked(data.query.thicknesses, thickness)} />{" "}
+                      <span>{thickness}cm</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+            <fieldset>
+              <legend>Sắp xếp &amp; Trạng thái</legend>
+              <label className="catalog-sort">
+                <span className="sr-only">Sắp xếp sản phẩm</span>
+                <select name="sort" defaultValue={data.query.sort}>
+                  <option value="featured">Nổi bật</option>
+                  {data.facets.hasVerifiedPrices && (
+                    <>
+                      <option value="price-asc">Giá thấp → cao</option>
+                      <option value="price-desc">Giá cao → thấp</option>
+                    </>
+                  )}
+                  <option value="name-asc">Tên A–Z</option>
+                </select>
+              </label>
+              <label className="catalog-stock">
+                <input type="checkbox" name="inStock" value="1" defaultChecked={data.query.inStock} /> <span>Còn hàng</span>
+              </label>
+            </fieldset>
+            <div className="catalog-filter-actions">
+              <button type="submit" className="button button-primary">Áp dụng bộ lọc</button>
+              <Link href={"/nem" as never} className="text-link">Xóa bộ lọc</Link>
+            </div>
           </form>
         </section>
         {!data.databaseAvailable && <p className="catalog-demo-note container">Danh mục minh họa · Giá, tồn kho và khả năng mua sẽ hiển thị sau khi dữ liệu CMS được cấu hình.</p>}

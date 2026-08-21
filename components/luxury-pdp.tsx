@@ -129,7 +129,7 @@ export function LuxuryPdp({ product }: { product: Product }) {
                 />
               )}
               {media?.isDemo && (
-                <span className="demo-badge">Hình ảnh minh họa</span>
+                <span className="demo-badge">Ảnh minh họa</span>
               )}
             </div>
           </div>
