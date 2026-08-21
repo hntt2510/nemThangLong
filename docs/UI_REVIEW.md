@@ -24,7 +24,7 @@ Tài liệu này phục vụ đợt đánh giá giao diện (**UI Freeze — Cus
 - **Thông số sản phẩm**: Mọi thông số kích thước, độ dày, giá bán và khả năng đặt hàng trực tuyến được quản lý theo cấu hình dữ liệu của hệ thống.
 - **Ảnh minh họa & Dữ liệu chờ công bố**:
   - Các hình ảnh mẫu demo được gắn nhãn rõ ràng: `Ảnh minh họa` / `Minh họa`.
-  - Các nội dung chi tiết chưa được phê duyệt chính thức (chính sách bảo hành từng dòng, chứng nhận, đối tác dự án) được ghi nhận ở trạng thái chờ cập nhật hoặc liên hệ tư vấn trực tiếp, không tự ý công bố các tuyên bố y khoa, số năm bảo hành hay số liệu chưa được kiểm chứng.
+  - Các nội dung chi tiết chưa được phê duyệt chính thức (chính sách bảo hành từng dòng, thông tin dự án) được ghi nhận ở trạng thái chờ cập nhật hoặc liên hệ tư vấn trực tiếp, không tự ý công bố các tuyên bố y khoa hay số liệu chưa được kiểm chứng.
 
 ---
 
@@ -35,7 +35,7 @@ Tài liệu này phục vụ đợt đánh giá giao diện (**UI Freeze — Cus
 | **01** | `/` | **Trang chủ**: Hero banner, 4 trụ cột an tâm, danh mục 6 dòng nệm, Mattress Finder intro, Luxury signature editorial, khu vực giới thiệu chất liệu khi dữ liệu được công bố, phân loại theo nhu cầu, B2B teaser, form liên hệ tư vấn nhanh. |
 | **02** | `/nem` | **Danh mục sản phẩm**: Bộ lọc đa chiều (dòng nệm, khoảng giá, chiều rộng, độ dày, tình trạng còn hàng, sắp xếp), lưới sản phẩm responsive. |
 | **03** | `/nem/luxury` | **Dòng nệm Signature Luxury**: Hero gallery đa góc nhìn, cấu hình kích thước/độ dày, biểu đồ cảm giác nằm (Comfort Meter), khu vực câu chuyện vật liệu khi dữ liệu được công bố, sticky purchase bar trên mobile. |
-| **04** | `/nem/america` | **Dòng nệm America**: Bố cục trang chi tiết sản phẩm chuẩn (Generic PDP), chọn kích thước, kiểm tra tình trạng còn hàng theo biến thể, danh sách cam kết. |
+| **04** | `/nem/america` | **Dòng nệm America**: Bố cục trang chi tiết sản phẩm chuẩn (Generic PDP), chọn kích thước, kiểm tra tình trạng còn hàng theo biến thể, khối thông tin hỗ trợ và lựa chọn kích thước. |
 | **05** | `/nem/classic` | **Dòng nệm Classic**: Bố cục trang chi tiết sản phẩm, hình ảnh minh họa, khu vực đặt hàng / liên hệ tư vấn. |
 | **06** | `/nem/hoat-tinh` | **Dòng nệm Hoạt Tính**: Bố cục trang chi tiết sản phẩm, khu vực giới thiệu đặc tính vật liệu khi dữ liệu được công bố, gợi ý sản phẩm liên quan. |
 | **07** | `/nem/memory-foam` | **Dòng nệm Memory Foam**: Bố cục trang chi tiết sản phẩm, bộ chọn kích thước và độ dày, trạng thái hiển thị giá và đặt hàng. |
@@ -52,7 +52,7 @@ Tài liệu này phục vụ đợt đánh giá giao diện (**UI Freeze — Cus
 | **18** | `/tai-khoan` | **Tổng quan tài khoản**: Dashboard quản lý hồ sơ, truy cập nhanh đơn hàng, sổ địa chỉ và yêu cầu hỗ trợ sau mua. |
 | **19** | `/tai-khoan/don-hang` | **Lịch sử đơn hàng**: Danh sách đơn hàng đã đặt, trạng thái đơn và xem chi tiết từng đơn hàng. |
 | **20** | `/tai-khoan/dia-chi` | **Sổ địa chỉ**: Danh sách địa chỉ nhận hàng và form thêm địa chỉ mới. |
-| **21** | `/tai-khoan/ho-tro` | **Hỗ trợ sau mua**: Gửi yêu cầu bảo hành, đổi trả và theo dõi tiến độ xử lý. |
+| **21** | `/tai-khoan/ho-tro` | **Hỗ trợ sau mua**: Gửi yêu cầu kiểm tra bảo hành / hỗ trợ sản phẩm và theo dõi trạng thái xử lý. |
 
 ---
 
