@@ -87,7 +87,7 @@ register({ method: "put", path: "/api/admin/settings", tags: ["Settings"], opera
 
 register({ method: "post", path: "/api/auth/register", tags: ["Storefront"], operationId: "registerAccount", request: { body: body(registerSchema) }, responses: { "200": response(okSchema), ...errors([400, 409, 503]) } });
 register({ method: "post", path: "/api/checkout", tags: ["Checkout"], operationId: "createCheckout", security: [{ sessionCookie: [] }, {}], description: "Guest checkout is supported when guestEmail is supplied.", request: { body: body(checkoutSchema) }, responses: { "200": response(anyObject), ...errors([400, 409, 503]) } });
-register({ method: "get", path: "/api/cron/release-reservations", tags: ["Internal"], operationId: "releaseExpiredReservations", security: [{ cronBearer: [] }], description: "Internal scheduled job authenticated with an opaque CRON_SECRET bearer value; not a JWT.", responses: { "200": response(anyObject), ...errors([401, 503]) } });
+register({ method: "get", path: "/api/cron/release-reservations", tags: ["Internal"], operationId: "releaseExpiredReservations", security: [{ cronBearer: [] }], description: "Internal scheduled job authenticated with an opaque cron bearer token; not a JWT.", responses: { "200": response(anyObject), ...errors([401, 503]) } });
 register({ method: "post", path: "/api/leads", tags: ["Leads"], operationId: "createPublicLead", request: { body: body(publicLeadSchema) }, responses: { "201": response(okSchema), ...errors([400, 413, 429, 503]) } });
 register({ method: "get", path: "/api/orders/result/{token}", tags: ["Checkout"], operationId: "getOrderResult", request: { params: pathToken }, responses: { "200": response(anyObject), ...errors([404, 503]) } });
 register({ method: "post", path: "/api/payments/momo/create", tags: ["Payments"], operationId: "createMomoPayment", request: { body: body(momoCreateSchema) }, responses: { "200": response(anyObject), ...errors([404, 409, 502, 503]) } });
@@ -114,7 +114,7 @@ export function getOpenApiDocument() {
         ...(generated.components as Record<string, unknown> | undefined),
         securitySchemes: {
           sessionCookie: { type: "apiKey", in: "cookie", name: "authjs.session-token", description: "Auth.js session cookie; HTTPS deployments may use the __Secure- prefixed cookie name." },
-          cronBearer: { type: "http", scheme: "bearer", bearerFormat: "opaque", description: "Opaque CRON_SECRET value. This is not a JWT." },
+          cronBearer: { type: "http", scheme: "bearer", bearerFormat: "opaque", description: "Opaque bearer token for cron jobs. This is not a JWT." },
         },
       },
     };

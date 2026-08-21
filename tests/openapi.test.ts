@@ -3,7 +3,7 @@ import { join, relative } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import SwaggerParser from "@apidevtools/swagger-parser";
 import { getOpenApiDocument, OPENAPI_ROUTE_EXCEPTIONS, OPENAPI_ROUTE_INVENTORY } from "@/lib/openapi";
-import { openApiAuthStatus } from "@/lib/openapi-auth";
+import { isSwaggerTryItOutAllowed, openApiAuthStatus } from "@/lib/openapi-auth";
 
 const state = vi.hoisted(() => ({ session: null as { user: { role: string } } | null }));
 vi.mock("@/auth", () => ({ auth: vi.fn(async () => state.session) }));
@@ -39,7 +39,11 @@ function discoveredInventory() {
 
 describe("OpenAPI contract", () => {
   it("generates a valid OpenAPI 3.1 document with a complete operation inventory", async () => {
-    const document = getOpenApiDocument() as { openapi: string; paths: Record<string, Record<string, { operationId?: string }>> };
+    const document = getOpenApiDocument() as {
+      openapi: string;
+      paths: Record<string, Record<string, { operationId?: string }>>;
+      components?: { securitySchemes?: Record<string, { type?: string; in?: string; name?: string; scheme?: string; bearerFormat?: string; description?: string }> };
+    };
     await SwaggerParser.validate(document as never);
     const operations = Object.entries(document.paths).flatMap(([path, item]) => Object.entries(item).filter(([method]) => ["get", "post", "put", "patch", "delete"].includes(method)).map(([method, operation]) => `${method.toUpperCase()} ${path}`));
     expect(operations).toHaveLength(39);
@@ -49,8 +53,24 @@ describe("OpenAPI contract", () => {
     expect(operations).toContain("POST /api/checkout");
     expect(operations).toContain("PATCH /api/admin/payment-reviews/{id}");
     expect(operations).not.toContain("GET /api/fake");
-    expect(JSON.stringify(document)).not.toMatch(/rawResponse|MOMO_SECRET_KEY|MOMO_ACCESS_KEY|DATABASE_URL|R2_SECRET_ACCESS_KEY|@gmail\.com/i);
-    expect(JSON.stringify(document)).toContain("providerTransactionId");
+
+    // Must not leak raw internal responses or secrets
+    const docString = JSON.stringify(document);
+    expect(docString).not.toMatch(/rawResponse|DATABASE_URL|DIRECT_URL|MOMO_SECRET_KEY|MOMO_ACCESS_KEY|R2_SECRET_ACCESS_KEY|AUTH_SECRET|CRON_SECRET|LEAD_RATE_LIMIT_SECRET|@gmail\.com/i);
+    expect(docString).toContain("providerTransactionId");
+
+    // Session cookie and cron bearer security schemes
+    expect(document.components?.securitySchemes?.sessionCookie).toEqual(expect.objectContaining({
+      type: "apiKey",
+      in: "cookie",
+      name: "authjs.session-token",
+    }));
+    expect(document.components?.securitySchemes?.cronBearer).toEqual(expect.objectContaining({
+      type: "http",
+      scheme: "bearer",
+      bearerFormat: "opaque",
+    }));
+    expect(document.components?.securitySchemes?.cronBearer?.description).toContain("not a JWT");
   });
 
   it("keeps the documented operations aligned with app/api route handlers", () => {
@@ -58,10 +78,18 @@ describe("OpenAPI contract", () => {
     expect(documented).toEqual(discoveredInventory().map((value) => value.replaceAll("[", "{").replaceAll("]", "}")).sort());
   });
 
+  describe("Swagger Try-it-out mode", () => {
+    it("enables try-it-out in development and disables it in production", () => {
+      expect(isSwaggerTryItOutAllowed("development")).toBe(true);
+      expect(isSwaggerTryItOutAllowed("test")).toBe(true);
+      expect(isSwaggerTryItOutAllowed("production")).toBe(false);
+    });
+  });
+
   describe("documentation authorization", () => {
     beforeEach(() => { state.session = null; });
 
-    it("returns 401 for anonymous and 403 for non-admin roles", async () => {
+    it("returns 401 for anonymous and 403 for non-admin roles on /api/openapi", async () => {
       expect(openApiAuthStatus(null)).toBe(401);
       expect((await openApiGET()).status).toBe(401);
       for (const role of ["CUSTOMER", "EDITOR"]) {
@@ -69,15 +97,21 @@ describe("OpenAPI contract", () => {
         expect(openApiAuthStatus(state.session)).toBe(403);
         expect((await openApiGET()).status).toBe(403);
       }
+      state.session = { user: { role: "ADMIN" } };
+      expect(openApiAuthStatus(state.session)).toBe(200);
+      expect((await openApiGET()).status).toBe(200);
     });
 
-    it("allows ADMIN and blocks the Swagger page before hydration for others", async () => {
-      state.session = { user: { role: "ADMIN" } };
-      expect((await openApiGET()).status).toBe(200);
+    it("redirects anonymous, renders 404 for non-admin, and allows ADMIN on /api-docs", async () => {
       state.session = null;
       await expect(ApiDocsPage()).rejects.toThrow("REDIRECT:/dang-nhap");
+
+      state.session = { user: { role: "CUSTOMER" } };
+      await expect(ApiDocsPage()).rejects.toThrow("NOT_FOUND");
+
       state.session = { user: { role: "EDITOR" } };
       await expect(ApiDocsPage()).rejects.toThrow("NOT_FOUND");
+
       state.session = { user: { role: "ADMIN" } };
       expect(await ApiDocsPage()).toBeTruthy();
     });

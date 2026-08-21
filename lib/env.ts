@@ -41,17 +41,56 @@ function configurationError(parsed: { success: false; error: z.ZodError }) {
   return new Error(`Invalid environment configuration: ${fields || "unknown"}`);
 }
 
-export function validateEnvironment(source: Record<string, string | undefined> = process.env, runtime = process.env.NODE_ENV) {
+export function validateEnvironment(source: Record<string, string | undefined> = process.env, runtime: "development" | "production" | string = "development") {
   const parsed = envSchema.superRefine((value, context) => {
-    if (runtime === "production" && !value.AUTH_SECRET) context.addIssue({ code: z.ZodIssueCode.custom, path: ["AUTH_SECRET"], message: "required in production" });
-    if (runtime === "production" && !value.CRON_SECRET) context.addIssue({ code: z.ZodIssueCode.custom, path: ["CRON_SECRET"], message: "required in production" });
-    if (runtime === "production" && !value.LEAD_RATE_LIMIT_SECRET) context.addIssue({ code: z.ZodIssueCode.custom, path: ["LEAD_RATE_LIMIT_SECRET"], message: "required in production" });
+    if (runtime === "production") {
+      if (!value.AUTH_SECRET) context.addIssue({ code: z.ZodIssueCode.custom, path: ["AUTH_SECRET"], message: "required in production" });
+      if (!value.CRON_SECRET) context.addIssue({ code: z.ZodIssueCode.custom, path: ["CRON_SECRET"], message: "required in production" });
+      if (!value.LEAD_RATE_LIMIT_SECRET) context.addIssue({ code: z.ZodIssueCode.custom, path: ["LEAD_RATE_LIMIT_SECRET"], message: "required in production" });
+
+      if (!source.NEXT_PUBLIC_SITE_URL) {
+        context.addIssue({ code: z.ZodIssueCode.custom, path: ["NEXT_PUBLIC_SITE_URL"], message: "must be explicitly configured in production" });
+      } else {
+        try {
+          const siteUrl = new URL(source.NEXT_PUBLIC_SITE_URL);
+          const host = siteUrl.hostname.replace(/^\[|\]$/g, "");
+          if (siteUrl.protocol !== "https:") {
+            context.addIssue({ code: z.ZodIssueCode.custom, path: ["NEXT_PUBLIC_SITE_URL"], message: "must use HTTPS in production" });
+          }
+          if (["localhost", "127.0.0.1", "::1"].includes(host)) {
+            context.addIssue({ code: z.ZodIssueCode.custom, path: ["NEXT_PUBLIC_SITE_URL"], message: "cannot use localhost in production" });
+          }
+        } catch {
+          // malformed url handled by zod base schema
+        }
+      }
+
+      const momoEnabled = Boolean(value.MOMO_PARTNER_CODE || value.MOMO_ACCESS_KEY || value.MOMO_SECRET_KEY);
+      if (momoEnabled) {
+        if (!source.MOMO_ENDPOINT) {
+          context.addIssue({ code: z.ZodIssueCode.custom, path: ["MOMO_ENDPOINT"], message: "must be explicitly configured when MoMo is enabled in production" });
+        } else {
+          try {
+            const endpointUrl = new URL(source.MOMO_ENDPOINT);
+            const host = endpointUrl.hostname.replace(/^\[|\]$/g, "");
+            if (endpointUrl.protocol !== "https:") {
+              context.addIssue({ code: z.ZodIssueCode.custom, path: ["MOMO_ENDPOINT"], message: "must use HTTPS in production" });
+            }
+            if (host === "test-payment.momo.vn" || host.includes("test-payment.momo.vn")) {
+              context.addIssue({ code: z.ZodIssueCode.custom, path: ["MOMO_ENDPOINT"], message: "cannot use test-payment.momo.vn in production" });
+            }
+          } catch {
+            // malformed url handled by zod base schema
+          }
+        }
+      }
+    }
   }).safeParse(source);
   return parsed;
 }
 
 export function getEnv() {
-  const parsed = validateEnvironment();
+  const parsed = validateEnvironment(process.env, "development");
   if (!parsed.success) {
     throw configurationError(parsed);
   }

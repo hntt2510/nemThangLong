@@ -9,50 +9,134 @@ vi.mock("@/lib/db", () => ({ getPrisma: vi.fn(() => dbState.prisma) }));
 import { GET as liveGET } from "@/app/api/health/live/route";
 import { GET as readyGET } from "@/app/api/health/ready/route";
 
-const baseEnv = {
+const baseSecrets = {
   AUTH_SECRET: "a".repeat(32),
   CRON_SECRET: "b".repeat(32),
   LEAD_RATE_LIMIT_SECRET: "c".repeat(32),
+};
+
+const baseDevEnv = {
+  ...baseSecrets,
   NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
 };
 
+const baseProdEnv = {
+  ...baseSecrets,
+  NEXT_PUBLIC_SITE_URL: "https://example.com",
+};
+
 describe("database safety and production readiness", () => {
-  it("accepts only the local development target for destructive dev commands", () => {
-    expect(() => assertDevelopmentDatabaseTarget({ ...baseEnv, DATABASE_URL: "postgresql://thanglong:thanglong_dev@localhost:5432/thanglong_dev", DIRECT_URL: "postgresql://thanglong:thanglong_dev@localhost:5432/thanglong_dev" })).not.toThrow();
-    expect(() => assertDevelopmentDatabaseTarget({ ...baseEnv, DATABASE_URL: "postgresql://user:password@remote.example/thanglong_dev", DIRECT_URL: "postgresql://user:password@remote.example/thanglong_dev" })).toThrow();
-    expect(() => assertDevelopmentDatabaseTarget({ ...baseEnv, NODE_ENV: "production", DATABASE_URL: "postgresql://thanglong:thanglong_dev@localhost:5432/thanglong_dev", DIRECT_URL: "postgresql://thanglong:thanglong_dev@localhost:5432/thanglong_dev" })).toThrow();
+  describe("database safety target rules", () => {
+    it("accepts only local development target for destructive dev commands", () => {
+      expect(() => assertDevelopmentDatabaseTarget({ ...baseDevEnv, DATABASE_URL: "postgresql://thanglong:thanglong_dev@localhost:5432/thanglong_dev", DIRECT_URL: "postgresql://thanglong:thanglong_dev@localhost:5432/thanglong_dev" })).not.toThrow();
+      expect(() => assertDevelopmentDatabaseTarget({ ...baseDevEnv, DATABASE_URL: "postgresql://thanglong:thanglong_dev@127.0.0.1:5432/thanglong_dev", DIRECT_URL: "postgresql://thanglong:thanglong_dev@127.0.0.1:5432/thanglong_dev" })).not.toThrow();
+      expect(() => assertDevelopmentDatabaseTarget({ ...baseDevEnv, DATABASE_URL: "postgresql://thanglong:thanglong_dev@[::1]:5432/thanglong_dev", DIRECT_URL: "postgresql://thanglong:thanglong_dev@[::1]:5432/thanglong_dev" })).not.toThrow();
+
+      // Refuses remote host
+      expect(() => assertDevelopmentDatabaseTarget({ ...baseDevEnv, DATABASE_URL: "postgresql://user:password@remote.example:5432/thanglong_dev", DIRECT_URL: "postgresql://user:password@remote.example:5432/thanglong_dev" })).toThrow(/non-local/);
+
+      // Refuses production NODE_ENV
+      expect(() => assertDevelopmentDatabaseTarget({ ...baseDevEnv, NODE_ENV: "production", DATABASE_URL: "postgresql://thanglong:thanglong_dev@localhost:5432/thanglong_dev", DIRECT_URL: "postgresql://thanglong:thanglong_dev@localhost:5432/thanglong_dev" })).toThrow(/production/);
+
+      // Refuses thanglong_test or arbitrary database names for dev commands
+      expect(() => assertDevelopmentDatabaseTarget({ ...baseDevEnv, DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/thanglong_test", DIRECT_URL: "postgresql://postgres:postgres@localhost:5432/thanglong_test" })).toThrow(/unexpected database target/);
+      expect(() => assertDevelopmentDatabaseTarget({ ...baseDevEnv, DATABASE_URL: "postgresql://thanglong:thanglong_dev@localhost:5432/other_db", DIRECT_URL: "postgresql://thanglong:thanglong_dev@localhost:5432/other_db" })).toThrow(/unexpected database target/);
+
+      // Refuses mismatched DATABASE_URL and DIRECT_URL
+      expect(() => assertDevelopmentDatabaseTarget({ ...baseDevEnv, DATABASE_URL: "postgresql://thanglong:thanglong_dev@localhost:5432/thanglong_dev", DIRECT_URL: "postgresql://thanglong:thanglong_dev@127.0.0.1:5432/thanglong_dev" })).toThrow(/must target the same/);
+    });
+
+    it("requires an explicit safe integration target", () => {
+      const safe = { ...baseDevEnv, RUN_INTEGRATION: "true", DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/thanglong_test", DIRECT_URL: "postgresql://postgres:postgres@localhost:5432/thanglong_test" };
+      expect(() => assertIntegrationDatabaseTarget(safe)).not.toThrow();
+      expect(() => assertIntegrationDatabaseTarget({ ...safe, DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/production" })).toThrow();
+      expect(() => assertIntegrationDatabaseTarget({ ...safe, RUN_INTEGRATION: "false" })).toThrow();
+    });
   });
 
-  it("requires an explicit safe integration target", () => {
-    const safe = { ...baseEnv, RUN_INTEGRATION: "true", DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/thanglong_test", DIRECT_URL: "postgresql://postgres:postgres@localhost:5432/thanglong_test" };
-    expect(() => assertIntegrationDatabaseTarget(safe)).not.toThrow();
-    expect(() => assertIntegrationDatabaseTarget({ ...safe, DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/production" })).toThrow();
-    expect(() => assertIntegrationDatabaseTarget({ ...safe, RUN_INTEGRATION: "false" })).toThrow();
+  describe("production site URL validation", () => {
+    it("allows localhost in development", () => {
+      expect(validateEnvironment(baseDevEnv, "development").success).toBe(true);
+      expect(validateEnvironment({ ...baseSecrets }, "development").success).toBe(true);
+    });
+
+    it("rejects localhost, 127.0.0.1, and ::1 in production check", () => {
+      expect(validateEnvironment(baseDevEnv, "production").success).toBe(false);
+      expect(validateEnvironment({ ...baseSecrets, NEXT_PUBLIC_SITE_URL: "http://127.0.0.1:3000" }, "production").success).toBe(false);
+      expect(validateEnvironment({ ...baseSecrets, NEXT_PUBLIC_SITE_URL: "http://[::1]:3000" }, "production").success).toBe(false);
+      expect(validateEnvironment({ ...baseSecrets, NEXT_PUBLIC_SITE_URL: "https://localhost:3000" }, "production").success).toBe(false);
+      expect(validateEnvironment({ ...baseSecrets }, "production").success).toBe(false);
+    });
+
+    it("rejects non-HTTPS URLs in production check", () => {
+      expect(validateEnvironment({ ...baseSecrets, NEXT_PUBLIC_SITE_URL: "http://example.com" }, "production").success).toBe(false);
+    });
+
+    it("allows valid non-local HTTPS URL in production check", () => {
+      expect(validateEnvironment(baseProdEnv, "production").success).toBe(true);
+    });
   });
 
-  it("keeps runtime DB optional but makes production check fail without DB URLs", () => {
-    expect(validateEnvironment(baseEnv, "production").success).toBe(true);
-    expect(() => getProductionEnv(baseEnv)).toThrow(/DATABASE_URL/);
-    expect(validateEnvironment({ ...baseEnv, MOMO_PARTNER_CODE: "configured" }, "development").success).toBe(false);
+  describe("MoMo production endpoint safety", () => {
+    it("passes production check when MoMo is completely disabled", () => {
+      expect(validateEnvironment(baseProdEnv, "production").success).toBe(true);
+    });
+
+    it("fails validation when MoMo is partially configured in dev or prod", () => {
+      expect(validateEnvironment({ ...baseDevEnv, MOMO_PARTNER_CODE: "MOMO_PARTNER" }, "development").success).toBe(false);
+      expect(validateEnvironment({ ...baseProdEnv, MOMO_PARTNER_CODE: "MOMO_PARTNER", MOMO_ACCESS_KEY: "KEY" }, "production").success).toBe(false);
+    });
+
+    it("fails production check when MoMo is configured with test gateway or missing explicit endpoint", () => {
+      const fullMomo = { ...baseProdEnv, MOMO_PARTNER_CODE: "MOMO123", MOMO_ACCESS_KEY: "ACCESS123", MOMO_SECRET_KEY: "SECRET123" };
+      // Relying on default test endpoint
+      expect(validateEnvironment(fullMomo, "production").success).toBe(false);
+      // Explicit test gateway endpoint
+      expect(validateEnvironment({ ...fullMomo, MOMO_ENDPOINT: "https://test-payment.momo.vn/v2/gateway/api/create" }, "production").success).toBe(false);
+      // Non-HTTPS endpoint
+      expect(validateEnvironment({ ...fullMomo, MOMO_ENDPOINT: "http://payment.momo.vn/v2/gateway/api/create" }, "production").success).toBe(false);
+    });
+
+    it("passes production check when MoMo is configured with explicit non-test HTTPS endpoint", () => {
+      const validMomoProd = {
+        ...baseProdEnv,
+        MOMO_PARTNER_CODE: "MOMO123",
+        MOMO_ACCESS_KEY: "ACCESS123",
+        MOMO_SECRET_KEY: "SECRET123",
+        MOMO_ENDPOINT: "https://payment.momo.vn/v2/gateway/api/create",
+      };
+      expect(validateEnvironment(validMomoProd, "production").success).toBe(true);
+    });
   });
 
-  it("bootstraps six neutral catalog documents idempotently", async () => {
-    const products = new Map<string, { slug: string; name: string; status: string; isDemo: boolean; variants?: unknown[] }>();
-    let settingsCreated = 0;
-    const tx = {
-      siteSettings: { createMany: vi.fn(async ({ data, skipDuplicates }: { data: Array<{ id: string }>; skipDuplicates: boolean }) => { if (skipDuplicates && settingsCreated > 0) return { count: 0 }; settingsCreated += data.length; return { count: data.length }; }) },
-      product: {
-        findUnique: vi.fn(async ({ where }: { where: { slug: string } }) => products.get(where.slug) ?? null),
-        create: vi.fn(async ({ data }: { data: { slug: string; name: string; status: string; isDemo: boolean } }) => { const product = { ...data }; products.set(data.slug, product); return product; }),
-      },
-    };
-    const fakePrisma = { $transaction: async (callback: (client: typeof tx) => Promise<void>) => callback(tx) } as never;
-    const target = { NODE_ENV: "development" as const, DATABASE_URL: "postgresql://thanglong:thanglong_dev@localhost:5432/thanglong_dev", DIRECT_URL: "postgresql://thanglong:thanglong_dev@localhost:5432/thanglong_dev" };
-    await bootstrapDevelopment(fakePrisma, target);
-    await bootstrapDevelopment(fakePrisma, target);
-    expect(products.size).toBe(6);
-    expect([...products.values()].every((product) => product.status === "DRAFT" && product.isDemo && !product.variants)).toBe(true);
-    expect(settingsCreated).toBe(1);
+  describe("database startup rule and production env requirements", () => {
+    it("keeps runtime DB optional in production env validation but fails getProductionEnv without DB URLs", () => {
+      expect(validateEnvironment(baseProdEnv, "production").success).toBe(true);
+      expect(() => getProductionEnv(baseProdEnv)).toThrow(/DATABASE_URL/);
+      expect(() => getProductionEnv({ ...baseProdEnv, DATABASE_URL: "postgresql://user:pass@remote:5432/db" })).toThrow(/DIRECT_URL/);
+      expect(() => getProductionEnv({ ...baseProdEnv, DATABASE_URL: "postgresql://user:pass@remote:5432/db", DIRECT_URL: "postgresql://user:pass@remote:5432/db" })).not.toThrow();
+    });
+  });
+
+  describe("bootstrap idempotence", () => {
+    it("bootstraps six neutral catalog documents idempotently", async () => {
+      const products = new Map<string, { slug: string; name: string; status: string; isDemo: boolean; variants?: unknown[] }>();
+      let settingsCreated = 0;
+      const tx = {
+        siteSettings: { createMany: vi.fn(async ({ data, skipDuplicates }: { data: Array<{ id: string }>; skipDuplicates: boolean }) => { if (skipDuplicates && settingsCreated > 0) return { count: 0 }; settingsCreated += data.length; return { count: data.length }; }) },
+        product: {
+          findUnique: vi.fn(async ({ where }: { where: { slug: string } }) => products.get(where.slug) ?? null),
+          create: vi.fn(async ({ data }: { data: { slug: string; name: string; status: string; isDemo: boolean } }) => { const product = { ...data }; products.set(data.slug, product); return product; }),
+        },
+      };
+      const fakePrisma = { $transaction: async (callback: (client: typeof tx) => Promise<void>) => callback(tx) } as never;
+      const target = { NODE_ENV: "development" as const, DATABASE_URL: "postgresql://thanglong:thanglong_dev@localhost:5432/thanglong_dev", DIRECT_URL: "postgresql://thanglong:thanglong_dev@localhost:5432/thanglong_dev" };
+      await bootstrapDevelopment(fakePrisma, target);
+      await bootstrapDevelopment(fakePrisma, target);
+      expect(products.size).toBe(6);
+      expect([...products.values()].every((product) => product.status === "DRAFT" && product.isDemo && !product.variants)).toBe(true);
+      expect(settingsCreated).toBe(1);
+    });
   });
 
   describe("health routes", () => {

@@ -7,7 +7,9 @@ Luxury product-detail V1 built with Next.js, TypeScript, Prisma and a custom adm
 ```bash
 npm install
 copy .env.example .env.local
-npm run db:push
+npm run db:dev:up
+npm run db:migrate:dev
+npm run db:dev:bootstrap
 npm run dev
 ```
 

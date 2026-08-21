@@ -17,7 +17,6 @@
     "db:dev:bootstrap": "node --env-file-if-exists=.env.local --import tsx prisma/seed.ts",
     "db:generate": "node --env-file-if-exists=.env.local --import tsx scripts/database-command.ts generate",
     "db:validate": "node --env-file-if-exists=.env.local --import tsx scripts/database-command.ts validate",
-    "db:push:prototype": "prisma db push",
     "db:migrate:dev": "node --env-file-if-exists=.env.local --import tsx scripts/database-command.ts migrate-dev",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:migrate:status": "node --env-file-if-exists=.env.local --import tsx scripts/database-command.ts status",
