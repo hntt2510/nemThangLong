@@ -32,17 +32,17 @@ Tài liệu này phục vụ đợt đánh giá giao diện (**UI Freeze — Cus
 
 | STT | Tuyến đường (Route) | Nội dung & Mục tiêu trải nghiệm cần review |
 | :--- | :--- | :--- |
-| **01** | `/` | **Trang chủ**: Hero banner, 4 trụ cột an tâm, danh mục 6 dòng nệm, Mattress Finder intro, Luxury signature editorial, khu vực giới thiệu chất liệu, phân loại theo nhu cầu, B2B teaser, form liên hệ tư vấn nhanh. |
+| **01** | `/` | **Trang chủ**: Hero banner, 4 trụ cột an tâm, danh mục 6 dòng nệm, Mattress Finder intro, Luxury signature editorial, khu vực giới thiệu chất liệu khi dữ liệu được công bố, phân loại theo nhu cầu, B2B teaser, form liên hệ tư vấn nhanh. |
 | **02** | `/nem` | **Danh mục sản phẩm**: Bộ lọc đa chiều (dòng nệm, khoảng giá, chiều rộng, độ dày, tình trạng còn hàng, sắp xếp), lưới sản phẩm responsive. |
 | **03** | `/nem/luxury` | **Dòng nệm Signature Luxury**: Hero gallery đa góc nhìn, cấu hình kích thước/độ dày, biểu đồ cảm giác nằm (Comfort Meter), khu vực câu chuyện vật liệu khi dữ liệu được công bố, sticky purchase bar trên mobile. |
 | **04** | `/nem/america` | **Dòng nệm America**: Bố cục trang chi tiết sản phẩm chuẩn (Generic PDP), chọn kích thước, kiểm tra tình trạng còn hàng theo biến thể, danh sách cam kết. |
 | **05** | `/nem/classic` | **Dòng nệm Classic**: Bố cục trang chi tiết sản phẩm, hình ảnh minh họa, khu vực đặt hàng / liên hệ tư vấn. |
-| **06** | `/nem/hoat-tinh` | **Dòng nệm Hoạt Tính**: Bố cục trang chi tiết sản phẩm, khu vực giới thiệu đặc tính vật liệu than hoạt tính khi dữ liệu được công bố, gợi ý sản phẩm liên quan. |
+| **06** | `/nem/hoat-tinh` | **Dòng nệm Hoạt Tính**: Bố cục trang chi tiết sản phẩm, khu vực giới thiệu đặc tính vật liệu khi dữ liệu được công bố, gợi ý sản phẩm liên quan. |
 | **07** | `/nem/memory-foam` | **Dòng nệm Memory Foam**: Bố cục trang chi tiết sản phẩm, bộ chọn kích thước và độ dày, trạng thái hiển thị giá và đặt hàng. |
 | **08** | `/nem/cao-su-thien-nhien` | **Dòng nệm Cao Su Thiên Nhiên**: Bố cục trang chi tiết sản phẩm, gallery ảnh, lựa chọn biến thể và khu vực câu chuyện chất liệu khi dữ liệu được công bố. |
 | **09** | `/tim-nem` | **Công cụ Tìm nệm (Mattress Finder)**: Wizard 3 bước (Kích thước → Cảm giác & Ngân sách → Ưu tiên khi ngủ), hiển thị gợi ý chính & các lựa chọn tham khảo phù hợp. |
 | **10** | `/so-sanh` | **Trang So sánh nệm**: Chọn các dòng nệm cần so sánh, bảng thông số ma trận trực quan với cột tiêu chí cố định khi cuộn trên thiết bị di động. |
-| **11** | `/khach-san-du-an` | **Khách sạn & Dự án (B2B)**: Quy trình 3 bước hợp tác, checklist tiêu chuẩn cung ứng, form đăng ký nhận hồ sơ dự án & mẫu thử. |
+| **11** | `/khach-san-du-an` | **Khách sạn & Dự án (B2B)**: Bố cục trang, giới thiệu quy trình hợp tác và form đăng ký nhận hồ sơ dự án & mẫu thử. |
 | **12** | `/lien-he` | **Liên hệ & Tư vấn chuyên sâu**: Form gửi yêu cầu tư vấn (tiếp nhận thông tin sản phẩm quan tâm nếu chuyển tiếp từ PDP), thông tin hotline và email trực tiếp. |
 | **13** | `/gio-hang` | **Giỏ hàng**: Danh sách biến thể đã chọn, thay đổi số lượng / xóa, tóm tắt tạm tính và chuyển bước thanh toán. |
 | **14** | `/checkout` | **Thanh toán**: Form địa chỉ giao hàng, lựa chọn phương thức thanh toán (COD, Chuyển khoản ngân hàng, MoMo QR), bảng tóm tắt đơn hàng. |

@@ -137,8 +137,8 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
           <p className="generic-contact-pending">Thông tin tư vấn đang được cập nhật.</p>
         )}
         <div className="trust-list">
-          <span>✓ Thông tin kích thước rõ ràng, minh bạch</span>
-          <span>✓ Tư vấn trực tiếp theo nhu cầu sử dụng</span>
+          <span>✓ Chọn kích thước theo cấu hình hiện có</span>
+          <span>✓ Có thể liên hệ tư vấn trước khi đặt hàng</span>
         </div>
       </div>
 

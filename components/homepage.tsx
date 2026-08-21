@@ -47,8 +47,8 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
           <div className="container trust-strip-grid">
             <span><b>01</b> Chọn theo nhu cầu</span>
             <span><b>02</b> Tư vấn trước khi chọn</span>
-            <span><b>03</b> {deliveryConfigured ? "Giao hàng tận nơi toàn quốc" : "Chính sách giao hàng đang cập nhật"}</span>
-            <span><b>04</b> Giá niêm yết minh bạch</span>
+            <span><b>03</b> {deliveryConfigured ? "Giao hàng — xem chính sách áp dụng" : "Chính sách giao hàng đang cập nhật"}</span>
+            <span><b>04</b> Giá hoặc trạng thái liên hệ hiển thị theo từng sản phẩm</span>
           </div>
         </section>
 
@@ -59,7 +59,7 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
                 <p className="section-label">PRODUCT RANGE</p>
                 <h2>Một dòng nệm cho mỗi cách ngủ.</h2>
               </div>
-              <p>Giá bán và khả năng đặt hàng được hiển thị rõ ràng theo từng kích thước.</p>
+              <p>Giá bán hoặc hướng dẫn liên hệ tư vấn được hiển thị theo từng sản phẩm và kích thước.</p>
             </div>
             <div className="home-product-grid">
               {products.map((product, index) => (
@@ -121,7 +121,7 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
             <div className="home-latex-copy">
               <p className="section-label">NATURAL LATEX</p>
               <h2>Một câu chuyện về cảm giác tự nhiên.</h2>
-              <p>Thông tin chi tiết về dòng Cao Su Thiên Nhiên đang được cập nhật. Hình ảnh mang tính chất minh họa trải nghiệm.</p>
+              <p>{latex.materialStory?.body ?? "Thông tin chi tiết về dòng Cao Su Thiên Nhiên đang được cập nhật. Hình ảnh mang tính chất minh họa trải nghiệm."}</p>
               <Link href="/nem/cao-su-thien-nhien" className="text-link">Xem dòng Cao Su Thiên Nhiên <span aria-hidden="true">→</span></Link>
             </div>
             <div className="home-latex-media">
@@ -198,11 +198,11 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
             <div className="home-trust-copy">
               <div>
                 <strong>{deliveryConfigured ? "Giao hàng" : "Giao hàng đang cập nhật"}</strong>
-                <p>{deliveryConfigured ? "Hỗ trợ giao hàng và lắp đặt tận phòng ngủ." : "Chính sách giao hàng sẽ hiển thị khi được công bố."}</p>
+                <p>{deliveryConfigured ? "Thông tin phí vận chuyển hiển thị theo cấu hình áp dụng." : "Chính sách giao hàng sẽ hiển thị khi được công bố."}</p>
               </div>
               <div>
                 <strong>Bảo hành</strong>
-                <p>Chính sách bảo hành chính hãng được tư vấn chi tiết theo từng dòng sản phẩm.</p>
+                <p>Thông tin bảo hành sẽ hiển thị khi có dữ liệu chính thức theo từng dòng sản phẩm.</p>
               </div>
               <div>
                 <strong>Hỏi trước khi mua</strong>

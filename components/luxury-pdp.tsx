@@ -267,9 +267,9 @@ export function LuxuryPdp({ product }: { product: Product }) {
             </button>
           )}
           <div id="trust" className="trust-list">
-            <span>✓ Bảo hành chính hãng theo tiêu chuẩn thương hiệu</span>
-            <span>✓ Giao hàng và lắp đặt tận phòng ngủ</span>
-            <span>✓ Đa dạng phương thức thanh toán linh hoạt</span>
+            <span>✓ Chọn kích thước theo cấu hình hiện có</span>
+            <span>✓ Giá hoặc tư vấn hiển thị theo từng lựa chọn</span>
+            <span>✓ Có thể liên hệ tư vấn trước khi đặt hàng</span>
           </div>
           <div className="hero-actions">
             <button aria-label="Thêm vào yêu thích">♡ Yêu thích</button>
@@ -291,7 +291,7 @@ export function LuxuryPdp({ product }: { product: Product }) {
             <div>
               <p className="section-label">BUILT FOR COMFORT</p>
               <h2>Cảm giác được cân bằng.</h2>
-              <p className="muted">Thông số đánh giá theo tiêu chuẩn thử nghiệm sản phẩm.</p>
+              <p className="muted">Thông tin cảm giác nằm được hiển thị theo dữ liệu đã công bố.</p>
             </div>
             <div className="comfort-grid">
               <div className="comfort-meter">
@@ -396,7 +396,7 @@ export function LuxuryPdp({ product }: { product: Product }) {
         <article>
           <p className="section-label">GIAO HÀNG</p>
           <h3>Thông tin đang cập nhật.</h3>
-          <p>Chính sách vận chuyển và lắp đặt chi tiết.</p>
+          <p>Thông tin giao hàng áp dụng theo cấu hình đơn hàng.</p>
           <Link href={"/lien-he?product=luxury" as never} className="text-link">
             Xem chính sách →
           </Link>
@@ -404,7 +404,7 @@ export function LuxuryPdp({ product }: { product: Product }) {
         <article>
           <p className="section-label">BẢO HÀNH</p>
           <h3>Thông tin đang cập nhật.</h3>
-          <p>Chính sách bảo hành được tư vấn chi tiết theo từng cấu hình sản phẩm.</p>
+          <p>Thông tin bảo hành sẽ hiển thị khi có dữ liệu chính thức.</p>
           <Link href={"/lien-he?product=luxury" as never} className="text-link">
             Xem chính sách →
           </Link>
@@ -412,7 +412,7 @@ export function LuxuryPdp({ product }: { product: Product }) {
         <article id="about">
           <p className="section-label">VỀ THĂNG LONG</p>
           <h3>Modern Vietnamese comfort.</h3>
-          <p>Thương hiệu nệm Việt Nam hiện đại, nâng niu giấc ngủ chuẩn mực.</p>
+          <p>Định hướng mang lại trải nghiệm nghỉ ngơi thư thái và phù hợp.</p>
         </article>
       </section>
       <section id="contact" className="contact-section">
