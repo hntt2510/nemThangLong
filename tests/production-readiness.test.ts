@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { assertDevelopmentDatabaseTarget, assertIntegrationDatabaseTarget } from "@/lib/database-safety";
-import { getProductionEnv, validateEnvironment } from "@/lib/env";
+import { getEnv, getProductionEnv, validateEnvironment } from "@/lib/env";
 import { bootstrapDevelopment } from "@/scripts/dev-bootstrap";
 
 const dbState = vi.hoisted(() => ({ prisma: null as { $queryRaw: ReturnType<typeof vi.fn> } | null }));
@@ -115,6 +115,90 @@ describe("database safety and production readiness", () => {
       expect(() => getProductionEnv(baseProdEnv)).toThrow(/DATABASE_URL/);
       expect(() => getProductionEnv({ ...baseProdEnv, DATABASE_URL: "postgresql://user:pass@remote:5432/db" })).toThrow(/DIRECT_URL/);
       expect(() => getProductionEnv({ ...baseProdEnv, DATABASE_URL: "postgresql://user:pass@remote:5432/db", DIRECT_URL: "postgresql://user:pass@remote:5432/db" })).not.toThrow();
+    });
+  });
+
+  describe("actual getEnv runtime mode behavior", () => {
+    it("allows missing production-only secrets in development mode", () => {
+      const devSource = { NEXT_PUBLIC_SITE_URL: "http://localhost:3000" };
+      expect(() => getEnv(devSource, "development")).not.toThrow();
+      const env = getEnv(devSource, "development");
+      expect(env.NEXT_PUBLIC_SITE_URL).toBe("http://localhost:3000");
+    });
+
+    it("fails getEnv in production mode when AUTH_SECRET is missing", () => {
+      const prodMissingAuth = {
+        CRON_SECRET: "b".repeat(32),
+        LEAD_RATE_LIMIT_SECRET: "c".repeat(32),
+        NEXT_PUBLIC_SITE_URL: "https://example.com",
+      };
+      expect(() => getEnv(prodMissingAuth, "production")).toThrow(/AUTH_SECRET/);
+    });
+
+    it("fails getEnv in production mode when CRON_SECRET is missing", () => {
+      const prodMissingCron = {
+        AUTH_SECRET: "a".repeat(32),
+        LEAD_RATE_LIMIT_SECRET: "c".repeat(32),
+        NEXT_PUBLIC_SITE_URL: "https://example.com",
+      };
+      expect(() => getEnv(prodMissingCron, "production")).toThrow(/CRON_SECRET/);
+    });
+
+    it("fails getEnv in production mode when LEAD_RATE_LIMIT_SECRET is missing", () => {
+      const prodMissingLead = {
+        AUTH_SECRET: "a".repeat(32),
+        CRON_SECRET: "b".repeat(32),
+        NEXT_PUBLIC_SITE_URL: "https://example.com",
+      };
+      expect(() => getEnv(prodMissingLead, "production")).toThrow(/LEAD_RATE_LIMIT_SECRET/);
+    });
+
+    it("does NOT fail getEnv in production mode when DATABASE_URL or DIRECT_URL is missing", () => {
+      const prodNoDb = {
+        AUTH_SECRET: "a".repeat(32),
+        CRON_SECRET: "b".repeat(32),
+        LEAD_RATE_LIMIT_SECRET: "c".repeat(32),
+        NEXT_PUBLIC_SITE_URL: "https://example.com",
+      };
+      expect(() => getEnv(prodNoDb, "production")).not.toThrow();
+      const env = getEnv(prodNoDb, "production");
+      expect(env.DATABASE_URL).toBeUndefined();
+      expect(env.DIRECT_URL).toBeUndefined();
+    });
+
+    it("fails getEnv in production mode when NEXT_PUBLIC_SITE_URL is localhost", () => {
+      const prodLocalhost = {
+        AUTH_SECRET: "a".repeat(32),
+        CRON_SECRET: "b".repeat(32),
+        LEAD_RATE_LIMIT_SECRET: "c".repeat(32),
+        NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
+      };
+      expect(() => getEnv(prodLocalhost, "production")).toThrow(/NEXT_PUBLIC_SITE_URL/);
+    });
+
+    it("fails getEnv in production mode when MoMo is enabled with test-payment gateway", () => {
+      const prodMomoTest = {
+        AUTH_SECRET: "a".repeat(32),
+        CRON_SECRET: "b".repeat(32),
+        LEAD_RATE_LIMIT_SECRET: "c".repeat(32),
+        NEXT_PUBLIC_SITE_URL: "https://example.com",
+        MOMO_PARTNER_CODE: "MOMO123",
+        MOMO_ACCESS_KEY: "KEY123",
+        MOMO_SECRET_KEY: "SECRET123",
+        MOMO_ENDPOINT: "https://test-payment.momo.vn/v2/gateway/api/create",
+      };
+      expect(() => getEnv(prodMomoTest, "production")).toThrow(/MOMO_ENDPOINT/);
+    });
+
+    it("fails getProductionEnv when DATABASE_URL or DIRECT_URL is missing", () => {
+      const prodNoDb = {
+        AUTH_SECRET: "a".repeat(32),
+        CRON_SECRET: "b".repeat(32),
+        LEAD_RATE_LIMIT_SECRET: "c".repeat(32),
+        NEXT_PUBLIC_SITE_URL: "https://example.com",
+      };
+      expect(() => getProductionEnv(prodNoDb)).toThrow(/DATABASE_URL/);
+      expect(() => getProductionEnv({ ...prodNoDb, DATABASE_URL: "postgresql://user:pass@remote:5432/db" })).toThrow(/DIRECT_URL/);
     });
   });
 

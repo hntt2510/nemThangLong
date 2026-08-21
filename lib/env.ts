@@ -41,7 +41,7 @@ function configurationError(parsed: { success: false; error: z.ZodError }) {
   return new Error(`Invalid environment configuration: ${fields || "unknown"}`);
 }
 
-export function validateEnvironment(source: Record<string, string | undefined> = process.env, runtime: "development" | "production" | string = "development") {
+export function validateEnvironment(source: Record<string, string | undefined> = process.env, runtime: "development" | "production" | string = process.env.NODE_ENV ?? "development") {
   const parsed = envSchema.superRefine((value, context) => {
     if (runtime === "production") {
       if (!value.AUTH_SECRET) context.addIssue({ code: z.ZodIssueCode.custom, path: ["AUTH_SECRET"], message: "required in production" });
@@ -89,8 +89,8 @@ export function validateEnvironment(source: Record<string, string | undefined> =
   return parsed;
 }
 
-export function getEnv() {
-  const parsed = validateEnvironment(process.env, "development");
+export function getEnv(source: Record<string, string | undefined> = process.env, runtime: string = process.env.NODE_ENV ?? "development") {
+  const parsed = validateEnvironment(source, runtime);
   if (!parsed.success) {
     throw configurationError(parsed);
   }
