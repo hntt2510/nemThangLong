@@ -7,9 +7,15 @@ import { formatDimension, formatVnd } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
+import { isUiShowcaseMode, getShowcaseOrder } from "@/lib/ui-showcase";
+
 export default async function AccountOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await auth();
-  if (!session?.user?.id) {
+  const showcase = isUiShowcaseMode() && !session?.user?.id;
+  const showcaseOrder = showcase ? getShowcaseOrder(id) : null;
+
+  if (!session?.user?.id && !showcase) {
     return (
       <main className="account-page container">
         <h1>Đăng nhập để xem đơn hàng.</h1>
@@ -18,27 +24,11 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
     );
   }
   const prisma = getPrisma();
-  if (!prisma) {
-    return (
-      <main className="account-page container">
-        <h1>Không thể tải đơn hàng.</h1>
-        <p className="muted">Database chưa sẵn sàng.</p>
-      </main>
-    );
-  }
-  const result = await getAccountOrder(prisma, session.user.id, (await params).id)
-    .then((order) => ({ ok: true as const, order }))
-    .catch(() => ({ ok: false as const }));
-  if (!result.ok) {
-    return (
-      <main className="account-page container">
-        <h1>Không thể tải đơn hàng.</h1>
-        <p className="muted">Đã xảy ra lỗi khi đọc dữ liệu.</p>
-      </main>
-    );
-  }
-  if (!result.order) notFound();
-  const order = result.order;
+  const order = (showcaseOrder ?? (prisma && session?.user?.id
+    ? await getAccountOrder(prisma, session.user.id, id).catch(() => null)
+    : null)) as any;
+
+  if (!order) notFound();
   const address = typeof order.shippingAddress === "object" && order.shippingAddress !== null
     ? (order.shippingAddress as Record<string, string | undefined>)
     : null;
@@ -53,7 +43,7 @@ export default async function AccountOrderDetailPage({ params }: { params: Promi
       </p>
       <div className="account-order-detail">
         <ul className="account-order-items-list">
-          {order.items.map((item) => (
+          {order.items.map((item: any) => (
             <li key={item.id}>
               <div>
                 <strong>{item.productName}</strong>

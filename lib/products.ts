@@ -53,7 +53,13 @@ export function mapProduct(record: ProductRecord, source: "database" | "demo"): 
   };
 }
 
+import { isUiShowcaseMode, getShowcaseProduct, getShowcaseSiteSettings } from "@/lib/ui-showcase";
+
 export async function getStorefrontProduct(slug: string): Promise<Product> {
+  if (isUiShowcaseMode()) {
+    const showcase = getShowcaseProduct(slug);
+    if (showcase) return showcase;
+  }
   let prisma;
   try { prisma = getPrisma(); } catch { return getDemoProduct(slug); }
   if (!prisma) return getDemoProduct(slug);
@@ -73,8 +79,12 @@ export async function getAdminProduct(slug: string) {
 }
 
 export async function getSiteSettings() {
+  if (isUiShowcaseMode()) {
+    return getShowcaseSiteSettings();
+  }
   let prisma;
   try { prisma = getPrisma(); } catch { return null; }
   if (!prisma) return null;
   try { return await prisma.siteSettings.findUnique({ where: { id: "default" } }); } catch { return null; }
 }
+

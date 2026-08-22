@@ -24,6 +24,15 @@ export const metadata: Metadata = {
   description: "Khám phá những lựa chọn nệm được sắp xếp để bạn tìm thấy cảm giác phù hợp.",
 };
 
+import { UiShowcaseBadge } from "@/components/ui-showcase-badge";
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="vi"><body className={display.variable + " " + ui.variable}><AppProviders>{children}</AppProviders></body></html>;
+  return (
+    <html lang="vi">
+      <body className={display.variable + " " + ui.variable}>
+        <AppProviders>{children}</AppProviders>
+        <UiShowcaseBadge />
+      </body>
+    </html>
+  );
 }

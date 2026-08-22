@@ -8,4 +8,5 @@ coverage/
 .dev-smoke.*
 AGENTS.md
 CLAUDE.md
-
+QA/*.png
+screenshots/*.png

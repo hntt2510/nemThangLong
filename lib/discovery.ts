@@ -101,7 +101,12 @@ function discoveryData(products: DiscoveryProduct[], databaseAvailable: boolean)
   return { products, databaseAvailable, hasVerifiedPrices: products.some((product) => product.hasVerifiedPrices) };
 }
 
+import { isUiShowcaseMode, getShowcaseProducts } from "@/lib/ui-showcase";
+
 export async function getDiscoveryProducts(): Promise<DiscoveryData> {
+  if (isUiShowcaseMode()) {
+    return discoveryData(getShowcaseProducts().map((product, index) => toDiscoveryProduct(product, index)), true);
+  }
   let prisma;
   try { prisma = getPrisma(); } catch { prisma = null; }
   if (!prisma) return discoveryData(getDemoCatalogProducts().map((product, index) => toDiscoveryProduct(product, index)), false);

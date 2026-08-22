@@ -5,9 +5,14 @@ import { getAccountProfile } from "@/lib/account";
 
 export const dynamic = "force-dynamic";
 
+import { isUiShowcaseMode, getShowcaseProfile } from "@/lib/ui-showcase";
+
 export default async function AccountPage() {
   const session = await auth();
-  if (!session?.user?.id) {
+  const showcase = isUiShowcaseMode() && !session?.user?.id;
+  const showcaseProfile = showcase ? getShowcaseProfile() : null;
+
+  if (!session?.user?.id && !showcase) {
     return (
       <main className="account-page container">
         <p className="eyebrow">TÀI KHOẢN</p>
@@ -20,13 +25,15 @@ export default async function AccountPage() {
     );
   }
   const prisma = getPrisma();
-  const profile = prisma ? await getAccountProfile(prisma, session.user.id).catch(() => null) : null;
+  const profile = showcaseProfile ?? (prisma && session?.user?.id ? await getAccountProfile(prisma, session.user.id).catch(() => null) : null);
+  const displayName = profile?.name ?? session?.user?.name ?? "Nguyễn Minh Anh";
+  const displayEmail = profile?.email ?? session?.user?.email ?? "minhanh@example.test";
 
   return (
     <main className="account-page container">
       <p className="eyebrow">TÀI KHOẢN KHÁCH HÀNG</p>
-      <h1>{profile?.name ?? session.user.name ?? "Không gian của bạn."}</h1>
-      <p className="muted account-email">{profile?.email ?? session.user.email}</p>
+      <h1>{displayName}</h1>
+      <p className="muted account-email">{displayEmail}</p>
       <div className="account-cards">
         <Link href={"/tai-khoan/ho-so" as never} className="account-nav-card">
           <span>01</span>

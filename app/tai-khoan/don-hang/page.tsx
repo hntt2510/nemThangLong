@@ -6,9 +6,14 @@ import { formatVnd } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
+import { isUiShowcaseMode, getShowcaseOrders } from "@/lib/ui-showcase";
+
 export default async function OrdersPage() {
   const session = await auth();
-  if (!session?.user?.id) {
+  const showcase = isUiShowcaseMode() && !session?.user?.id;
+  const showcaseOrders = showcase ? getShowcaseOrders() : null;
+
+  if (!session?.user?.id && !showcase) {
     return (
       <main className="account-page container">
         <h1>Đăng nhập để xem lịch sử đơn hàng.</h1>
@@ -17,18 +22,11 @@ export default async function OrdersPage() {
     );
   }
   const prisma = getPrisma();
-  if (!prisma) {
-    return (
-      <main className="account-page container">
-        <h1>Không thể tải đơn hàng.</h1>
-        <p className="muted">Database chưa sẵn sàng.</p>
-      </main>
-    );
-  }
-  const result = await listAccountOrders(prisma, session.user.id)
-    .then((orders) => ({ ok: true as const, orders }))
-    .catch(() => ({ ok: false as const }));
-  if (!result.ok) {
+  const orders = showcaseOrders ?? (prisma && session?.user?.id
+    ? await listAccountOrders(prisma, session.user.id).catch(() => null)
+    : null);
+
+  if (!orders) {
     return (
       <main className="account-page container">
         <h1>Không thể tải đơn hàng.</h1>
@@ -36,6 +34,7 @@ export default async function OrdersPage() {
       </main>
     );
   }
+  const result = { ok: true as const, orders };
   return (
     <main className="account-page container">
       <Link href="/tai-khoan" className="text-link">← Tài khoản</Link>

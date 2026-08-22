@@ -5,8 +5,13 @@ import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 import { formatDimension, formatVnd } from "@/lib/format";
 
+import { isUiShowcaseMode, getShowcaseCartItems } from "@/lib/ui-showcase";
+
 export function CartPage() {
-  const { items, removeItem, subtotal } = useCart();
+  const { items: realItems, removeItem, subtotal: realSubtotal } = useCart();
+  const isShowcase = isUiShowcaseMode() && realItems.length === 0;
+  const items = isShowcase ? getShowcaseCartItems() : realItems;
+  const subtotal = isShowcase ? items.reduce((acc, item) => acc + item.price * item.quantity, 0) : realSubtotal;
 
   if (!items.length) {
     return (
