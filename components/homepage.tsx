@@ -82,14 +82,14 @@ export function Homepage({
               <p className="home-collection-sub">
                 Mỗi dòng sản phẩm được phát triển để phục vụ một cảm giác nằm và thói quen nghỉ ngơi chuyên biệt.
               </p>
-              <div className="home-collection-nav" role="tablist" aria-label="Bộ sưu tập nệm">
+              <nav className="home-collection-nav" aria-label="Khám phá các dòng nệm">
                 <Link href="/nem" className="home-tab is-active">Tất cả nệm</Link>
                 <Link href="/nem/luxury" className="home-tab">Luxury</Link>
                 <Link href="/nem/cao-su-thien-nhien" className="home-tab">Cao Su Thiên Nhiên</Link>
                 <Link href="/nem/memory-foam" className="home-tab">Memory Foam</Link>
                 <Link href="/nem/hoat-tinh" className="home-tab">Hoạt Tính</Link>
                 <Link href="/nem/classic" className="home-tab">Classic</Link>
-              </div>
+              </nav>
             </div>
             <div className="home-product-grid">
               {products.map((product, index) => (
@@ -139,10 +139,10 @@ export function Homepage({
                 <h2>Luxury, được cân nhắc từ trải nghiệm nằm.</h2>
                 <p>{luxury.description}</p>
                 <div className="home-luxury-pillars">
-                  <div><span>01</span><strong>Cấu trúc đa tầng</strong><small>Phân bổ áp lực đồng đều</small></div>
-                  <div><span>02</span><strong>Nâng đỡ công thái học</strong><small>Bảo vệ cột sống tự nhiên</small></div>
-                  <div><span>03</span><strong>Thoáng khí tự nhiên</strong><small>Lưu thông vi khí hậu tối ưu</small></div>
-                  <div><span>04</span><strong>Độ bền thượng hạng</strong><small>Tiêu chuẩn hoàn thiện cao</small></div>
+                  <div><span>01</span><strong>Lựa chọn kích thước</strong><small>Theo các biến thể hiện có</small></div>
+                  <div><span>02</span><strong>Cảm giác nằm</strong><small>Hiển thị theo dữ liệu đã công bố</small></div>
+                  <div><span>03</span><strong>Thông tin chất liệu</strong><small>Theo nội dung từng dòng sản phẩm</small></div>
+                  <div><span>04</span><strong>Tư vấn trước khi chọn</strong><small>Trao đổi thêm khi cần</small></div>
                 </div>
                 <Link href="/nem/luxury" className="button button-dark">Khám phá dòng Luxury <span aria-hidden="true">→</span></Link>
               </div>

@@ -37,4 +37,44 @@ describe("variant selection", () => {
     const finalA = selectVariant(variants, selectionFromVariant(selectedA), "thickness", 10);
     expect(finalA?.id).toBe("a");
   });
+
+  it("handles same width with multiple lengths and resolves length selection", () => {
+    const variants = [
+      variant("v-160-200-10", 160, 200, 10),
+      variant("v-160-210-10", 160, 210, 10),
+      variant("v-180-200-15", 180, 200, 15),
+    ];
+    const start = initialSelection(variants);
+    expect(dimensionOptions(variants, "width", start)).toEqual([160, 180]);
+    expect(dimensionOptions(variants, "length", start)).toEqual([200, 210]);
+    expect(dimensionOptions(variants, "thickness", start)).toEqual([10]);
+
+    const selectedLonger = selectVariant(variants, start, "length", 210);
+    expect(selectedLonger?.id).toBe("v-160-210-10");
+    expect(resolveVariant(variants, selectionFromVariant(selectedLonger))).toMatchObject({
+      id: "v-160-210-10",
+      width: 160,
+      length: 210,
+      thickness: 10,
+    });
+  });
+
+  it("handles same width and length with multiple thicknesses and resolves thickness selection", () => {
+    const variants = [
+      variant("v-160-200-10", 160, 200, 10),
+      variant("v-160-200-15", 160, 200, 15),
+      variant("v-160-200-20", 160, 200, 20),
+    ];
+    const start = initialSelection(variants);
+    expect(dimensionOptions(variants, "thickness", start)).toEqual([10, 15, 20]);
+
+    const selectedThick = selectVariant(variants, start, "thickness", 20);
+    expect(selectedThick?.id).toBe("v-160-200-20");
+    expect(resolveVariant(variants, selectionFromVariant(selectedThick))).toMatchObject({
+      id: "v-160-200-20",
+      width: 160,
+      length: 200,
+      thickness: 20,
+    });
+  });
 });

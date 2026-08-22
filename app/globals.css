@@ -1,4 +1,8 @@
 :root {
+  --font-display: var(--font-display, serif);
+  --font-ui: var(--font-ui, sans-serif);
+  --font-lora: var(--font-display);
+  --font-be: var(--font-ui);
   --background: #f7f4ee;
   --surface: #fdfbf7;
   --surface-muted: #ede8dc;

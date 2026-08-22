@@ -5,15 +5,15 @@ import "./globals.css";
 
 // Keep the existing CSS variables so the editorial typography can be upgraded
 // without touching every component that already opts into the display font.
-const lora = Cormorant_Garamond({
+const display = Cormorant_Garamond({
   subsets: ["latin", "vietnamese"],
-  variable: "--font-lora",
+  variable: "--font-display",
   display: "swap",
   weight: ["400", "500", "600", "700"],
 });
-const beVietnam = Manrope({
+const ui = Manrope({
   subsets: ["latin", "vietnamese"],
-  variable: "--font-be",
+  variable: "--font-ui",
   display: "swap",
   weight: ["300", "400", "500", "600", "700", "800"],
 });
@@ -25,5 +25,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="vi"><body className={lora.variable + " " + beVietnam.variable}><AppProviders>{children}</AppProviders></body></html>;
+  return <html lang="vi"><body className={display.variable + " " + ui.variable}><AppProviders>{children}</AppProviders></body></html>;
 }

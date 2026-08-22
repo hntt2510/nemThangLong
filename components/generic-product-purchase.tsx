@@ -27,6 +27,7 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
   });
 
   const widthOpts = useMemo(() => dimensionOptions(variants, "width", selected), [variants, selected]);
+  const lengthOpts = useMemo(() => dimensionOptions(variants, "length", selected), [variants, selected]);
   const thicknessOpts = useMemo(() => dimensionOptions(variants, "thickness", selected), [variants, selected]);
 
   function change(dimension: VariantDimension, value: number) {
@@ -110,7 +111,7 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
             </div>
 
             <div className="pdp-option-group">
-              <label className="pdp-option-label">Chiều rộng nệm</label>
+              <span className="pdp-option-label">Chiều rộng nệm</span>
               <div className="pdp-pills-row" role="radiogroup" aria-label="Chiều rộng nệm">
                 {widthOpts.map((value) => (
                   <button
@@ -127,9 +128,29 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
               </div>
             </div>
 
+            {lengthOpts.length > 1 && (
+              <div className="pdp-option-group">
+                <span className="pdp-option-label">Chiều dài nệm</span>
+                <div className="pdp-pills-row" role="radiogroup" aria-label="Chiều dài nệm">
+                  {lengthOpts.map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected?.length === value}
+                      className={"pdp-pill " + (selected?.length === value ? "active" : "")}
+                      onClick={() => change("length", value)}
+                    >
+                      {formatDimension(value)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {thicknessOpts.length > 1 && (
               <div className="pdp-option-group">
-                <label className="pdp-option-label">Độ dày</label>
+                <span className="pdp-option-label">Độ dày</span>
                 <div className="pdp-pills-row" role="radiogroup" aria-label="Độ dày nệm">
                   {thicknessOpts.map((value) => (
                     <button
@@ -174,8 +195,8 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
           <p className="generic-contact-pending">Thông tin tư vấn đang được cập nhật.</p>
         )}
         <div className="trust-list">
-          <span>✓ Kích thước và độ dày chuẩn theo thông số chính thức</span>
-          <span>✓ Tư vấn chuyên sâu và hỗ trợ chọn nệm trước khi mua</span>
+          <span>✓ Chọn kích thước theo các biến thể hiện có</span>
+          <span>✓ Có thể liên hệ tư vấn trước khi đặt hàng</span>
         </div>
       </div>
 

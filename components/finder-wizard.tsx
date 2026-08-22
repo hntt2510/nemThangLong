@@ -123,11 +123,12 @@ export function FinderWizard({
           </p>
 
           <div className="finder-choice-section">
-            <label className="finder-choice-heading">Chiều rộng giường (cm)</label>
+            <p className="finder-choice-heading">Chiều rộng giường (cm)</p>
             <div className="finder-pills-grid">
               <button
                 type="button"
                 className={"finder-pill-card " + (state.width === null ? "is-selected" : "")}
+                aria-pressed={state.width === null}
                 onClick={() => update("width", null)}
               >
                 <strong>Tất cả kích thước</strong>
@@ -138,10 +139,11 @@ export function FinderWizard({
                   key={w}
                   type="button"
                   className={"finder-pill-card " + (state.width === w ? "is-selected" : "")}
+                  aria-pressed={state.width === w}
                   onClick={() => update("width", w)}
                 >
                   <strong>{w} cm</strong>
-                  <small>{w >= 180 ? "King / Rộng rãi" : w >= 160 ? "Queen / Tiêu chuẩn" : "Đơn / Nhỏ gọn"}</small>
+                  <small>{w >= 180 ? "Cỡ lớn" : w >= 160 ? "Cỡ tiêu chuẩn" : "Cỡ nhỏ gọn"}</small>
                 </button>
               ))}
             </div>
@@ -149,11 +151,12 @@ export function FinderWizard({
 
           {currentLengths.length > 1 && (
             <div className="finder-choice-section">
-              <label className="finder-choice-heading">Chiều dài (cm)</label>
+              <p className="finder-choice-heading">Chiều dài (cm)</p>
               <div className="finder-pills-row">
                 <button
                   type="button"
                   className={"finder-pill " + (state.length === null ? "is-selected" : "")}
+                  aria-pressed={state.length === null}
                   onClick={() => update("length", null)}
                 >
                   Tất cả
@@ -163,6 +166,7 @@ export function FinderWizard({
                     key={l}
                     type="button"
                     className={"finder-pill " + (state.length === l ? "is-selected" : "")}
+                    aria-pressed={state.length === l}
                     onClick={() => update("length", l)}
                   >
                     {l} cm
@@ -174,11 +178,12 @@ export function FinderWizard({
 
           {currentThicknesses.length > 1 && (
             <div className="finder-choice-section">
-              <label className="finder-choice-heading">Độ dày (cm)</label>
+              <p className="finder-choice-heading">Độ dày (cm)</p>
               <div className="finder-pills-row">
                 <button
                   type="button"
                   className={"finder-pill " + (state.thickness === null ? "is-selected" : "")}
+                  aria-pressed={state.thickness === null}
                   onClick={() => update("thickness", null)}
                 >
                   Tất cả
@@ -188,6 +193,7 @@ export function FinderWizard({
                     key={t}
                     type="button"
                     className={"finder-pill " + (state.thickness === t ? "is-selected" : "")}
+                    aria-pressed={state.thickness === t}
                     onClick={() => update("thickness", t)}
                   >
                     {t} cm
@@ -207,23 +213,23 @@ export function FinderWizard({
           </p>
 
           <div className="finder-choice-section">
-            <label className="finder-choice-heading">Cảm giác nằm ưa thích</label>
+            <p className="finder-choice-heading">Cảm giác nằm ưa thích</p>
             <div className="finder-choice-cards-grid">
               {[
                 {
                   value: "soft" as FinderFeel,
-                  label: "Êm ái & Ôm nhẹ",
-                  desc: "Cho người thích cảm giác bồng bềnh, thư giãn các điểm tì đè.",
+                  label: "Êm ái",
+                  desc: "Ưu tiên cảm giác mềm hơn khi nằm.",
                 },
                 {
                   value: "balanced" as FinderFeel,
-                  label: "Cân bằng linh hoạt",
-                  desc: "Vừa vặn giữa êm ái và nâng đỡ vững chắc, dễ trở mình.",
+                  label: "Cân bằng",
+                  desc: "Ưu tiên cảm giác nằm ở mức trung hòa.",
                 },
                 {
                   value: "firm" as FinderFeel,
-                  label: "Vững vàng & Nâng đỡ",
-                  desc: "Mặt nệm chắc chắn, hỗ trợ giữ thẳng cột sống tối đa.",
+                  label: "Vững hơn",
+                  desc: "Ưu tiên bề mặt có cảm giác chắc hơn.",
                 },
                 {
                   value: "unsure" as FinderFeel,
@@ -235,6 +241,7 @@ export function FinderWizard({
                   key={item.value}
                   type="button"
                   className={"finder-choice-card " + (state.feel === item.value ? "is-selected" : "")}
+                  aria-pressed={state.feel === item.value}
                   onClick={() => update("feel", item.value)}
                 >
                   <span className="choice-bullet" />
@@ -282,29 +289,30 @@ export function FinderWizard({
               {[
                 {
                   value: "support" as FinderPriority,
-                  label: "Nâng đỡ cột sống & Cổ vai gáy",
-                  desc: "Tập trung phân bổ trọng lượng đều và nâng đỡ từng vùng cơ thể.",
+                  label: "Ưu tiên nâng đỡ",
+                  desc: "Tìm theo trường dữ liệu nâng đỡ đã được công bố.",
                 },
                 {
                   value: "breathability" as FinderPriority,
-                  label: "Thoáng mát & Lưu thông không khí",
-                  desc: "Chất liệu và cấu trúc tản nhiệt tốt, phù hợp khí hậu nóng ẩm.",
+                  label: "Ưu tiên độ thoáng",
+                  desc: "Tìm theo trường dữ liệu độ thoáng đã được công bố.",
                 },
                 {
                   value: "motion-isolation" as FinderPriority,
-                  label: "Cách ly chuyển động khi ngủ chung",
-                  desc: "Hạn chế rung lắc khi người nằm cạnh trở mình thức giấc.",
+                  label: "Ưu tiên hạn chế truyền chuyển động",
+                  desc: "Tìm theo dữ liệu đã được công bố cho tiêu chí này.",
                 },
                 {
                   value: "unsure" as FinderPriority,
                   label: "Tất cả các tiêu chí",
-                  desc: "Hiển thị các dòng nệm đáp ứng tổng hòa.",
+                  desc: "Hiển thị các dòng nệm theo thông tin tổng hợp.",
                 },
               ].map((item) => (
                 <button
                   key={item.value}
                   type="button"
                   className={"finder-choice-card " + (state.priority === item.value ? "is-selected" : "")}
+                  aria-pressed={state.priority === item.value}
                   onClick={() => update("priority", item.value)}
                 >
                   <span className="choice-bullet" />
