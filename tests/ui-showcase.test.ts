@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   isUiShowcaseMode,
   isRealProduction,
+  evaluateCheckoutMutationGuard,
+  SHOWCASE_CHECKOUT_BLOCKED_MESSAGE,
   getShowcaseProducts,
   getShowcaseProduct,
   getShowcaseCartItems,
@@ -42,12 +44,15 @@ describe("UI Showcase Mode Layer & Isolation Guards", () => {
   // B. local + UI_SHOWCASE_MODE=true -> showcase true
   it("B. enables when local and UI_SHOWCASE_MODE='true'", () => {
     expect(isUiShowcaseMode({ UI_SHOWCASE_MODE: "true", NODE_ENV: "development" })).toBe(true);
+    expect(isUiShowcaseMode({ UI_SHOWCASE_MODE: "true", NODE_ENV: "test" })).toBe(true);
   });
 
   // C. preview/staging + explicit flag -> showcase true
   it("C. enables in preview or staging with explicit UI_SHOWCASE_MODE='true'", () => {
-    expect(isUiShowcaseMode({ UI_SHOWCASE_MODE: "true", VERCEL_ENV: "preview" })).toBe(true);
-    expect(isUiShowcaseMode({ UI_SHOWCASE_MODE: "true", ENVIRONMENT: "staging" })).toBe(true);
+    expect(isUiShowcaseMode({ UI_SHOWCASE_MODE: "true", VERCEL_ENV: "preview", NODE_ENV: "production" })).toBe(true);
+    expect(isUiShowcaseMode({ UI_SHOWCASE_MODE: "true", ENVIRONMENT: "staging", NODE_ENV: "production" })).toBe(true);
+    expect(isUiShowcaseMode({ UI_SHOWCASE_MODE: "true", APP_ENV: "staging", NODE_ENV: "production" })).toBe(true);
+    expect(isUiShowcaseMode({ UI_SHOWCASE_MODE: "true", ENVIRONMENT: "preview", NODE_ENV: "production" })).toBe(true);
   });
 
   // D. real production + flag absent -> showcase false
@@ -63,6 +68,13 @@ describe("UI Showcase Mode Layer & Isolation Guards", () => {
     expect(isUiShowcaseMode({ VERCEL_ENV: "production", UI_SHOWCASE_MODE: "true" })).toBe(false);
     expect(isUiShowcaseMode({ ENVIRONMENT: "production", UI_SHOWCASE_MODE: "true" })).toBe(false);
     expect(isUiShowcaseMode({ APP_ENV: "production", UI_SHOWCASE_MODE: "true", NEXT_PUBLIC_UI_SHOWCASE_MODE: "true" })).toBe(false);
+  });
+
+  // E2. generic production fallback: NODE_ENV=production without deployment markers fails closed
+  it("E2. generic production fallback: NODE_ENV=production without explicit preview/staging fails closed", () => {
+    const genericProductionEnv = { NODE_ENV: "production", UI_SHOWCASE_MODE: "true" };
+    expect(isRealProduction(genericProductionEnv)).toBe(true);
+    expect(isUiShowcaseMode(genericProductionEnv)).toBe(false);
   });
 
   // F. NEXT_PUBLIC_UI_SHOWCASE_MODE alone -> must NOT enable server Showcase mode
@@ -126,6 +138,29 @@ describe("UI Showcase Mode Layer & Isolation Guards", () => {
         expect(allText.includes(phrase)).toBe(false);
       }
     }
+  });
+
+  // J. checkout mutation safety regression coverage
+  it("J. checkout mutation safety guard blocks real checkout when showcase is active and allows when inactive", () => {
+    // 1. In showcase mode: mutation must be strictly blocked with UI preview message
+    const showcaseGuard = evaluateCheckoutMutationGuard(true);
+    expect(showcaseGuard.allowed).toBe(false);
+    if (!showcaseGuard.allowed) {
+      expect(showcaseGuard.message).toBe(SHOWCASE_CHECKOUT_BLOCKED_MESSAGE);
+    }
+
+    // 2. In normal mode: mutation is permitted to proceed to API handlers
+    const normalGuard = evaluateCheckoutMutationGuard(false);
+    expect(normalGuard.allowed).toBe(true);
+
+    // 3. Integration with isUiShowcaseMode():
+    // With showcase enabled
+    const activeShowcaseEnv = { UI_SHOWCASE_MODE: "true", NODE_ENV: "development" };
+    expect(evaluateCheckoutMutationGuard(isUiShowcaseMode(activeShowcaseEnv)).allowed).toBe(false);
+
+    // In production without showcase
+    const prodEnv = { VERCEL_ENV: "production" };
+    expect(evaluateCheckoutMutationGuard(isUiShowcaseMode(prodEnv)).allowed).toBe(true);
   });
 
   it("finds showcase product by slug", () => {

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
 import { formatDimension, formatVnd } from "@/lib/format";
 
-import { isUiShowcaseMode, getShowcaseCartItems } from "@/lib/ui-showcase";
+import { isUiShowcaseMode, getShowcaseCartItems, evaluateCheckoutMutationGuard } from "@/lib/ui-showcase";
 
 export function CheckoutForm({ bankTransferEnabled = false }: { bankTransferEnabled?: boolean }) {
   const router = useRouter();
@@ -20,8 +20,9 @@ export function CheckoutForm({ bankTransferEnabled = false }: { bankTransferEnab
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
-    if (isUiShowcaseMode()) {
-      setError("Đây là chế độ UI Preview — không tạo đơn hàng thực tế.");
+    const mutationGuard = evaluateCheckoutMutationGuard(isUiShowcaseMode());
+    if (!mutationGuard.allowed) {
+      setError(mutationGuard.message);
       return;
     }
     setLoading(true);
