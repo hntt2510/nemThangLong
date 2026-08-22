@@ -1,0 +1,65 @@
+{
+  "1440_home": {
+    "bodyFont": "Manrope, \"Manrope Fallback\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "h1Font": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+    "h2Font": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+    "buttonFont": "Manrope, \"Manrope Fallback\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "ledeFont": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", serif"
+  },
+  "1440_nem": {
+    "bodyFont": "Manrope, \"Manrope Fallback\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "h1Font": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+    "h2Font": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+    "buttonFont": "Manrope, \"Manrope Fallback\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "ledeFont": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", serif"
+  },
+  "1440_america": {
+    "bodyFont": "Manrope, \"Manrope Fallback\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "h1Font": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+    "h2Font": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+    "buttonFont": "Manrope, \"Manrope Fallback\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "ledeFont": null
+  },
+  "1440_tim_nem": {
+    "bodyFont": "Manrope, \"Manrope Fallback\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "h1Font": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+    "h2Font": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+    "buttonFont": "Manrope, \"Manrope Fallback\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "ledeFont": null
+  },
+  "1440_so_sanh": {
+    "bodyFont": "Manrope, \"Manrope Fallback\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "h1Font": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+    "h2Font": null,
+    "buttonFont": "Manrope, \"Manrope Fallback\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "ledeFont": null
+  },
+  "390_home": {
+    "bodyFont": "Manrope, \"Manrope Fallback\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "h1Font": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+    "h2Font": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+    "buttonFont": "Manrope, \"Manrope Fallback\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "ledeFont": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", serif"
+  },
+  "390_nem": {
+    "bodyFont": "Manrope, \"Manrope Fallback\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "h1Font": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+    "h2Font": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+    "buttonFont": "Manrope, \"Manrope Fallback\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "ledeFont": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", serif"
+  },
+  "390_america": {
+    "bodyFont": "Manrope, \"Manrope Fallback\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "h1Font": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+    "h2Font": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+    "buttonFont": "Manrope, \"Manrope Fallback\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "ledeFont": null
+  },
+  "390_tim_nem": {
+    "bodyFont": "Manrope, \"Manrope Fallback\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "h1Font": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+    "h2Font": "\"Cormorant Garamond\", \"Cormorant Garamond Fallback\", Georgia, serif",
+    "buttonFont": "Manrope, \"Manrope Fallback\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+    "ledeFont": null
+  }
+}

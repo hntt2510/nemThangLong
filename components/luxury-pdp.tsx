@@ -11,61 +11,33 @@ import { GsapReveal } from "./gsap-reveal";
 import { MattressLabTeaser } from "./mattress-lab-teaser";
 import { resolvePdpCta } from "@/lib/product-cta";
 
-const emptyVariant: ProductVariant = {
-  id: "none",
-  width: 0,
-  length: 0,
-  thickness: 0,
-  price: null,
-  compareAtPrice: null,
-  sku: "",
-  stock: 0,
-  active: false,
-};
+import { activeVariants, dimensionOptions, initialSelection, resolveVariant, selectVariant, selectionFromVariant, type VariantDimension } from "@/lib/variant-selection";
 
 export function LuxuryPdp({ product }: { product: Product }) {
   const router = useRouter();
   const { addItem } = useCart();
-  const [selectedVariantId, setSelectedVariantId] = useState(
-    product.variants.find((variant) => variant.active)?.id ??
-      product.variants[0]?.id ??
-      "none",
-  );
+  const variants = useMemo(() => activeVariants(product.variants), [product.variants]);
+  const [selection, setSelection] = useState(() => initialSelection(variants));
   const [mediaIndex, setMediaIndex] = useState(0);
-  const selected =
-    product.variants.find((variant) => variant.id === selectedVariantId) ??
-    product.variants[0] ??
-    emptyVariant;
+  const selected = resolveVariant(variants, selection);
   const media = product.media[mediaIndex] ?? product.media[0];
-  const availableVariants = useMemo(
-    () => product.variants.filter((variant) => variant.active),
-    [product.variants],
-  );
-  const availableWidths = useMemo(
-    () => [...new Set(availableVariants.map((variant) => variant.width))],
-    [availableVariants],
-  );
-  const availableThicknesses = useMemo(
-    () => [
-      ...new Set(
-        availableVariants
-          .filter((variant) => variant.width === selected.width)
-          .map((variant) => variant.thickness),
-      ),
-    ],
-    [availableVariants, selected.width],
-  );
-  const canPurchase =
+  const canPurchase = Boolean(
     !product.isDemo &&
-    selected.active &&
+    selected &&
     selected.price !== null &&
     selected.price > 0 &&
-    selected.stock > 0;
+    selected.stock > 0
+  );
+  const price = !product.isDemo && selected?.price && selected.price > 0 ? formatVnd(selected.price) : "Liên hệ tư vấn";
   const cta = resolvePdpCta(canPurchase, "/lien-he?product=luxury", {
     purchase: "Mua ngay",
     contact: "Liên hệ tư vấn",
     disabled: "Liên hệ",
   });
+
+  const widthOpts = useMemo(() => dimensionOptions(variants, "width", selected), [variants, selected]);
+  const lengthOpts = useMemo(() => dimensionOptions(variants, "length", selected), [variants, selected]);
+  const thicknessOpts = useMemo(() => dimensionOptions(variants, "thickness", selected), [variants, selected]);
 
   const comfort = product.content?.comfort?.published
     ? product.content.comfort
@@ -77,25 +49,13 @@ export function LuxuryPdp({ product }: { product: Product }) {
     ? product.content.materialStory
     : null;
 
-  function chooseWidth(width: number) {
-    const candidate =
-      availableVariants.find(
-        (variant) =>
-          variant.width === width && variant.thickness === selected.thickness,
-      ) ?? availableVariants.find((variant) => variant.width === width);
-    if (candidate) setSelectedVariantId(candidate.id);
-  }
-
-  function chooseThickness(thickness: number) {
-    const candidate = availableVariants.find(
-      (variant) =>
-        variant.width === selected.width && variant.thickness === thickness,
-    );
-    if (candidate) setSelectedVariantId(candidate.id);
+  function change(dimension: VariantDimension, value: number) {
+    const candidate = selectVariant(variants, selected, dimension, value);
+    if (candidate) setSelection(selectionFromVariant(candidate));
   }
 
   function addToCart() {
-    if (!canPurchase || !media) return;
+    if (!canPurchase || !selected || !media) return;
     addItem({
       variantId: selected.id,
       quantity: 1,
@@ -172,82 +132,98 @@ export function LuxuryPdp({ product }: { product: Product }) {
           <h1>{product.name}</h1>
           <p className="hero-description">{product.description}</p>
           <div className="price-row" aria-live="polite">
-            <strong>
-              {!product.isDemo && selected.price
-                ? formatVnd(selected.price)
-                : "Liên hệ tư vấn"}
-            </strong>
-            {!product.isDemo && selected.compareAtPrice && (
+            <strong>{price}</strong>
+            {!product.isDemo && selected?.compareAtPrice && (
               <del>{formatVnd(selected.compareAtPrice)}</del>
             )}
           </div>
-          {availableVariants.length > 0 ? (
+          {variants.length > 0 ? (
             <div className="variant-block">
               <div className="variant-heading">
-                <span>KÍCH THƯỚC</span>
+                <span>CHỌN KÍCH THƯỚC</span>
                 <small>
-                  {formatDimension(selected.width)} ×{" "}
-                  {formatDimension(selected.length)}cm
+                  {selected
+                    ? formatDimension(selected.width) + " × " + formatDimension(selected.length) + " · " + selected.thickness + "cm"
+                    : "Đang cập nhật"}
                 </small>
               </div>
-              <label>
-                Rộng
-                <select
-                  value={selected.width}
-                  onChange={(event) => chooseWidth(Number(event.target.value))}
-                  aria-label="Chiều rộng"
-                >
-                  {availableWidths.map((width) => (
-                    <option key={width} value={width}>
-                      {formatDimension(width)}
-                    </option>
+
+              <div className="pdp-option-group">
+                <span className="pdp-option-label">Chiều rộng nệm</span>
+                <div className="pdp-pills-row" role="radiogroup" aria-label="Chiều rộng nệm">
+                  {widthOpts.map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected?.width === value}
+                      className={"pdp-pill " + (selected?.width === value ? "active" : "")}
+                      onClick={() => change("width", value)}
+                    >
+                      {formatDimension(value)}
+                    </button>
                   ))}
-                </select>
-              </label>
-              <label>
-                Dài
-                <div className="static-value">
-                  {formatDimension(selected.length)}
                 </div>
-              </label>
-              <label>
-                Độ dày
-                <div className="thicknesses">
-                  {availableThicknesses.map((thickness) => {
-                    const variantForThickness = availableVariants.find(
-                      (item) =>
-                        item.width === selected.width &&
-                        item.thickness === thickness,
-                    );
-                    const disabled = !variantForThickness;
-                    const active = selected.thickness === thickness;
-                    return (
+              </div>
+
+              {lengthOpts.length > 1 && (
+                <div className="pdp-option-group">
+                  <span className="pdp-option-label">Chiều dài nệm</span>
+                  <div className="pdp-pills-row" role="radiogroup" aria-label="Chiều dài nệm">
+                    {lengthOpts.map((value) => (
                       <button
-                        key={thickness}
+                        key={value}
                         type="button"
-                        className={active ? "active" : ""}
-                        disabled={disabled}
-                        onClick={() => chooseThickness(thickness)}
-                        aria-label={`Độ dày ${thickness}cm${disabled ? " (không khả dụng)" : ""}`}
+                        role="radio"
+                        aria-checked={selected?.length === value}
+                        className={"pdp-pill " + (selected?.length === value ? "active" : "")}
+                        onClick={() => change("length", value)}
                       >
-                        {thickness}
+                        {formatDimension(value)}
                       </button>
-                    );
-                  })}
+                    ))}
+                  </div>
                 </div>
-              </label>
+              )}
+
+              {thicknessOpts.length > 1 && (
+                <div className="pdp-option-group">
+                  <span className="pdp-option-label">Độ dày</span>
+                  <div className="pdp-pills-row" role="radiogroup" aria-label="Độ dày nệm">
+                    {thicknessOpts.map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected?.thickness === value}
+                        className={"pdp-pill " + (selected?.thickness === value ? "active" : "")}
+                        onClick={() => change("thickness", value)}
+                      >
+                        {value}cm
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="variant-placeholder">
               Kích thước và thông tin sản phẩm đang được cập nhật.
             </div>
           )}
+          {selected && (
+            <p className="generic-availability" aria-live="polite">
+              <span className={"status-dot " + (selected.stock > 0 ? "in-stock" : "out-of-stock")} />
+              {selected.stock > 0 ? "Còn hàng" : "Tạm hết hàng"}
+              {selected.price === null || selected.price <= 0 ? " · Giá đang cập nhật" : ""}
+            </p>
+          )}
           {cta.type === "purchase" ? (
             <div className="hero-ctas">
-              <button className="button button-primary" onClick={buyNow}>
+              <button className="button button-primary" type="button" onClick={buyNow}>
                 Mua ngay
               </button>
-              <button className="button button-secondary" onClick={addToCart}>
+              <button className="button button-secondary" type="button" onClick={addToCart}>
                 Thêm vào giỏ
               </button>
             </div>
@@ -427,7 +403,7 @@ export function LuxuryPdp({ product }: { product: Product }) {
       <div className="mobile-sticky-cta">
         <div>
           <span>Luxury</span>
-          <strong>{canPurchase ? formatVnd(selected.price) : "Liên hệ"}</strong>
+          <strong>{canPurchase && selected?.price ? formatVnd(selected.price) : "Liên hệ"}</strong>
         </div>
         {cta.type === "purchase" ? (
           <button type="button" onClick={buyNow}>
