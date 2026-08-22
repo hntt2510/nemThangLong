@@ -1,8 +1,4 @@
 :root {
-  --font-display: var(--font-display, serif);
-  --font-ui: var(--font-ui, sans-serif);
-  --font-lora: var(--font-display);
-  --font-be: var(--font-ui);
   --background: #f7f4ee;
   --surface: #fdfbf7;
   --surface-muted: #ede8dc;
@@ -57,7 +53,7 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--text);
-  font-family: var(--font-be), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-ui), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 16px;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
@@ -104,7 +100,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-lora), Georgia, serif;
+  font-family: var(--font-display), Georgia, serif;
   font-weight: 500;
   letter-spacing: -0.02em;
   color: var(--text);
@@ -328,7 +324,7 @@ h4 {
   font-size: 10px;
   font-weight: 400;
   letter-spacing: 0.08em;
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-style: italic;
 }
 
@@ -509,7 +505,7 @@ h4 {
 .home-hero-lede {
   max-width: 440px;
   color: var(--text-secondary);
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-size: clamp(20px, 2.3vw, 26px);
   line-height: 1.35;
 }
@@ -592,7 +588,7 @@ h4 {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.12em;
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
 }
 
 /* Collection / Range */
@@ -839,11 +835,11 @@ h4 {
   color: var(--warm);
   font-size: 13px;
   font-weight: 700;
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
 }
 
 .home-find-steps strong {
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-size: clamp(21px, 2.3vw, 28px);
   font-weight: 500;
 }
@@ -918,7 +914,7 @@ h4 {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.12em;
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
 }
 
 .home-luxury-pillars strong {
@@ -1019,11 +1015,11 @@ h4 {
   color: var(--warm);
   font-size: 12px;
   font-weight: 700;
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
 }
 
 .home-needs-list strong {
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-size: clamp(22px, 2.5vw, 30px);
   font-weight: 500;
 }
@@ -1077,7 +1073,7 @@ h4 {
   padding: 22px 0;
   border-bottom: 1px solid var(--border);
   color: var(--text-secondary);
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-size: clamp(28px, 3vw, 40px);
   transition: color var(--transition-fast), transform var(--transition-fast);
 }
@@ -1139,7 +1135,7 @@ h4 {
 }
 
 .home-trust-copy strong {
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-size: 22px;
   font-weight: 500;
 }
@@ -1172,7 +1168,7 @@ h4 {
 }
 
 .home-journal-empty p {
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-size: 26px;
 }
 
@@ -1267,7 +1263,7 @@ h4 {
 
 .catalog-lede {
   color: var(--text-secondary);
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-size: clamp(17px, 1.8vw, 21px);
   line-height: 1.45;
 }
@@ -1627,7 +1623,7 @@ h4 {
 
 .hero-lede {
   color: var(--text-secondary);
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-size: 21px;
   line-height: 1.4;
 }
@@ -2036,11 +2032,11 @@ h4 {
   color: var(--warm);
   font-size: 12px;
   font-weight: 700;
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
 }
 
 .compare-options strong {
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-size: 24px;
   font-weight: 500;
 }
@@ -2315,7 +2311,7 @@ h4 {
 }
 
 .layer-list span {
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
 }
 
 .layer-list small {
@@ -2386,7 +2382,7 @@ h4 {
   max-width: 580px;
   margin: 20px auto 0;
   color: var(--text-secondary);
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-size: clamp(16px, 1.8vw, 20px);
   line-height: 1.5;
 }
@@ -2441,7 +2437,7 @@ h4 {
 }
 
 .finder-step-num {
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-size: 12px;
   font-weight: 700;
   color: var(--warm);
@@ -2454,7 +2450,7 @@ h4 {
 }
 
 .finder-step-title {
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-size: clamp(26px, 3vw, 36px);
   font-weight: 500;
   color: var(--text);
@@ -2733,7 +2729,7 @@ h4 {
 .finder-result-detail > strong {
   display: block;
   margin-top: 12px;
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-size: 24px;
   font-weight: 500;
 }
@@ -2905,7 +2901,7 @@ h4 {
 }
 
 .compare-product-heading strong {
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-size: 20px;
   font-weight: 500;
   line-height: 1.2;
@@ -3123,13 +3119,13 @@ h4 {
   color: var(--warm);
   font-size: 12px;
   font-weight: 700;
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
 }
 
 .b2b-steps strong {
   display: block;
   margin-top: 18px;
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-size: 26px;
   font-weight: 500;
 }
@@ -3335,7 +3331,7 @@ h4 {
 }
 
 .cart-summary-header strong {
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-size: 32px;
   letter-spacing: -0.02em;
 }
@@ -3485,7 +3481,7 @@ h4 {
 }
 
 .checkout-total strong {
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-size: 28px;
   letter-spacing: -0.02em;
 }
@@ -3754,7 +3750,7 @@ h4 {
 }
 
 .account-nav-card strong {
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-size: 26px;
   font-weight: 500;
 }
@@ -3801,7 +3797,7 @@ h4 {
 }
 
 .account-order-card-header strong {
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-display), serif;
   font-size: 22px;
 }
 
@@ -5036,7 +5032,7 @@ h4 {
     gap: 0;
   }
   .mobile-sticky-cta span {
-    font-family: var(--font-lora), serif;
+    font-family: var(--font-display), serif;
     font-size: 14px;
   }
   .mobile-sticky-cta strong {
