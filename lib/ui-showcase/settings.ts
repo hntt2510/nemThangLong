@@ -16,12 +16,12 @@ export const SHOWCASE_SETTINGS: {
   freeShippingThreshold: 0,
   bankTransferReservationMinutes: 30,
   bankTransferInfo: {
-    bankName: "Ngân hàng Thương mại Cổ phần Ngoại thương Việt Nam (Vietcombank)",
-    accountNumber: "1234567890",
-    accountHolder: "CONG TY TNHH NEM THANG LONG",
+    bankName: "Ngân hàng Trình diễn (Demo Bank)",
+    accountNumber: "0000 0000 0000",
+    accountHolder: "THANG LONG UI PREVIEW",
   },
-  contactPhone: "0901 234 567",
-  contactEmail: "tuvan@nemthanglong.vn",
+  contactPhone: "0900 000 000",
+  contactEmail: "hotro@example.test",
   navigation: {
     items: [
       {

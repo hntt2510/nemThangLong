@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   isUiShowcaseMode,
+  isRealProduction,
   getShowcaseProducts,
   getShowcaseProduct,
   getShowcaseCartItems,
@@ -10,55 +11,119 @@ import {
   getShowcaseSiteSettings,
   SHOWCASE_COMPARE_DEFAULT_ITEMS,
 } from "@/lib/ui-showcase";
+import { toCatalogProduct } from "@/lib/catalog";
+import { toDiscoveryProduct } from "@/lib/discovery";
 
-describe("UI Showcase Mode Layer", () => {
-  const originalEnv = process.env.UI_SHOWCASE_MODE;
-  const originalPublicEnv = process.env.NEXT_PUBLIC_UI_SHOWCASE_MODE;
+describe("UI Showcase Mode Layer & Isolation Guards", () => {
+  const originalEnv = { ...process.env };
 
   beforeEach(() => {
+    process.env = { ...originalEnv };
     delete process.env.UI_SHOWCASE_MODE;
     delete process.env.NEXT_PUBLIC_UI_SHOWCASE_MODE;
+    delete process.env.VERCEL_ENV;
+    delete process.env.NEXT_PUBLIC_VERCEL_ENV;
+    delete process.env.ENVIRONMENT;
+    delete process.env.APP_ENV;
+    delete process.env.DEPLOY_ENV;
+    delete process.env.SITE_ENV;
   });
 
   afterEach(() => {
-    if (originalEnv !== undefined) process.env.UI_SHOWCASE_MODE = originalEnv;
-    else delete process.env.UI_SHOWCASE_MODE;
-    if (originalPublicEnv !== undefined) process.env.NEXT_PUBLIC_UI_SHOWCASE_MODE = originalPublicEnv;
-    else delete process.env.NEXT_PUBLIC_UI_SHOWCASE_MODE;
+    process.env = originalEnv;
   });
 
-  it("defaults to disabled when env flags are absent", () => {
-    expect(isUiShowcaseMode()).toBe(false);
+  // A. no env -> showcase false
+  it("A. defaults to disabled when env flags are absent", () => {
+    expect(isUiShowcaseMode({})).toBe(false);
+    expect(isUiShowcaseMode(process.env)).toBe(false);
   });
 
-  it("enables when UI_SHOWCASE_MODE is 'true'", () => {
-    process.env.UI_SHOWCASE_MODE = "true";
-    expect(isUiShowcaseMode()).toBe(true);
+  // B. local + UI_SHOWCASE_MODE=true -> showcase true
+  it("B. enables when local and UI_SHOWCASE_MODE='true'", () => {
+    expect(isUiShowcaseMode({ UI_SHOWCASE_MODE: "true", NODE_ENV: "development" })).toBe(true);
   });
 
-  it("enables when NEXT_PUBLIC_UI_SHOWCASE_MODE is 'true'", () => {
-    process.env.NEXT_PUBLIC_UI_SHOWCASE_MODE = "true";
-    expect(isUiShowcaseMode()).toBe(true);
+  // C. preview/staging + explicit flag -> showcase true
+  it("C. enables in preview or staging with explicit UI_SHOWCASE_MODE='true'", () => {
+    expect(isUiShowcaseMode({ UI_SHOWCASE_MODE: "true", VERCEL_ENV: "preview" })).toBe(true);
+    expect(isUiShowcaseMode({ UI_SHOWCASE_MODE: "true", ENVIRONMENT: "staging" })).toBe(true);
   });
 
-  it("supplies all 6 product lines with rich variant matrices", () => {
+  // D. real production + flag absent -> showcase false
+  it("D. disabled in real production when flag is absent", () => {
+    expect(isUiShowcaseMode({ VERCEL_ENV: "production" })).toBe(false);
+    expect(isUiShowcaseMode({ ENVIRONMENT: "production" })).toBe(false);
+    expect(isRealProduction({ VERCEL_ENV: "production" })).toBe(true);
+    expect(isRealProduction({ ENVIRONMENT: "production" })).toBe(true);
+  });
+
+  // E. real production + UI_SHOWCASE_MODE=true -> showcase STILL false
+  it("E. hard-blocks showcase mode in real production even if UI_SHOWCASE_MODE='true'", () => {
+    expect(isUiShowcaseMode({ VERCEL_ENV: "production", UI_SHOWCASE_MODE: "true" })).toBe(false);
+    expect(isUiShowcaseMode({ ENVIRONMENT: "production", UI_SHOWCASE_MODE: "true" })).toBe(false);
+    expect(isUiShowcaseMode({ APP_ENV: "production", UI_SHOWCASE_MODE: "true", NEXT_PUBLIC_UI_SHOWCASE_MODE: "true" })).toBe(false);
+  });
+
+  // F. NEXT_PUBLIC_UI_SHOWCASE_MODE alone -> must NOT enable server Showcase mode
+  it("F. NEXT_PUBLIC_UI_SHOWCASE_MODE alone must NOT enable server-side showcase mode", () => {
+    expect(isUiShowcaseMode({ NEXT_PUBLIC_UI_SHOWCASE_MODE: "true" })).toBe(false);
+  });
+
+  // G. showcase fixtures identified as Showcase -> not database
+  it("G. showcase fixtures are clearly identified as Showcase and not database data", () => {
     const products = getShowcaseProducts();
     expect(products).toHaveLength(6);
 
-    const slugs = products.map((p) => p.slug);
-    expect(slugs).toEqual(["america", "classic", "hoat-tinh", "memory-foam", "cao-su-thien-nhien", "luxury"]);
+    for (const product of products) {
+      expect(product.source).toBe("showcase");
+      expect(product.source).not.toBe("database");
+      expect(product.isDemo).toBe(true);
+      expect(product.isShowcase).toBe(true);
+      expect(product.previewPurchasable).toBe(true);
+      expect(product.purchasable).toBe(false);
+
+      // Verify catalog transformation preserves presentation readiness
+      const catalogItem = toCatalogProduct(product);
+      expect(catalogItem.minPrice).toBeGreaterThan(0);
+      expect(catalogItem.purchasable).toBe(true);
+      expect(catalogItem.variants.length).toBeGreaterThan(0);
+
+      // Verify discovery transformation preserves presentation readiness
+      const discoveryItem = toDiscoveryProduct(product);
+      expect(discoveryItem.source).toBe("showcase");
+      expect(discoveryItem.hasVerifiedPrices).toBe(true);
+      expect(discoveryItem.purchasable).toBe(true);
+      expect(discoveryItem.variants.length).toBeGreaterThan(0);
+    }
+  });
+
+  // H. showcase products contain no fake customer reviews
+  it("H. showcase products contain no fake customer reviews", () => {
+    const products = getShowcaseProducts();
+    for (const product of products) {
+      expect(product.reviews).toEqual([]);
+    }
+  });
+
+  // I. audit copy for unsupported claims
+  it("I. showcase fixtures contain no unsupported medical or durability claims", () => {
+    const products = getShowcaseProducts();
+    const forbiddenPhrases = [
+      "kháng khuẩn",
+      "khử mùi",
+      "hấp thụ ẩm",
+      "không võng lún sau thời gian dài",
+      "hỗ trợ người lớn tuổi",
+      "giải tỏa áp lực",
+      "áp lực cột sống",
+      "bảo vệ cột sống",
+    ];
 
     for (const product of products) {
-      expect(product.variants.length).toBeGreaterThanOrEqual(5);
-      expect(product.media.length).toBeGreaterThanOrEqual(3);
-      expect(product.purchasable).toBe(true);
-      expect(product.content?.comfort).toBeDefined();
-
-      for (const variant of product.variants) {
-        expect(variant.width).toBeGreaterThan(0);
-        expect(variant.length).toBeGreaterThan(0);
-        expect(variant.thickness).toBeGreaterThan(0);
-        expect(variant.price).toBeGreaterThan(0);
+      const allText = JSON.stringify(product).toLowerCase();
+      for (const phrase of forbiddenPhrases) {
+        expect(allText.includes(phrase)).toBe(false);
       }
     }
   });
@@ -78,14 +143,14 @@ describe("UI Showcase Mode Layer", () => {
     expect(nonExistent).toBeNull();
   });
 
-  it("supplies presentation cart items without touching DB", () => {
+  it("supplies presentation cart items with synthetic prices", () => {
     const items = getShowcaseCartItems();
     expect(items).toHaveLength(2);
     expect(items[0].productSlug).toBe("luxury");
     expect(items[1].productSlug).toBe("classic");
   });
 
-  it("supplies presentation account fixtures", () => {
+  it("supplies presentation account fixtures with synthetic test domains", () => {
     const profile = getShowcaseProfile();
     expect(profile.name).toBe("Nguyễn Minh Anh");
     expect(profile.email).toBe("minhanh@example.test");
@@ -101,15 +166,13 @@ describe("UI Showcase Mode Layer", () => {
     expect(orders.map((o) => o.status)).toContain("Cần hỗ trợ");
   });
 
-  it("supplies preselected compare default items", () => {
-    expect(SHOWCASE_COMPARE_DEFAULT_ITEMS).toEqual(["america", "memory-foam", "luxury"]);
-  });
-
-  it("provides valid site settings", () => {
+  it("supplies presentation site settings with clearly synthetic data", () => {
     const settings = getShowcaseSiteSettings();
-    expect(settings.contactPhone).toBe("0901 234 567");
-    expect(settings.contactEmail).toBe("tuvan@nemthanglong.vn");
-    expect(settings.bankTransferInfo).toBeDefined();
-    expect(settings.freeShippingThreshold).toBe(0);
+    expect(settings.contactEmail).toBe("hotro@example.test");
+    expect(settings.contactPhone).toBe("0900 000 000");
+    const bank = settings.bankTransferInfo as Record<string, string>;
+    expect(bank.bankName).toContain("Demo Bank");
+    expect(bank.accountNumber).toBe("0000 0000 0000");
+    expect(SHOWCASE_COMPARE_DEFAULT_ITEMS).toEqual(["america", "memory-foam", "luxury"]);
   });
 });

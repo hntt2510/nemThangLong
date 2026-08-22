@@ -36,6 +36,8 @@ export type CatalogProductSummary = {
   variants: ProductVariant[];
   skus: string[];
   materialStory?: { title: string; body: string } | null;
+  isShowcase?: boolean;
+  previewPurchasable?: boolean;
 };
 
 export type CatalogFacets = {
@@ -92,7 +94,8 @@ function materialStory(product: Product) {
 }
 
 export function toCatalogProduct(product: Product): CatalogProductSummary {
-  const variants = product.isDemo ? [] : product.variants.filter((variant) => variant.active);
+  const isShowcase = product.source === "showcase" || Boolean(product.isShowcase) || Boolean(product.previewPurchasable);
+  const variants = product.isDemo && !isShowcase ? [] : product.variants.filter((variant) => variant.active);
   const priced = variants.map((variant) => variant.price).filter((price): price is number => typeof price === "number" && price > 0);
   const media = product.media[0];
   return {
@@ -106,13 +109,15 @@ export function toCatalogProduct(product: Product): CatalogProductSummary {
     imageIsDemo: product.isDemo || !media || media.isDemo === true,
     minPrice: priced.length > 0 ? Math.min(...priced) : null,
     maxPrice: priced.length > 0 ? Math.max(...priced) : null,
-    purchasable: !product.isDemo && variants.some((variant) => variant.active && typeof variant.price === "number" && variant.price > 0 && variant.stock > 0),
+    purchasable: (!product.isDemo || isShowcase) && variants.some((variant) => variant.active && typeof variant.price === "number" && variant.price > 0 && variant.stock > 0),
     inStock: variants.some((variant) => variant.stock > 0),
     widths: [...new Set(variants.map((variant) => variant.width))].sort((a, b) => a - b),
     thicknesses: [...new Set(variants.map((variant) => variant.thickness))].sort((a, b) => a - b),
     variants,
     skus: variants.map((variant) => variant.sku),
     materialStory: materialStory(product),
+    isShowcase: product.isShowcase,
+    previewPurchasable: product.previewPurchasable,
   };
 }
 

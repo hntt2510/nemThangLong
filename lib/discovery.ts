@@ -43,8 +43,10 @@ export type DiscoveryProduct = {
   delivery: DiscoveryBodySection | null;
   warranty: DiscoveryBodySection | null;
   hasVerifiedPrices: boolean;
-  source: "database" | "demo";
+  source: "database" | "demo" | "showcase";
   catalogueIndex: number;
+  isShowcase?: boolean;
+  previewPurchasable?: boolean;
 };
 
 export function sanitizeProductContent(value: unknown) {
@@ -59,7 +61,8 @@ export function sanitizeProductContent(value: unknown) {
 }
 
 export function toDiscoveryProduct(product: Product, catalogueIndex = CATALOG_SLUGS.indexOf(product.slug as (typeof CATALOG_SLUGS)[number])): DiscoveryProduct {
-  const variants = product.isDemo ? [] : product.variants.filter((variant) => variant.active);
+  const isShowcase = product.source === "showcase" || Boolean(product.isShowcase) || Boolean(product.previewPurchasable);
+  const variants = product.isDemo && !isShowcase ? [] : product.variants.filter((variant) => variant.active);
   const priced = variants.map((variant) => variant.price).filter((price): price is number => typeof price === "number" && Number.isFinite(price) && price > 0);
   const media = product.media.length > 0 ? product.media : [];
   const primary = media[0];
@@ -83,15 +86,17 @@ export function toDiscoveryProduct(product: Product, catalogueIndex = CATALOG_SL
     minPrice: priced.length ? Math.min(...priced) : null,
     maxPrice: priced.length ? Math.max(...priced) : null,
     inStock: variants.some((variant) => variant.stock > 0),
-    purchasable: !product.isDemo && product.purchasable,
+    purchasable: (!product.isDemo || isShowcase) && (product.purchasable || Boolean(product.previewPurchasable)),
     comfort: content.comfort,
     audience: content.audience,
     materialStory: content.materialStory,
     delivery: content.delivery,
     warranty: content.warranty,
-    hasVerifiedPrices: !product.isDemo && priced.length > 0,
+    hasVerifiedPrices: (!product.isDemo || isShowcase) && priced.length > 0,
     source: product.source,
     catalogueIndex: catalogueIndex < 0 ? CATALOG_SLUGS.length : catalogueIndex,
+    isShowcase: product.isShowcase,
+    previewPurchasable: product.previewPurchasable,
   };
 }
 

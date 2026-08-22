@@ -18,8 +18,9 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
   const [mediaIndex, setMediaIndex] = useState(0);
   const selected = resolveVariant(variants, selection);
   const media = product.media[mediaIndex] ?? product.media[0];
-  const canPurchase = Boolean(!product.isDemo && selected && selected.price !== null && selected.price > 0 && selected.stock > 0);
-  const price = !product.isDemo && selected?.price && selected.price > 0 ? formatVnd(selected.price) : "Liên hệ";
+  const isShowcase = product.source === "showcase" || Boolean(product.isShowcase) || Boolean(product.previewPurchasable);
+  const canPurchase = Boolean((!product.isDemo || isShowcase) && selected && selected.price !== null && selected.price > 0 && selected.stock > 0);
+  const price = (!product.isDemo || isShowcase) && selected?.price && selected.price > 0 ? formatVnd(selected.price) : "Liên hệ";
   const cta = resolvePdpCta(canPurchase, contactHref, {
     purchase: "Mua ngay",
     contact: "Tư vấn",

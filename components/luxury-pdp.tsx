@@ -21,14 +21,15 @@ export function LuxuryPdp({ product }: { product: Product }) {
   const [mediaIndex, setMediaIndex] = useState(0);
   const selected = resolveVariant(variants, selection);
   const media = product.media[mediaIndex] ?? product.media[0];
+  const isShowcase = product.source === "showcase" || Boolean(product.isShowcase) || Boolean(product.previewPurchasable);
   const canPurchase = Boolean(
-    !product.isDemo &&
+    (!product.isDemo || isShowcase) &&
     selected &&
     selected.price !== null &&
     selected.price > 0 &&
     selected.stock > 0
   );
-  const price = !product.isDemo && selected?.price && selected.price > 0 ? formatVnd(selected.price) : "Liên hệ tư vấn";
+  const price = (!product.isDemo || isShowcase) && selected?.price && selected.price > 0 ? formatVnd(selected.price) : "Liên hệ tư vấn";
   const cta = resolvePdpCta(canPurchase, "/lien-he?product=luxury", {
     purchase: "Mua ngay",
     contact: "Liên hệ tư vấn",

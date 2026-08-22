@@ -58,8 +58,10 @@ export type Product = {
   reviews: Array<{ rating: number; comfort?: number; quality?: number; value?: number }>;
   content?: ProductContent | null;
   isDemo: boolean;
-  source: "database" | "demo";
+  source: "database" | "demo" | "showcase";
   purchasable: boolean;
+  isShowcase?: boolean;
+  previewPurchasable?: boolean;
 };
 
 export type CartItem = {

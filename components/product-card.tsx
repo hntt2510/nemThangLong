@@ -3,10 +3,14 @@ import Link from "next/link";
 import { formatVnd } from "@/lib/format";
 import type { CatalogProductSummary } from "@/lib/catalog";
 
-export type ProductCardProduct = Pick<CatalogProductSummary, "slug" | "name" | "eyebrow" | "description" | "image" | "imageAlt" | "isDemo" | "imageIsDemo" | "minPrice">;
+export type ProductCardProduct = Pick<CatalogProductSummary, "slug" | "name" | "eyebrow" | "description" | "image" | "imageAlt" | "isDemo" | "imageIsDemo" | "minPrice"> & {
+  isShowcase?: boolean;
+  previewPurchasable?: boolean;
+};
 
 export function ProductCard({ product, index, className = "" }: { product: ProductCardProduct; index?: number; className?: string }) {
-  const priceLabel = product.isDemo ? "Thông tin đang cập nhật" : product.minPrice ? "Từ " + formatVnd(product.minPrice) : "Liên hệ tư vấn";
+  const isShowcase = Boolean(product.isShowcase) || Boolean(product.previewPurchasable);
+  const priceLabel = product.isDemo && !isShowcase ? "Thông tin đang cập nhật" : product.minPrice ? "Từ " + formatVnd(product.minPrice) : "Liên hệ tư vấn";
   return (
     <article className={"home-product-card product-card " + className}>
       <div className="home-product-media product-card-media">
