@@ -15,7 +15,15 @@ type HomepageSettings = {
   navigation: unknown;
 };
 
-export function Homepage({ products, luxuryProduct, settings }: { products: HomepageProductSummary[]; luxuryProduct: Product; settings: HomepageSettings | null }) {
+export function Homepage({
+  products,
+  luxuryProduct,
+  settings,
+}: {
+  products: HomepageProductSummary[];
+  luxuryProduct: Product;
+  settings: HomepageSettings | null;
+}) {
   const luxury = products.find((product) => product.slug === "luxury") ?? products[products.length - 1];
   const latex = products.find((product) => product.slug === "cao-su-thien-nhien") ?? products[0];
   const deliveryConfigured = settings?.shippingFee !== null && settings?.shippingFee !== undefined;
@@ -30,15 +38,27 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
               <div className="home-hero-copy">
                 <p className="eyebrow">THĂNG LONG / SLEEP, CONSIDERED.</p>
                 <h1>Ngủ ngon hơn,<br />mỗi ngày.</h1>
-                <p className="home-hero-lede">Những lựa chọn nệm được sắp xếp để bạn dễ tìm thấy cảm giác phù hợp.</p>
+                <p className="home-hero-lede">
+                  Những lựa chọn nệm được sắp xếp để bạn dễ tìm thấy cảm giác phù hợp cho không gian nghỉ ngơi của mình.
+                </p>
                 <div className="home-hero-actions">
-                  <Link href={"/tim-nem" as never} className="button button-primary">Tìm nệm phù hợp</Link>
-                  <Link href="#product-range" className="button button-secondary">Khám phá sản phẩm</Link>
+                  <Link href={"/tim-nem" as never} className="button button-primary">
+                    Tìm nệm phù hợp
+                  </Link>
+                  <Link href="#product-range" className="button button-secondary">
+                    Khám phá sản phẩm
+                  </Link>
                 </div>
                 <p className="home-demo-note">Ảnh minh họa · Thông tin sản phẩm đang được cập nhật.</p>
               </div>
               <div className="home-hero-media">
-                <Image src="/images/homepage-hero.webp" alt="Hình ảnh minh họa phòng ngủ với nệm Thăng Long" fill priority sizes="(max-width: 860px) 100vw, 58vw" />
+                <Image
+                  src="/images/homepage-hero.webp"
+                  alt="Hình ảnh minh họa phòng ngủ với nệm Thăng Long"
+                  fill
+                  priority
+                  sizes="(max-width: 860px) 100vw, 58vw"
+                />
                 <span className="demo-badge">Ảnh minh họa</span>
               </div>
             </div>
@@ -56,12 +76,20 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
 
         <GsapReveal variant="stagger" staggerSelector=".home-product-card">
           <section id="product-range" className="home-range container">
-            <div className="home-section-heading">
-              <div>
-                <p className="section-label">PRODUCT RANGE</p>
-                <h2>Một dòng nệm cho mỗi cách ngủ.</h2>
+            <div className="home-collection-header">
+              <p className="section-label">BỘ SƯU TẬP NỆM THĂNG LONG</p>
+              <h2>Khám phá các dòng nệm cao cấp</h2>
+              <p className="home-collection-sub">
+                Mỗi dòng sản phẩm được phát triển để phục vụ một cảm giác nằm và thói quen nghỉ ngơi chuyên biệt.
+              </p>
+              <div className="home-collection-nav" role="tablist" aria-label="Bộ sưu tập nệm">
+                <Link href="/nem" className="home-tab is-active">Tất cả nệm</Link>
+                <Link href="/nem/luxury" className="home-tab">Luxury</Link>
+                <Link href="/nem/cao-su-thien-nhien" className="home-tab">Cao Su Thiên Nhiên</Link>
+                <Link href="/nem/memory-foam" className="home-tab">Memory Foam</Link>
+                <Link href="/nem/hoat-tinh" className="home-tab">Hoạt Tính</Link>
+                <Link href="/nem/classic" className="home-tab">Classic</Link>
               </div>
-              <p>Giá bán hoặc hướng dẫn liên hệ tư vấn được hiển thị theo từng sản phẩm và kích thước.</p>
             </div>
             <div className="home-product-grid">
               {products.map((product, index) => (
@@ -110,7 +138,13 @@ export function Homepage({ products, luxuryProduct, settings }: { products: Home
                 <p className="eyebrow">THE THĂNG LONG SIGNATURE</p>
                 <h2>Luxury, được cân nhắc từ trải nghiệm nằm.</h2>
                 <p>{luxury.description}</p>
-                <Link href="/nem/luxury" className="button button-dark">Khám phá Luxury <span aria-hidden="true">→</span></Link>
+                <div className="home-luxury-pillars">
+                  <div><span>01</span><strong>Cấu trúc đa tầng</strong><small>Phân bổ áp lực đồng đều</small></div>
+                  <div><span>02</span><strong>Nâng đỡ công thái học</strong><small>Bảo vệ cột sống tự nhiên</small></div>
+                  <div><span>03</span><strong>Thoáng khí tự nhiên</strong><small>Lưu thông vi khí hậu tối ưu</small></div>
+                  <div><span>04</span><strong>Độ bền thượng hạng</strong><small>Tiêu chuẩn hoàn thiện cao</small></div>
+                </div>
+                <Link href="/nem/luxury" className="button button-dark">Khám phá dòng Luxury <span aria-hidden="true">→</span></Link>
               </div>
             </div>
           </section>

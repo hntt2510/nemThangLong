@@ -1,10 +1,22 @@
 import type { Metadata } from "next";
-import { Lora, Be_Vietnam_Pro } from "next/font/google";
+import { Cormorant_Garamond, Manrope } from "next/font/google";
 import { AppProviders } from "@/components/app-providers";
 import "./globals.css";
 
-const lora = Lora({ subsets: ["latin", "vietnamese"], variable: "--font-lora", display: "swap" });
-const beVietnam = Be_Vietnam_Pro({ subsets: ["latin", "vietnamese"], variable: "--font-be", display: "swap", weight: ["400", "500", "600", "700"] });
+// Keep the existing CSS variables so the editorial typography can be upgraded
+// without touching every component that already opts into the display font.
+const lora = Cormorant_Garamond({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-lora",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+});
+const beVietnam = Manrope({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-be",
+  display: "swap",
+  weight: ["300", "400", "500", "600", "700", "800"],
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),

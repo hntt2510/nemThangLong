@@ -26,6 +26,9 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
     disabled: "Liên hệ",
   });
 
+  const widthOpts = useMemo(() => dimensionOptions(variants, "width", selected), [variants, selected]);
+  const thicknessOpts = useMemo(() => dimensionOptions(variants, "thickness", selected), [variants, selected]);
+
   function change(dimension: VariantDimension, value: number) {
     const candidate = selectVariant(variants, selected, dimension, value);
     if (candidate) setSelection(selectionFromVariant(candidate));
@@ -33,7 +36,18 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
 
   function addToCart() {
     if (!canPurchase || !selected || !media) return;
-    addItem({ variantId: selected.id, quantity: 1, productSlug: product.slug, productName: product.name, width: selected.width, length: selected.length, thickness: selected.thickness, price: selected.price!, sku: selected.sku, image: media.url });
+    addItem({
+      variantId: selected.id,
+      quantity: 1,
+      productSlug: product.slug,
+      productName: product.name,
+      width: selected.width,
+      length: selected.length,
+      thickness: selected.thickness,
+      price: selected.price!,
+      sku: selected.sku,
+      image: media.url,
+    });
   }
 
   function buyNow() {
@@ -87,35 +101,58 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
         {variants.length > 0 ? (
           <div className="variant-block">
             <div className="variant-heading">
-              <span>KÍCH THƯỚC</span>
+              <span>CHỌN KÍCH THƯỚC</span>
               <small>
                 {selected
-                  ? formatDimension(selected.width) + " × " + formatDimension(selected.length) + " × " + selected.thickness + "cm"
+                  ? formatDimension(selected.width) + " × " + formatDimension(selected.length) + " · " + selected.thickness + "cm"
                   : "Đang cập nhật"}
               </small>
             </div>
-            {(["width", "length", "thickness"] as const).map((dimension) => (
-              <label key={dimension}>
-                {dimension === "width" ? "Rộng" : dimension === "length" ? "Dài" : "Độ dày"}
-                <select
-                  value={selected?.[dimension] ?? ""}
-                  onChange={(event) => change(dimension, Number(event.target.value))}
-                  aria-label={dimension === "width" ? "Chiều rộng" : dimension === "length" ? "Chiều dài" : "Độ dày"}
-                >
-                  {dimensionOptions(variants, dimension, selected).map((value) => (
-                    <option key={value} value={value}>
-                      {formatDimension(value)}
-                    </option>
+
+            <div className="pdp-option-group">
+              <label className="pdp-option-label">Chiều rộng nệm</label>
+              <div className="pdp-pills-row" role="radiogroup" aria-label="Chiều rộng nệm">
+                {widthOpts.map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected?.width === value}
+                    className={"pdp-pill " + (selected?.width === value ? "active" : "")}
+                    onClick={() => change("width", value)}
+                  >
+                    {formatDimension(value)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {thicknessOpts.length > 1 && (
+              <div className="pdp-option-group">
+                <label className="pdp-option-label">Độ dày</label>
+                <div className="pdp-pills-row" role="radiogroup" aria-label="Độ dày nệm">
+                  {thicknessOpts.map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected?.thickness === value}
+                      className={"pdp-pill " + (selected?.thickness === value ? "active" : "")}
+                      onClick={() => change("thickness", value)}
+                    >
+                      {value}cm
+                    </button>
                   ))}
-                </select>
-              </label>
-            ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="variant-placeholder">Thông tin kích thước và giá bán đang được cập nhật.</div>
         )}
         {selected && (
           <p className="generic-availability" aria-live="polite">
+            <span className={"status-dot " + (selected.stock > 0 ? "in-stock" : "out-of-stock")} />
             {selected.stock > 0 ? "Còn hàng" : "Tạm hết hàng"}
             {selected.price === null || selected.price <= 0 ? " · Giá đang cập nhật" : ""}
           </p>
@@ -137,8 +174,8 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
           <p className="generic-contact-pending">Thông tin tư vấn đang được cập nhật.</p>
         )}
         <div className="trust-list">
-          <span>✓ Chọn kích thước theo cấu hình hiện có</span>
-          <span>✓ Có thể liên hệ tư vấn trước khi đặt hàng</span>
+          <span>✓ Kích thước và độ dày chuẩn theo thông số chính thức</span>
+          <span>✓ Tư vấn chuyên sâu và hỗ trợ chọn nệm trước khi mua</span>
         </div>
       </div>
 
