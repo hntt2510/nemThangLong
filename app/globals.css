@@ -2539,7 +2539,7 @@ h4 {
 
 .finder-pills-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
 }
 
@@ -4656,6 +4656,57 @@ h4 {
   margin-bottom: 4px;
 }
 
+/* UI Showcase Badge */
+.ui-showcase-badge {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 99999;
+  background: rgba(24, 38, 30, 0.92);
+  color: #c8a876;
+  border: 1px solid rgba(200, 168, 118, 0.4);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  user-select: none;
+  font-family: var(--font-ui), sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ui-showcase-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #c8a876;
+  display: inline-block;
+}
+
+.ui-showcase-badge-text-mobile {
+  display: none;
+}
+
+.ui-showcase-badge-text-desktop {
+  display: inline;
+}
+
+/* Catalog Mobile Controls */
+.catalog-mobile-controls {
+  display: none;
+}
+
+/* Compare Scroll Hint */
+.compare-scroll-hint {
+  display: none;
+}
+
 /* ==========================================================================
    Responsive Breakpoints
    ========================================================================== */
@@ -5023,8 +5074,8 @@ h4 {
   }
   .hero-image {
     border-radius: var(--radius-md);
-    aspect-ratio: 4 / 3.6;
-    max-height: 320px;
+    aspect-ratio: 4 / 3;
+    max-height: 260px;
   }
   .generic-product-copy,
   .hero-copy {
@@ -5276,36 +5327,218 @@ h4 {
     margin-top: 36px;
   }
 
+  /* Showcase Badge Mobile */
+  .ui-showcase-badge {
+    bottom: auto;
+    top: 70px;
+    right: 12px;
+    padding: 4px 10px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    background: rgba(24, 38, 30, 0.88);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+  .ui-showcase-badge-text-desktop {
+    display: none;
+  }
+  .ui-showcase-badge-text-mobile {
+    display: inline;
+  }
+
+  /* Catalog Mobile Controls */
+  .catalog-mobile-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .catalog-mobile-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    font-family: var(--font-ui), sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+  .catalog-mobile-toggle-btn.is-active {
+    background: var(--accent);
+    color: #ffffff;
+    border-color: var(--accent);
+  }
+  .catalog-mobile-toggle-btn .filter-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--warm);
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .catalog-mobile-toggle-btn.is-active .filter-count-badge {
+    background: #ffffff;
+    color: var(--accent);
+  }
+  .catalog-mobile-sort-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .catalog-mobile-sort-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .catalog-mobile-sort-select {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    font-family: var(--font-ui), sans-serif;
+    font-size: 12px;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .catalog-sidebar.is-collapsed {
+    display: none;
+  }
+  .catalog-sidebar.is-open {
+    display: block;
+    margin-bottom: 28px;
+  }
+
+  /* Compare Scroll Hint */
+  .compare-scroll-hint {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
   /* Cart & Checkout Mobile */
   .cart-page,
   .checkout-page {
-    padding-top: 110px;
-    padding-bottom: 100px;
+    padding-top: 90px;
+    padding-bottom: 80px;
+  }
+  .cart-page h1,
+  .checkout-page h1 {
+    font-size: clamp(34px, 5.5vw, 44px);
+    line-height: 1.05;
+    margin-top: 8px;
+    margin-bottom: 8px;
   }
   .cart-layout,
   .checkout-page {
     display: block;
   }
   .cart-layout {
-    margin-top: 36px;
+    margin-top: 24px;
+    gap: 20px;
+  }
+  .cart-item {
+    grid-template-columns: 88px 1fr auto;
+    gap: 14px;
+    padding: 16px 0;
+  }
+  .cart-item-media img {
+    width: 88px;
+    height: 108px;
+  }
+  .cart-item-info h2 {
+    font-size: 18px;
+    line-height: 1.2;
+  }
+  .cart-item-dims {
+    margin-top: 3px;
+    font-size: 12px;
+  }
+  .cart-item-price {
+    margin-top: 8px;
+    font-size: 15px;
   }
   .cart-summary {
     position: static;
-    margin-top: 32px;
+    margin-top: 24px;
+    padding: 22px;
+    gap: 14px;
+    border-radius: var(--radius-lg);
+  }
+  .cart-summary-header strong {
+    font-size: 24px;
   }
   .checkout-page > div {
-    margin-bottom: 36px;
+    margin-bottom: 28px;
   }
-  .form-grid {
-    gap: 14px;
+  .checkout-form {
+    margin-top: 18px;
+  }
+  .checkout-form .form-section {
+    margin-bottom: 28px;
+  }
+  .checkout-form .form-grid {
+    gap: 12px;
+  }
+  .checkout-form label span {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  .checkout-form input {
+    min-height: 50px;
+    font-size: 14px;
+    padding: 0 14px;
   }
 
   /* Account Mobile */
   .account-page {
-    padding-top: 110px;
+    padding-top: 90px;
+    padding-bottom: 60px;
+  }
+  .account-page h1 {
+    font-size: 34px;
+    margin: 6px 0 4px;
+  }
+  .account-email {
+    margin-bottom: 24px;
+    font-size: 13px;
   }
   .account-cards {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .account-nav-card {
+    min-height: auto;
+    padding: 16px 20px;
+    gap: 4px;
+    border-radius: var(--radius-lg);
+  }
+  .account-nav-card span {
+    font-size: 10px;
+  }
+  .account-nav-card strong {
+    font-size: 20px;
+  }
+  .account-nav-card small {
+    font-size: 12px;
   }
   .account-address-book,
   .dashboard-activity {

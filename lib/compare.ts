@@ -1,5 +1,6 @@
 import { CATALOG_SLUGS } from "@/lib/product-data";
 import type { DiscoveryProduct } from "@/lib/discovery";
+import { formatVnd } from "@/lib/format";
 
 export const COMPARE_LIMIT = 3;
 
@@ -26,6 +27,12 @@ function show(value: string | number | null | undefined) {
   return value === null || value === undefined || value === "" ? null : value;
 }
 
+function formatPriceRange(min: number | null, max: number | null) {
+  if (min === null) return null;
+  if (max === null || min === max) return formatVnd(min);
+  return `${formatVnd(min)} – ${formatVnd(max)}`;
+}
+
 function sectionText(section: { title?: string; body: string } | null) {
   if (!section) return null;
   return section.title ? section.title + ": " + section.body : section.body;
@@ -34,7 +41,7 @@ function sectionText(section: { title?: string; body: string } | null) {
 export function buildCompareRows(products: DiscoveryProduct[]): CompareRow[] {
   const rows: CompareRow[] = [
     { key: "description", label: "Mô tả đã công bố", values: products.map((product) => product.isDemo ? null : show(product.description)) },
-    { key: "price", label: "Khoảng giá đã xác nhận", values: products.map((product) => product.minPrice === null ? null : `${product.minPrice}-${product.maxPrice ?? product.minPrice} VND`) },
+    { key: "price", label: "Khoảng giá đã xác nhận", values: products.map((product) => formatPriceRange(product.minPrice, product.maxPrice)) },
     { key: "purchasable", label: "Khả năng mua", values: products.map((product) => product.isDemo ? null : product.purchasable ? "Có" : "Chưa sẵn sàng") },
     { key: "stock", label: "Tồn kho", values: products.map((product) => product.isDemo ? null : product.inStock ? "Còn biến thể" : "Hết hàng") },
     { key: "widths", label: "Chiều rộng", values: products.map((product) => product.widths.length ? product.widths.join(", ") + " cm" : null) },

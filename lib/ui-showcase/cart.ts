@@ -11,7 +11,7 @@ export const SHOWCASE_CART_ITEMS: CartItem[] = [
     thickness: 20,
     price: 22900000,
     sku: "TL-LX-16020020",
-    image: "/images/home-luxury.webp",
+    image: "/images/luxury-hero.webp",
   },
   {
     variantId: "var-cl-120-200-10",
@@ -23,6 +23,6 @@ export const SHOWCASE_CART_ITEMS: CartItem[] = [
     thickness: 10,
     price: 6900000,
     sku: "TL-CL-12020010",
-    image: "/images/home-classic.webp",
+    image: "/images/homepage-hero.webp",
   },
 ];

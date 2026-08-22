@@ -1,4 +1,4 @@
-import { spawn } from "child_process";
+import { spawn, execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 import http from "http";
@@ -8,6 +8,36 @@ const ARTIFACT_DIR = "C:\\Users\\LEGION\\.gemini\\antigravity\\brain\\a03cd9b1-9
 
 if (!fs.existsSync(ARTIFACT_DIR)) {
   fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
+}
+
+async function assertImagesLoaded(page, pageName) {
+  await page.evaluate(`(async () => {
+    const imgs = Array.from(document.querySelectorAll("img"));
+    await Promise.all(imgs.map(img => {
+      if (img.loading === "lazy") img.loading = "eager";
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+      return img.decode().catch(() => {});
+    }));
+  })()`);
+  await sleep(1000);
+
+  const imageCheck = await page.evaluate(`(() => {
+    const imgs = Array.from(document.querySelectorAll("img"));
+    const broken = imgs.filter(img => {
+      const src = img.src || img.getAttribute("src");
+      if (!src) return false;
+      return !img.complete || img.naturalWidth === 0 || img.naturalHeight === 0;
+    }).map(img => img.src || img.getAttribute("src"));
+    return {
+      total: imgs.length,
+      broken: broken
+    };
+  })()`);
+
+  if (imageCheck.broken.length > 0) {
+    throw new Error("IMAGE LOAD FAILURE on [" + pageName + "]: Broken images: " + imageCheck.broken.join(", "));
+  }
+  console.log("  ✓ Image check passed for " + pageName + " (" + imageCheck.total + " images verified with natural dimensions)");
 }
 
 function isPortOpen(port) {
@@ -122,25 +152,36 @@ async function run() {
   const remotePort = 9228;
   const baseUrl = "http://localhost:3388";
 
-  // Check if showcase server is already running, otherwise spawn dev server
+  // Check if showcase server is already running, otherwise build and start production server
   let serverProc = null;
   const isUp = await isPortOpen(3388);
   if (!isUp) {
-    console.log("Starting Next.js dev server on port 3388 with UI_SHOWCASE_MODE=true and APP_ENV=development...");
-    serverProc = spawn(process.execPath, ["./node_modules/next/dist/bin/next", "dev", "-p", "3388"], {
+    console.log("Building Next.js production bundle with UI_SHOWCASE_MODE=true APP_ENV=staging...");
+    execSync("npm run build", {
       cwd: "D:\\HOCTAP\\latvat\\nemThangLong",
       env: {
         ...process.env,
         UI_SHOWCASE_MODE: "true",
-        APP_ENV: "development",
+        APP_ENV: "staging",
+      },
+      stdio: "inherit",
+    });
+
+    console.log("Starting Next.js production server on port 3388 (no dev indicator)...");
+    serverProc = spawn(process.execPath, ["./node_modules/next/dist/bin/next", "start", "-p", "3388"], {
+      cwd: "D:\\HOCTAP\\latvat\\nemThangLong",
+      env: {
+        ...process.env,
+        UI_SHOWCASE_MODE: "true",
+        APP_ENV: "staging",
       },
       stdio: "ignore",
     });
 
-    console.log("Waiting for Next.js showcase server to become ready on http://localhost:3388...");
+    console.log("Waiting for Next.js production server to become ready on http://localhost:3388...");
     const start = Date.now();
     let ready = false;
-    while (Date.now() - start < 45000) {
+    while (Date.now() - start < 30000) {
       if (await isPortOpen(3388)) {
         ready = true;
         break;
@@ -149,9 +190,9 @@ async function run() {
     }
     if (!ready) {
       if (serverProc) serverProc.kill();
-      throw new Error("Failed to start Next.js showcase dev server within 45s");
+      throw new Error("Failed to start Next.js showcase production server within 30s");
     }
-    console.log("Next.js showcase server is listening!");
+    console.log("Next.js showcase production server is listening!");
   } else {
     console.log("Next.js showcase server is already running on http://localhost:3388");
   }
@@ -209,12 +250,14 @@ async function run() {
     await page.send("Page.navigate", { url: `${baseUrl}/` });
     await sleep(1500);
     await waitForFunction(page, `Boolean(document.body && (document.body.textContent.includes("Dữ liệu trình diễn") || document.body.innerText.includes("UI Preview")))`);
+    await assertImagesLoaded(page, "Homepage");
     console.log("✓ Badge check passed: Showcase indicator is present.");
 
     // Assertion 2: /nem Catalog populated state
     await page.send("Page.navigate", { url: `${baseUrl}/nem` });
     await sleep(1500);
     await waitForFunction(page, `Boolean(document.querySelectorAll('.catalog-card').length >= 6 && document.body.innerText.includes("4.900.000"))`);
+    await assertImagesLoaded(page, "Catalog");
     const catalogCards = await page.evaluate(`document.querySelectorAll('.catalog-card').length`);
     const catalogDemoNote = await page.evaluate(`document.body.innerText.includes("Thông tin giá bán và tình trạng còn hàng đang được cập nhật")`);
     const catalogHasPrice = await page.evaluate(`document.body.innerText.includes("4.900.000")`);
@@ -227,9 +270,10 @@ async function run() {
     await page.send("Page.navigate", { url: `${baseUrl}/nem/america` });
     await sleep(1500);
     await waitForFunction(page, `Boolean(document.querySelectorAll('.pdp-pill').length >= 3 && (document.body.innerText.includes("4.900.000") || document.body.innerText.includes("6.700.000")))`);
+    await assertImagesLoaded(page, "America PDP");
     const americaPrice = await page.evaluate(`document.body.innerText.includes("4.900.000") || document.body.innerText.includes("6.700.000")`);
     const americaPills = await page.evaluate(`document.querySelectorAll('.pdp-pill').length`);
-    const americaBuyButton = await page.evaluate(`document.body.innerText.includes("Mua ngay") || document.body.innerText.includes("Thêm vào giỏ") || document.body.innerText.includes("Liên hệ tư vấn") || document.body.innerText.includes("LIÊN HỆ TƯ VẤN")`);
+    const americaBuyButton = await page.evaluate(`document.body.innerText.toLowerCase().includes("mua ngay") || document.body.innerText.toLowerCase().includes("thêm vào giỏ") || document.body.textContent.includes("Mua ngay")`);
     if (!americaPrice || americaPills < 3 || !americaBuyButton) {
       throw new Error(`ASSERTION FAILED on /nem/america: price=${americaPrice}, pills=${americaPills}, buyButton=${americaBuyButton}`);
     }
@@ -239,6 +283,7 @@ async function run() {
     await page.send("Page.navigate", { url: `${baseUrl}/nem/luxury` });
     await sleep(1500);
     await waitForFunction(page, `Boolean(document.querySelectorAll('.pdp-pill').length >= 3 && (document.body.innerText.includes("22.900.000") || document.body.innerText.includes("18.900.000") || document.body.innerText.includes("20.900.000")))`);
+    await assertImagesLoaded(page, "Luxury PDP");
     const luxuryPrice = await page.evaluate(`document.body.innerText.includes("22.900.000") || document.body.innerText.includes("18.900.000") || document.body.innerText.includes("20.900.000")`);
     const luxuryPills = await page.evaluate(`document.querySelectorAll('.pdp-pill').length`);
     if (!luxuryPrice || luxuryPills < 3) {
@@ -261,39 +306,49 @@ async function run() {
     await page.send("Page.navigate", { url: `${baseUrl}/so-sanh` });
     await sleep(1500);
     await waitForFunction(page, `Boolean(document.body.innerText.includes("Nệm Thăng Long Luxury") && document.body.innerText.includes("Nệm Thăng Long America"))`);
-    const compareMatrix = await page.evaluate(`document.querySelectorAll('.compare-matrix-table, .compare-table-section').length > 0`);
+    await assertImagesLoaded(page, "Compare Matrix");
+    const compareMatrix = await page.evaluate(`document.querySelectorAll('.compare-matrix, .compare-table-section').length > 0`);
     const compareHasLuxury = await page.evaluate(`document.body.innerText.includes("Nệm Thăng Long Luxury")`);
     const compareHasAmerica = await page.evaluate(`document.body.innerText.includes("Nệm Thăng Long America")`);
-    if (!compareMatrix || !compareHasLuxury || !compareHasAmerica) {
-      throw new Error(`ASSERTION FAILED on /so-sanh: matrix=${compareMatrix}, hasLuxury=${compareHasLuxury}, hasAmerica=${compareHasAmerica}`);
+    const compareHasFormattedPrice = await page.evaluate(`document.body.innerText.includes("4.900.000") || document.body.innerText.includes("₫")`);
+    if (!compareMatrix || !compareHasLuxury || !compareHasAmerica || !compareHasFormattedPrice) {
+      throw new Error(`ASSERTION FAILED on /so-sanh: matrix=${compareMatrix}, hasLuxury=${compareHasLuxury}, hasAmerica=${compareHasAmerica}, formattedPrice=${compareHasFormattedPrice}`);
     }
-    console.log("✓ /so-sanh check passed: preselected matrix with America, Memory Foam, and Luxury.");
+    console.log("✓ /so-sanh check passed: preselected matrix with formatted VND prices.");
 
     // Assertion 7: /gio-hang Cart presentation items
     await page.send("Page.navigate", { url: `${baseUrl}/gio-hang` });
     await sleep(1500);
     await waitForFunction(page, `Boolean(document.body.innerText.includes("Nệm Thăng Long Luxury") && document.body.innerText.includes("Nệm Thăng Long Classic"))`);
+    await assertImagesLoaded(page, "Cart");
     const cartItems = await page.evaluate(`document.body.innerText.includes("Nệm Thăng Long Luxury") && document.body.innerText.includes("Nệm Thăng Long Classic")`);
     if (!cartItems) {
       throw new Error("ASSERTION FAILED on /gio-hang: showcase cart items missing!");
     }
-    console.log("✓ /gio-hang check passed: 2 showcase cart line items present.");
+    console.log("✓ /gio-hang check passed: 2 showcase cart line items present with working images.");
 
     // Assertion 8: /checkout Populated preview
     await page.send("Page.navigate", { url: `${baseUrl}/checkout` });
     await sleep(1500);
     await waitForFunction(page, `Boolean(document.body.innerText.includes("Nệm Thăng Long Luxury") && document.body.innerText.includes("ĐẶT HÀNG"))`);
-    const checkoutSummary = await page.evaluate(`document.body.innerText.includes("Nệm Thăng Long Luxury") && document.body.innerText.includes("ĐẶT HÀNG")`);
-    if (!checkoutSummary) {
-      throw new Error("ASSERTION FAILED on /checkout: showcase checkout summary missing!");
+    const checkoutCustomer = await page.evaluate(`(() => {
+      const nameInput = document.querySelector('input[name="customerName"]');
+      const phoneInput = document.querySelector('input[name="customerPhone"]');
+      return {
+        name: nameInput?.value,
+        phone: phoneInput?.value
+      };
+    })()`);
+    if (!checkoutCustomer.name?.includes("Nguyễn Minh Anh") || !checkoutCustomer.phone?.includes("0900")) {
+      throw new Error(`ASSERTION FAILED on /checkout: customer name=${checkoutCustomer.name}, phone=${checkoutCustomer.phone}`);
     }
-    console.log("✓ /checkout check passed: showcase checkout summary present.");
+    console.log(`✓ /checkout check passed: prefilled customer (${checkoutCustomer.name}, ${checkoutCustomer.phone}).`);
 
     // Assertion 9: /tai-khoan Account showcase profile
     await page.send("Page.navigate", { url: `${baseUrl}/tai-khoan` });
     await sleep(1500);
-    await waitForFunction(page, `Boolean(document.body.innerText.includes("Nguyễn Minh Anh") || document.body.innerText.includes("TL-2026-8942"))`);
-    const accountUser = await page.evaluate(`document.body.innerText.includes("Nguyễn Minh Anh") || document.body.innerText.includes("TL-2026-8942")`);
+    await waitForFunction(page, `Boolean(document.body.innerText.includes("Nguyễn Minh Anh"))`);
+    const accountUser = await page.evaluate(`document.body.innerText.includes("Nguyễn Minh Anh")`);
     if (!accountUser) {
       throw new Error("ASSERTION FAILED on /tai-khoan: showcase account profile missing!");
     }
@@ -345,32 +400,7 @@ async function run() {
     console.log("CAPTURING OFFICIAL VISUAL QA SCREENSHOTS");
     console.log("==========================================\n");
 
-    const desktopViews = [
-      { name: "desktop_1440_home", path: "/" },
-      { name: "desktop_1440_catalog", path: "/nem" },
-      { name: "desktop_1440_pdp_america", path: "/nem/america" },
-      { name: "desktop_1440_pdp_luxury", path: "/nem/luxury" },
-      { name: "desktop_1440_finder", path: "/tim-nem" },
-      { name: "desktop_1440_finder_results", path: "/tim-nem?feel=balanced&priority=support" },
-      { name: "desktop_1440_compare", path: "/so-sanh" },
-      { name: "desktop_1440_cart", path: "/gio-hang" },
-      { name: "desktop_1440_checkout", path: "/checkout" },
-      { name: "desktop_1440_account", path: "/tai-khoan" },
-    ];
-
-    const mobileViews = [
-      { name: "mobile_390_home", path: "/" },
-      { name: "mobile_390_catalog", path: "/nem" },
-      { name: "mobile_390_pdp_america", path: "/nem/america" },
-      { name: "mobile_390_pdp_luxury", path: "/nem/luxury" },
-      { name: "mobile_390_finder", path: "/tim-nem" },
-      { name: "mobile_390_compare", path: "/so-sanh" },
-      { name: "mobile_390_cart", path: "/gio-hang" },
-      { name: "mobile_390_checkout", path: "/checkout" },
-      { name: "mobile_390_account", path: "/tai-khoan" },
-    ];
-
-    // 1. Capture Desktop
+    // 1. Capture Desktop (1440px)
     await page.send("Emulation.setDeviceMetricsOverride", {
       width: 1440,
       height: 900,
@@ -378,7 +408,19 @@ async function run() {
       mobile: false,
     });
 
-    for (const view of desktopViews) {
+    const standardDesktopViews = [
+      { name: "desktop_1440_home", path: "/" },
+      { name: "desktop_1440_catalog", path: "/nem" },
+      { name: "desktop_1440_pdp_america", path: "/nem/america" },
+      { name: "desktop_1440_pdp_luxury", path: "/nem/luxury" },
+      { name: "desktop_1440_finder", path: "/tim-nem" },
+      { name: "desktop_1440_compare", path: "/so-sanh" },
+      { name: "desktop_1440_cart", path: "/gio-hang" },
+      { name: "desktop_1440_checkout", path: "/checkout" },
+      { name: "desktop_1440_account", path: "/tai-khoan" },
+    ];
+
+    for (const view of standardDesktopViews) {
       console.log(`Capturing desktop [1440px]: ${view.path}`);
       await page.send("Page.navigate", { url: `${baseUrl}${view.path}` });
       await sleep(1500);
@@ -390,7 +432,25 @@ async function run() {
       console.log(`  -> Saved ${view.name}.png (${stat.size} bytes)`);
     }
 
-    // 2. Capture Mobile
+    // Capture Desktop Finder Results
+    console.log("Capturing desktop [1440px]: Finder Results Flow");
+    await page.send("Page.navigate", { url: `${baseUrl}/tim-nem?width=160&feel=balanced&priority=support#results` });
+    await sleep(2000);
+    await assertImagesLoaded(page, "Finder Results Desktop");
+
+    await waitForFunction(page, `Boolean(document.querySelector('#results') && document.querySelectorAll('.finder-result').length >= 2 && (document.body.innerText.includes("GỢI Ý CHÍNH") || document.body.innerText.includes("Gợi ý chính") || document.body.innerText.includes("Một lựa chọn đáng xem xét")))`);
+    await page.evaluate(`(() => {
+      const resultsEl = document.querySelector('#results') || document.querySelector('.finder-results');
+      if (resultsEl) resultsEl.scrollIntoView({ behavior: 'instant', block: 'start' });
+    })()`);
+    await sleep(800);
+
+    const desktopFinderShot = await page.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+    const desktopFinderOut = path.join(ARTIFACT_DIR, "desktop_1440_finder_results.png");
+    fs.writeFileSync(desktopFinderOut, Buffer.from(desktopFinderShot.data, "base64"));
+    console.log(`  -> Saved desktop_1440_finder_results.png (${fs.statSync(desktopFinderOut).size} bytes)`);
+
+    // 2. Capture Mobile (390px)
     await page.send("Emulation.setDeviceMetricsOverride", {
       width: 390,
       height: 844,
@@ -398,7 +458,19 @@ async function run() {
       mobile: true,
     });
 
-    for (const view of mobileViews) {
+    const standardMobileViews = [
+      { name: "mobile_390_home", path: "/" },
+      { name: "mobile_390_catalog", path: "/nem" },
+      { name: "mobile_390_pdp_america", path: "/nem/america" },
+      { name: "mobile_390_pdp_luxury", path: "/nem/luxury" },
+      { name: "mobile_390_finder", path: "/tim-nem" },
+      { name: "mobile_390_compare", path: "/so-sanh" },
+      { name: "mobile_390_cart", path: "/gio-hang" },
+      { name: "mobile_390_checkout", path: "/checkout" },
+      { name: "mobile_390_account", path: "/tai-khoan" },
+    ];
+
+    for (const view of standardMobileViews) {
       console.log(`Capturing mobile [390px]: ${view.path}`);
       await page.send("Page.navigate", { url: `${baseUrl}${view.path}` });
       await sleep(1500);
@@ -409,6 +481,24 @@ async function run() {
       const stat = fs.statSync(outPath);
       console.log(`  -> Saved ${view.name}.png (${stat.size} bytes)`);
     }
+
+    // Capture Mobile Finder Results
+    console.log("Capturing mobile [390px]: Finder Results Flow");
+    await page.send("Page.navigate", { url: `${baseUrl}/tim-nem?width=160&feel=balanced&priority=support#results` });
+    await sleep(2000);
+    await assertImagesLoaded(page, "Finder Results Mobile");
+
+    await waitForFunction(page, `Boolean(document.querySelector('#results') && document.querySelectorAll('.finder-result').length >= 2 && (document.body.innerText.includes("GỢI Ý CHÍNH") || document.body.innerText.includes("Gợi ý chính") || document.body.innerText.includes("Một lựa chọn đáng xem xét")))`);
+    await page.evaluate(`(() => {
+      const resultsEl = document.querySelector('#results') || document.querySelector('.finder-results');
+      if (resultsEl) resultsEl.scrollIntoView({ behavior: 'instant', block: 'start' });
+    })()`);
+    await sleep(800);
+
+    const mobileFinderShot = await page.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+    const mobileFinderOut = path.join(ARTIFACT_DIR, "mobile_390_finder_results.png");
+    fs.writeFileSync(mobileFinderOut, Buffer.from(mobileFinderShot.data, "base64"));
+    console.log(`  -> Saved mobile_390_finder_results.png (${fs.statSync(mobileFinderOut).size} bytes)`);
 
     page.close();
     console.log("\n==========================================");

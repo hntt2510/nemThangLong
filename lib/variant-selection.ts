@@ -23,7 +23,10 @@ export function selectionFromVariant(variant: ProductVariant | null | undefined)
 }
 
 export function initialSelection(variants: ProductVariant[]): VariantSelection {
-  return selectionFromVariant(activeVariants(variants)[0]);
+  const active = activeVariants(variants);
+  if (!active.length) return selectionFromVariant(null);
+  const preferred = active.find((v) => v.width === 160) ?? active[0];
+  return selectionFromVariant(preferred);
 }
 
 function asSelection(value: VariantSelectionLike) {

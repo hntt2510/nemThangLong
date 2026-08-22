@@ -6,6 +6,9 @@ import type { DiscoveryProduct } from "@/lib/discovery";
 export function CompareMatrix({ products, rows }: { products: DiscoveryProduct[]; rows: CompareRow[] }) {
   return (
     <div className="compare-matrix-wrap" role="region" aria-label="Bảng so sánh" tabIndex={0}>
+      <div className="compare-scroll-hint" aria-hidden="true">
+        <span>Vuốt ngang để xem thêm →</span>
+      </div>
       <table className="compare-matrix">
         <thead>
           <tr>

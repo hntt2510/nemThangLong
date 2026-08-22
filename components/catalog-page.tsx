@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { ProductCard } from "@/components/product-card";
 import type { CatalogData } from "@/lib/catalog";
@@ -9,11 +12,21 @@ function checked(values: number[], value: number) {
 }
 
 export function CatalogPage({ data, settings }: { data: CatalogData; settings: CatalogSettings }) {
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const contactHref = settings?.contactPhone
     ? "tel:" + settings.contactPhone
     : settings?.contactEmail
       ? "mailto:" + settings.contactEmail
       : null;
+
+  const activeFilterCount =
+    (data.query.search ? 1 : 0) +
+    data.query.lines.length +
+    (data.query.minPrice !== null ? 1 : 0) +
+    (data.query.maxPrice !== null ? 1 : 0) +
+    data.query.widths.length +
+    data.query.thicknesses.length +
+    (data.query.inStock ? 1 : 0);
 
   return (
     <div className="catalog-page">
@@ -32,8 +45,45 @@ export function CatalogPage({ data, settings }: { data: CatalogData; settings: C
           </p>
         </section>
 
+        <div className="catalog-mobile-controls container">
+          <button
+            type="button"
+            className={"catalog-mobile-toggle-btn " + (mobileFilterOpen ? "is-active" : "")}
+            onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
+            aria-expanded={mobileFilterOpen}
+          >
+            <span>Bộ lọc</span>
+            {activeFilterCount > 0 && <span className="filter-count-badge">{activeFilterCount}</span>}
+          </button>
+          <div className="catalog-mobile-sort-wrap">
+            <span className="catalog-mobile-sort-label">Sắp xếp:</span>
+            <select
+              name="mobile-sort"
+              defaultValue={data.query.sort}
+              onChange={(e) => {
+                const form = document.querySelector(".catalog-filter-form") as HTMLFormElement;
+                if (form) {
+                  const sortSelect = form.querySelector('select[name="sort"]') as HTMLSelectElement;
+                  if (sortSelect) sortSelect.value = e.target.value;
+                  form.submit();
+                }
+              }}
+              className="catalog-mobile-sort-select"
+            >
+              <option value="featured">Nổi bật</option>
+              {data.facets.hasVerifiedPrices && (
+                <>
+                  <option value="price-asc">Giá tăng dần</option>
+                  <option value="price-desc">Giá giảm dần</option>
+                </>
+              )}
+              <option value="name-asc">Tên A–Z</option>
+            </select>
+          </div>
+        </div>
+
         <div className="catalog-layout container">
-          <aside className="catalog-sidebar" aria-label="Bộ lọc sản phẩm">
+          <aside className={"catalog-sidebar " + (mobileFilterOpen ? "is-open" : "is-collapsed")} aria-label="Bộ lọc sản phẩm">
             <div className="catalog-sidebar-card">
               <div className="catalog-sidebar-heading">
                 <h3>BỘ LỌC TÌM KIẾM</h3>

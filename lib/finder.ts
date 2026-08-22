@@ -164,7 +164,7 @@ export function scoreFinderProduct(product: DiscoveryProduct, query: FinderQuery
     allRequestedMatched: requested.length > 0 && matched.length === requested.length,
     reasons: items.flatMap((item) => item.reason ? [item.reason] : []),
     missingData: items.filter((item) => item.status === "missing").map((item) => item.missingLabel),
-    purchasable: !product.isDemo && Boolean(pricedInStock),
+    purchasable: (!product.isDemo || product.source === "showcase" || Boolean(product.isShowcase) || Boolean(product.previewPurchasable)) && Boolean(pricedInStock),
   };
 }
 

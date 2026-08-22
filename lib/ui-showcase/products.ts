@@ -8,9 +8,9 @@ export const SHOWCASE_PRODUCTS: Product[] = [
     eyebrow: "EVERYDAY COMFORT",
     description: "Dòng nệm cơ bản phục vụ nhu cầu nghỉ ngơi hàng ngày với cấu trúc bọt foam tiêu chuẩn.",
     media: [
-      { id: "m-am-1", type: "image", url: "/images/home-america.webp", alt: "Hình ảnh minh họa nệm Thăng Long America — Góc chụp tổng thể", isDemo: true },
+      { id: "m-am-1", type: "image", url: "/images/homepage-range.webp", alt: "Hình ảnh minh họa nệm Thăng Long America — Góc chụp tổng thể", isDemo: true },
       { id: "m-am-2", type: "image", url: "/images/homepage-hero.webp", alt: "Hình ảnh minh họa nệm Thăng Long America trong không gian phòng ngủ", isDemo: true },
-      { id: "m-am-3", type: "image", url: "/images/home-classic.webp", alt: "Chi tiết bề mặt và đường may nệm America", isDemo: true },
+      { id: "m-am-3", type: "image", url: "/images/homepage-hotel.webp", alt: "Chi tiết bề mặt và đường may nệm America", isDemo: true },
     ],
     variants: [
       { id: "var-am-100-200-10", width: 100, length: 200, thickness: 10, price: 4900000, compareAtPrice: 5500000, sku: "TL-AM-10020010", stock: 12, active: true },
@@ -24,7 +24,7 @@ export const SHOWCASE_PRODUCTS: Product[] = [
     mattressLab: false,
     reviews: [],
     content: {
-      comfort: { published: true, firmnessLabel: "Cân bằng", firmnessScore: 6, support: 7, breathability: 8, motionIsolation: 7 },
+      comfort: { published: true, firmnessLabel: "Cân bằng", firmnessScore: 3, support: 4, breathability: 4, motionIsolation: 3 },
       audience: { published: true, title: "Phù hợp cho", body: "Nhu cầu trang bị không gian phòng ngủ tiêu chuẩn với cảm giác nằm quen thuộc." },
       materialStory: { published: true, title: "Cấu trúc vật liệu", body: "Thông tin chất liệu mẫu cho chế độ trình diễn giao diện: lõi bọt foam và vải dệt kim." },
       delivery: { published: true, title: "Giao hàng", body: "Thông tin quy cách đóng gói và giao nhận mẫu cho chế độ trình diễn giao diện." },
@@ -43,9 +43,9 @@ export const SHOWCASE_PRODUCTS: Product[] = [
     eyebrow: "THE EVERYDAY STANDARD",
     description: "Cấu trúc truyền thống tinh chỉnh cho độ phẳng tiêu chuẩn và cảm giác quen thuộc của gia đình.",
     media: [
-      { id: "m-cl-1", type: "image", url: "/images/home-classic.webp", alt: "Hình ảnh minh họa nệm Thăng Long Classic — Góc chụp chính diện", isDemo: true },
-      { id: "m-cl-2", type: "image", url: "/images/home-america.webp", alt: "Cận cảnh cấu trúc nệm Classic", isDemo: true },
-      { id: "m-cl-3", type: "image", url: "/images/hotel-project.webp", alt: "Nệm Classic phối hợp cùng nội thất phòng ngủ", isDemo: true },
+      { id: "m-cl-1", type: "image", url: "/images/homepage-hero.webp", alt: "Hình ảnh minh họa nệm Thăng Long Classic — Góc chụp chính diện", isDemo: true },
+      { id: "m-cl-2", type: "image", url: "/images/homepage-range.webp", alt: "Cận cảnh cấu trúc nệm Classic", isDemo: true },
+      { id: "m-cl-3", type: "image", url: "/images/homepage-hotel.webp", alt: "Nệm Classic phối hợp cùng nội thất phòng ngủ", isDemo: true },
     ],
     variants: [
       { id: "var-cl-120-200-10", width: 120, length: 200, thickness: 10, price: 6900000, compareAtPrice: 7700000, sku: "TL-CL-12020010", stock: 10, active: true },
@@ -59,7 +59,7 @@ export const SHOWCASE_PRODUCTS: Product[] = [
     mattressLab: false,
     reviews: [],
     content: {
-      comfort: { published: true, firmnessLabel: "Vững hơn", firmnessScore: 8, support: 8, breathability: 7, motionIsolation: 7 },
+      comfort: { published: true, firmnessLabel: "Vững hơn", firmnessScore: 4, support: 5, breathability: 4, motionIsolation: 3 },
       audience: { published: true, title: "Phù hợp cho", body: "Người quen thuộc với bề mặt nằm phẳng và cảm giác nâng đỡ chắc chắn." },
       materialStory: { published: true, title: "Cấu trúc vật liệu", body: "Thông tin chất liệu mẫu cho chế độ trình diễn giao diện: lõi đệm tỷ trọng cao và lớp bề mặt định hình." },
       delivery: { published: true, title: "Giao hàng", body: "Thông tin quy cách đóng gói và giao nhận mẫu cho chế độ trình diễn giao diện." },
@@ -78,9 +78,9 @@ export const SHOWCASE_PRODUCTS: Product[] = [
     eyebrow: "RESPONSIVE COMFORT",
     description: "Cấu trúc bọt than hoạt tính hỗ trợ cảm giác nằm thanh sạch và môi trường ngủ thoáng mát.",
     media: [
-      { id: "m-ht-1", type: "image", url: "/images/home-charcoal.webp", alt: "Hình ảnh minh họa nệm Thăng Long Hoạt Tính — Bề mặt than hoạt tính", isDemo: true },
-      { id: "m-ht-2", type: "image", url: "/images/home-america.webp", alt: "Góc nghiêng nệm Hoạt Tính", isDemo: true },
-      { id: "m-ht-3", type: "image", url: "/images/homepage-hero.webp", alt: "Không gian phòng ngủ cùng nệm Hoạt Tính", isDemo: true },
+      { id: "m-ht-1", type: "image", url: "/images/homepage-hoat-tinh.webp", alt: "Hình ảnh minh họa nệm Thăng Long Hoạt Tính — Bề mặt than hoạt tính", isDemo: true },
+      { id: "m-ht-2", type: "image", url: "/images/homepage-hero.webp", alt: "Góc nghiêng nệm Hoạt Tính", isDemo: true },
+      { id: "m-ht-3", type: "image", url: "/images/homepage-hotel.webp", alt: "Không gian phòng ngủ cùng nệm Hoạt Tính", isDemo: true },
     ],
     variants: [
       { id: "var-ht-120-200-10", width: 120, length: 200, thickness: 10, price: 8900000, compareAtPrice: 9900000, sku: "TL-HT-12020010", stock: 8, active: true },
@@ -94,7 +94,7 @@ export const SHOWCASE_PRODUCTS: Product[] = [
     mattressLab: false,
     reviews: [],
     content: {
-      comfort: { published: true, firmnessLabel: "Cân bằng", firmnessScore: 6, support: 8, breathability: 9, motionIsolation: 8 },
+      comfort: { published: true, firmnessLabel: "Cân bằng", firmnessScore: 3, support: 4, breathability: 5, motionIsolation: 4 },
       audience: { published: true, title: "Phù hợp cho", body: "Người tìm kiếm cảm giác nằm thông thoáng và môi trường nghỉ ngơi sạch sẽ." },
       materialStory: { published: true, title: "Cấu trúc vật liệu", body: "Thông tin chất liệu mẫu cho chế độ trình diễn giao diện: bọt than hoạt tính và lớp vải thoáng khí." },
       delivery: { published: true, title: "Giao hàng", body: "Thông tin quy cách đóng gói và giao nhận mẫu cho chế độ trình diễn giao diện." },
@@ -113,9 +113,9 @@ export const SHOWCASE_PRODUCTS: Product[] = [
     eyebrow: "CONTOURING COMFORT",
     description: "Cấu trúc memory foam ôm sát đường cong cơ thể và hỗ trợ phân tán áp lực nhẹ nhàng.",
     media: [
-      { id: "m-mf-1", type: "image", url: "/images/home-memory-foam.webp", alt: "Hình ảnh minh họa nệm Memory Foam — Khả năng ôm sát cơ thể", isDemo: true },
-      { id: "m-mf-2", type: "image", url: "/images/home-america.webp", alt: "Cận cảnh chất liệu memory foam", isDemo: true },
-      { id: "m-mf-3", type: "image", url: "/images/home-luxury.webp", alt: "Nệm Memory Foam trong phòng ngủ hiện đại", isDemo: true },
+      { id: "m-mf-1", type: "image", url: "/images/homepage-memory-foam.webp", alt: "Hình ảnh minh họa nệm Memory Foam — Khả năng ôm sát cơ thể", isDemo: true },
+      { id: "m-mf-2", type: "image", url: "/images/homepage-range.webp", alt: "Cận cảnh chất liệu memory foam", isDemo: true },
+      { id: "m-mf-3", type: "image", url: "/images/homepage-hero.webp", alt: "Nệm Memory Foam trong phòng ngủ hiện đại", isDemo: true },
     ],
     variants: [
       { id: "var-mf-140-200-15", width: 140, length: 200, thickness: 15, price: 10900000, compareAtPrice: 12200000, sku: "TL-MF-14020015", stock: 8, active: true },
@@ -129,7 +129,7 @@ export const SHOWCASE_PRODUCTS: Product[] = [
     mattressLab: false,
     reviews: [],
     content: {
-      comfort: { published: true, firmnessLabel: "Êm ái", firmnessScore: 4, support: 8, breathability: 7, motionIsolation: 10 },
+      comfort: { published: true, firmnessLabel: "Êm ái", firmnessScore: 2, support: 4, breathability: 3, motionIsolation: 5 },
       audience: { published: true, title: "Phù hợp cho", body: "Người tìm kiếm cảm giác êm ái và khả năng giảm ảnh hưởng rung động khi trở mình." },
       materialStory: { published: true, title: "Cấu trúc vật liệu", body: "Thông tin chất liệu mẫu cho chế độ trình diễn giao diện: lớp memory foam đàn hồi chậm kết hợp lõi hỗ trợ." },
       delivery: { published: true, title: "Giao hàng", body: "Thông tin quy cách đóng gói và giao nhận mẫu cho chế độ trình diễn giao diện." },
@@ -148,9 +148,9 @@ export const SHOWCASE_PRODUCTS: Product[] = [
     eyebrow: "NATURAL LATEX DENSITY",
     description: "Chất liệu cao su thiên nhiên chọn lọc với độ đàn hồi tự nhiên và cấu trúc thoáng khí đối lưu.",
     media: [
-      { id: "m-lt-1", type: "image", url: "/images/home-natural-latex.webp", alt: "Hình ảnh minh họa Nệm Cao Su Thiên Nhiên — Bề mặt đục lỗ thoáng khí", isDemo: true },
-      { id: "m-lt-2", type: "image", url: "/images/home-classic.webp", alt: "Chi tiết độ đàn hồi cao su thiên nhiên", isDemo: true },
-      { id: "m-lt-3", type: "image", url: "/images/hotel-project.webp", alt: "Nệm cao su thiên nhiên trong không gian sang trọng", isDemo: true },
+      { id: "m-lt-1", type: "image", url: "/images/homepage-natural-latex.webp", alt: "Hình ảnh minh họa Nệm Cao Su Thiên Nhiên — Bề mặt đục lỗ thoáng khí", isDemo: true },
+      { id: "m-lt-2", type: "image", url: "/images/homepage-latex.webp", alt: "Chi tiết độ đàn hồi cao su thiên nhiên", isDemo: true },
+      { id: "m-lt-3", type: "image", url: "/images/homepage-hero.webp", alt: "Nệm cao su thiên nhiên trong không gian sang trọng", isDemo: true },
     ],
     variants: [
       { id: "var-lt-120-200-10", width: 120, length: 200, thickness: 10, price: 12900000, compareAtPrice: 14400000, sku: "TL-LT-12020010", stock: 8, active: true },
@@ -164,7 +164,7 @@ export const SHOWCASE_PRODUCTS: Product[] = [
     mattressLab: false,
     reviews: [],
     content: {
-      comfort: { published: true, firmnessLabel: "Cân bằng", firmnessScore: 6, support: 9, breathability: 9, motionIsolation: 9 },
+      comfort: { published: true, firmnessLabel: "Cân bằng", firmnessScore: 3, support: 4, breathability: 5, motionIsolation: 4 },
       audience: { published: true, title: "Phù hợp cho", body: "Người yêu thích chất liệu nguồn gốc thiên nhiên và độ nâng đỡ dẻo dai." },
       materialStory: { published: true, title: "Cấu trúc vật liệu", body: "Thông tin chất liệu mẫu cho chế độ trình diễn giao diện: khối cao su thiên nhiên đúc lỗ đối lưu không khí." },
       delivery: { published: true, title: "Giao hàng", body: "Thông tin quy cách đóng gói và giao nhận mẫu cho chế độ trình diễn giao diện." },
@@ -183,9 +183,9 @@ export const SHOWCASE_PRODUCTS: Product[] = [
     eyebrow: "THE THĂNG LONG SIGNATURE",
     description: "Cấu trúc đa tầng cao cấp kết hợp kỹ thuật chế tác tỉ mỉ cho trải nghiệm nghỉ ngơi trọn vẹn.",
     media: [
-      { id: "m-lx-1", type: "image", url: "/images/home-luxury.webp", alt: "Hình ảnh minh họa Nệm Thăng Long Luxury — Bề mặt dệt thủ công", isDemo: true },
-      { id: "m-lx-2", type: "image", url: "/images/homepage-hero.webp", alt: "Nệm Luxury trong không gian phòng ngủ master", isDemo: true },
-      { id: "m-lx-3", type: "image", url: "/images/hotel-project.webp", alt: "Cấu trúc đa tầng cao cấp của dòng Luxury", isDemo: true },
+      { id: "m-lx-1", type: "image", url: "/images/luxury-hero.webp", alt: "Hình ảnh minh họa Nệm Thăng Long Luxury — Bề mặt dệt thủ công", isDemo: true },
+      { id: "m-lx-2", type: "image", url: "/images/luxury-detail.webp", alt: "Nệm Luxury trong không gian phòng ngủ master", isDemo: true },
+      { id: "m-lx-3", type: "image", url: "/images/luxury-lifestyle.webp", alt: "Cấu trúc đa tầng cao cấp của dòng Luxury", isDemo: true },
     ],
     variants: [
       { id: "var-lx-140-200-15", width: 140, length: 200, thickness: 15, price: 18900000, compareAtPrice: 21000000, sku: "TL-LX-14020015", stock: 5, active: true },
@@ -203,7 +203,7 @@ export const SHOWCASE_PRODUCTS: Product[] = [
     mattressLab: true,
     reviews: [],
     content: {
-      comfort: { published: true, firmnessLabel: "Cân bằng", firmnessScore: 6, support: 10, breathability: 9, motionIsolation: 10 },
+      comfort: { published: true, firmnessLabel: "Cân bằng", firmnessScore: 3, support: 5, breathability: 5, motionIsolation: 5 },
       audience: { published: true, title: "Phù hợp cho", body: "Không gian nghỉ ngơi cao cấp và yêu cầu trải nghiệm giấc ngủ tinh tế." },
       materialStory: { published: true, title: "Cấu trúc vật liệu", body: "Thông tin chất liệu mẫu cho chế độ trình diễn giao diện: cấu trúc đa tầng kết hợp vải dệt cao cấp." },
       delivery: { published: true, title: "Giao hàng", body: "Thông tin quy cách đóng gói và giao nhận mẫu cho chế độ trình diễn giao diện." },

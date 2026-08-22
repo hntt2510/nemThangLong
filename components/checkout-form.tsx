@@ -10,9 +10,10 @@ import { isUiShowcaseMode, getShowcaseCartItems, evaluateCheckoutMutationGuard }
 export function CheckoutForm({ bankTransferEnabled = false }: { bankTransferEnabled?: boolean }) {
   const router = useRouter();
   const { items: realItems, subtotal: realSubtotal, clear } = useCart();
-  const isShowcase = isUiShowcaseMode() && realItems.length === 0;
-  const items = isShowcase ? getShowcaseCartItems() : realItems;
-  const subtotal = isShowcase ? items.reduce((acc, item) => acc + item.price * item.quantity, 0) : realSubtotal;
+  const showcaseMode = isUiShowcaseMode();
+  const useShowcaseCartFallback = showcaseMode && realItems.length === 0;
+  const items = useShowcaseCartFallback ? getShowcaseCartItems() : realItems;
+  const subtotal = useShowcaseCartFallback ? items.reduce((acc, item) => acc + item.price * item.quantity, 0) : realSubtotal;
   const [paymentMethod, setPaymentMethod] = useState("COD");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -82,9 +83,9 @@ export function CheckoutForm({ bankTransferEnabled = false }: { bankTransferEnab
 
   return (
     <form className="checkout-form" onSubmit={submit}>
-      {isShowcase && (
+      {showcaseMode && (
         <div className="catalog-demo-note" style={{ marginBottom: 20 }}>
-          Chế độ UI Preview: Biểu mẫu được điền sẵn để kiểm tra giao diện và mật độ bố cục. Không tạo đơn hàng thực tế.
+          Chế độ UI Preview: Biểu mẫu được điền sẵn thông tin mẫu để kiểm tra giao diện và mật độ bố cục. Không tạo đơn hàng thực tế.
         </div>
       )}
       <div className="form-section">
@@ -92,27 +93,27 @@ export function CheckoutForm({ bankTransferEnabled = false }: { bankTransferEnab
         <div className="form-grid">
           <label>
             <span>Họ và tên <b aria-hidden="true">*</b></span>
-            <input name="customerName" required autoComplete="name" defaultValue={isShowcase ? "Nguyễn Minh Anh" : ""} placeholder="Nguyễn Văn A" />
+            <input name="customerName" required autoComplete="name" defaultValue={showcaseMode ? "Nguyễn Minh Anh" : ""} placeholder="Nguyễn Văn A" />
           </label>
           <label>
             <span>Số điện thoại <b aria-hidden="true">*</b></span>
-            <input name="customerPhone" required autoComplete="tel" inputMode="tel" defaultValue={isShowcase ? "0901 234 567" : ""} placeholder="0901234567" />
+            <input name="customerPhone" required autoComplete="tel" inputMode="tel" defaultValue={showcaseMode ? "0900 000 000" : ""} placeholder="0901234567" />
           </label>
           <label className="full">
             <span>Email nhận hóa đơn &amp; thông tin đơn hàng <b aria-hidden="true">*</b></span>
-            <input name="guestEmail" type="email" required autoComplete="email" defaultValue={isShowcase ? "minhanh@example.test" : ""} placeholder="email@example.com" />
+            <input name="guestEmail" type="email" required autoComplete="email" defaultValue={showcaseMode ? "minhanh@example.test" : ""} placeholder="email@example.com" />
           </label>
           <label className="full">
             <span>Địa chỉ giao hàng <b aria-hidden="true">*</b></span>
-            <input name="line1" required autoComplete="street-address" defaultValue={isShowcase ? "123 Đường Minh Họa, Phường Demo" : ""} placeholder="Số nhà, tên đường" />
+            <input name="line1" required autoComplete="street-address" defaultValue={showcaseMode ? "128 Nguyễn Đình Chiểu" : ""} placeholder="Số nhà, tên đường" />
           </label>
           <label>
             <span>Quận / huyện</span>
-            <input name="district" defaultValue={isShowcase ? "Quận 1" : ""} placeholder="Quận / Huyện" />
+            <input name="district" defaultValue={showcaseMode ? "Phường Võ Thị Sáu, Quận 3" : ""} placeholder="Quận / Huyện" />
           </label>
           <label>
             <span>Tỉnh / thành <b aria-hidden="true">*</b></span>
-            <input name="province" required autoComplete="address-level1" defaultValue={isShowcase ? "TP. Hồ Chí Minh" : ""} placeholder="Tỉnh / Thành phố" />
+            <input name="province" required autoComplete="address-level1" defaultValue={showcaseMode ? "TP. Hồ Chí Minh" : ""} placeholder="Tỉnh / Thành phố" />
           </label>
         </div>
       </div>
