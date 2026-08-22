@@ -14,7 +14,9 @@ const isExplicitNonProduction =
   process.env.APP_ENV === "test" ||
   process.env.APP_ENV === "local" ||
   process.env.PREVIEW_MODE === "true" ||
-  process.env.IS_PREVIEW === "true";
+  process.env.IS_PREVIEW === "true" ||
+  process.env.NODE_ENV === "development" ||
+  process.env.NODE_ENV === "test";
 
 const isProduction =
   process.env.VERCEL_ENV === "production" ||

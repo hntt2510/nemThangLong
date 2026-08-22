@@ -4,8 +4,8 @@ import { GsapReveal } from "@/components/gsap-reveal";
 import { MattressLabTeaser } from "@/components/mattress-lab-teaser";
 import { ProductCard } from "@/components/product-card";
 import { SiteFooter } from "@/components/site-footer";
-import { getContactHref } from "@/lib/homepage";
-import type { HomepageProductSummary } from "@/lib/homepage";
+import { isUiShowcaseMode } from "@/lib/ui-showcase";
+import { getContactHref, type HomepageProductSummary } from "@/lib/homepage";
 import type { Product } from "@/lib/types";
 
 type HomepageSettings = {
@@ -49,7 +49,9 @@ export function Homepage({
                     Khám phá sản phẩm
                   </Link>
                 </div>
-                <p className="home-demo-note">Ảnh minh họa · Thông tin sản phẩm đang được cập nhật.</p>
+                {!isUiShowcaseMode() && (
+                  <p className="home-demo-note">Ảnh minh họa · Thông tin sản phẩm đang được cập nhật.</p>
+                )}
               </div>
               <div className="home-hero-media">
                 <Image

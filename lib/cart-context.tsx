@@ -3,6 +3,8 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { CartItem } from "./types";
 
+import { isUiShowcaseMode, getShowcaseCartItems } from "./ui-showcase";
+
 type CartContextValue = {
   items: CartItem[];
   addItem: (item: CartItem) => void;
@@ -15,7 +17,12 @@ type CartContextValue = {
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>(() => {
+    if (isUiShowcaseMode()) {
+      return getShowcaseCartItems();
+    }
+    return [];
+  });
 
   useEffect(() => {
     const saved = window.localStorage.getItem("thang-long-cart");
@@ -23,6 +30,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       try { // eslint-disable-next-line react-hooks/set-state-in-effect
         setItems(JSON.parse(saved) as CartItem[]);
       } catch { window.localStorage.removeItem("thang-long-cart"); }
+    } else if (isUiShowcaseMode()) {
+      setItems(getShowcaseCartItems());
     }
   }, []);
 

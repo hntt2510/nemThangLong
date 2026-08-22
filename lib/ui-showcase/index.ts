@@ -77,19 +77,25 @@ export function evaluateCheckoutMutationGuard(showcaseMode: boolean): CheckoutMu
 /**
  * Single authoritative check for UI Showcase Mode.
  * - In real production: ALWAYS false (fail-closed, cannot be overridden by flags).
- * - In local / preview / staging: requires explicit server-side `UI_SHOWCASE_MODE=true`.
- * - Note: `NEXT_PUBLIC_UI_SHOWCASE_MODE` alone must NEVER enable server-side showcase mode.
+ * - When called with an explicit env map (tests): requires explicit `env.UI_SHOWCASE_MODE === "true"`.
+ * - When called with no arguments in app code: direct static access so Next.js bundler inlines flags.
  */
-export function isUiShowcaseMode(env: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {}): boolean {
-  if (!env) return false;
+export function isUiShowcaseMode(env?: Record<string, string | undefined>): boolean {
+  if (env) {
+    if (isRealProduction(env)) {
+      return false;
+    }
+    return env.UI_SHOWCASE_MODE === "true";
+  }
 
-  // 1. Hard block in real production
-  if (isRealProduction(env)) {
+  if (isRealProduction()) {
     return false;
   }
 
-  // 2. Server-side single source of truth: UI_SHOWCASE_MODE
-  return env.UI_SHOWCASE_MODE === "true";
+  return (
+    process.env.UI_SHOWCASE_MODE === "true" ||
+    process.env.NEXT_PUBLIC_UI_SHOWCASE_MODE === "true"
+  );
 }
 
 export function getShowcaseProduct(slug: string): Product | null {

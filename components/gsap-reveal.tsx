@@ -43,51 +43,49 @@ export function GsapReveal({
         },
         ({ conditions }) => {
           if (conditions?.reduceMotion) {
-            gsap.set(container, { autoAlpha: 1, y: 0, clearProps: "all" });
+            gsap.set(container, { clearProps: "all" });
             return;
           }
 
           const ease = "power2.out";
 
           if (variant === "hero") {
-            const copyElements = container.querySelectorAll(
-              ".home-hero-copy > *",
-            );
+            const copyElements = container.querySelectorAll(".home-hero-copy > *");
             const mediaElement = container.querySelector(".home-hero-media");
 
             const tl = gsap.timeline({ delay });
 
             if (copyElements.length > 0) {
-              tl.fromTo(
+              tl.from(
                 copyElements,
-                { autoAlpha: 0, y: 22 },
                 {
-                  autoAlpha: 1,
-                  y: 0,
-                  duration: 0.8,
-                  stagger: 0.08,
+                  opacity: 0.2,
+                  y: 16,
+                  duration: 0.65,
+                  stagger: 0.05,
                   ease,
+                  clearProps: "opacity,transform",
                 },
                 0,
               );
             }
 
             if (mediaElement) {
-              tl.fromTo(
+              tl.from(
                 mediaElement,
-                { autoAlpha: 0, scale: 1.03 },
                 {
-                  autoAlpha: 1,
-                  scale: 1,
-                  duration: 1.1,
+                  opacity: 0.4,
+                  scale: 1.02,
+                  duration: 0.8,
                   ease,
+                  clearProps: "opacity,transform",
                 },
-                0.15,
+                0.1,
               );
 
               if (conditions?.isDesktop && parallax) {
                 gsap.to(mediaElement.querySelector("img"), {
-                  y: 20,
+                  y: 18,
                   ease: "none",
                   scrollTrigger: {
                     trigger: container,
@@ -112,42 +110,42 @@ export function GsapReveal({
             const tl = gsap.timeline({
               scrollTrigger: {
                 trigger: container,
-                start: "top 85%",
+                start: "top 92%",
                 once: true,
               },
               delay,
             });
 
             if (textSide) {
-              tl.fromTo(
+              tl.from(
                 textSide,
-                { autoAlpha: 0, y: 24 },
                 {
-                  autoAlpha: 1,
-                  y: 0,
-                  duration: 0.9,
+                  opacity: 0.2,
+                  y: 16,
+                  duration: 0.65,
                   ease,
+                  clearProps: "opacity,transform",
                 },
                 0,
               );
             }
 
             if (mediaSide) {
-              tl.fromTo(
+              tl.from(
                 mediaSide,
-                { autoAlpha: 0, scale: 1.025 },
                 {
-                  autoAlpha: 1,
-                  scale: 1,
-                  duration: 1.05,
+                  opacity: 0.4,
+                  scale: 1.02,
+                  duration: 0.75,
                   ease,
+                  clearProps: "opacity,transform",
                 },
-                0.1,
+                0.08,
               );
 
               if (conditions?.isDesktop && parallax) {
                 gsap.to(mediaSide.querySelector("img"), {
-                  y: 18,
+                  y: 16,
                   ease: "none",
                   scrollTrigger: {
                     trigger: container,
@@ -167,18 +165,18 @@ export function GsapReveal({
               : container.children;
 
             if (targets.length > 0) {
-              gsap.fromTo(
+              gsap.from(
                 targets,
-                { autoAlpha: 0, y: 20 },
                 {
-                  autoAlpha: 1,
-                  y: 0,
-                  duration: 0.8,
-                  stagger: 0.08,
+                  opacity: 0.2,
+                  y: 16,
+                  duration: 0.6,
+                  stagger: 0.05,
                   ease,
+                  clearProps: "opacity,transform",
                   scrollTrigger: {
                     trigger: container,
-                    start: "top 88%",
+                    start: "top 95%",
                     once: true,
                   },
                 },
@@ -188,18 +186,18 @@ export function GsapReveal({
           }
 
           // Default fade-up
-          gsap.fromTo(
+          gsap.from(
             container,
-            { autoAlpha: 0, y: 22 },
             {
-              autoAlpha: 1,
-              y: 0,
-              duration: 0.85,
+              opacity: 0.2,
+              y: 16,
+              duration: 0.65,
               delay,
               ease,
+              clearProps: "opacity,transform",
               scrollTrigger: {
                 trigger: container,
-                start: "top 88%",
+                start: "top 95%",
                 once: true,
               },
             },
