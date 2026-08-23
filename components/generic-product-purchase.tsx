@@ -9,6 +9,7 @@ import { useCart } from "@/lib/cart-context";
 import type { Product } from "@/lib/types";
 import { isDemoMedia, mediaAlt } from "@/lib/product-media";
 import { resolvePdpCta } from "@/lib/product-cta";
+import { isUiShowcaseMode } from "@/lib/ui-showcase";
 
 export function GenericProductPurchase({ product, contactHref }: { product: Product; contactHref: string | null }) {
   const router = useRouter();
@@ -18,7 +19,7 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
   const [mediaIndex, setMediaIndex] = useState(0);
   const selected = resolveVariant(variants, selection);
   const media = product.media[mediaIndex] ?? product.media[0];
-  const isShowcase = product.source === "showcase" || Boolean(product.isShowcase) || Boolean(product.previewPurchasable);
+  const isShowcase = product.source === "showcase" || Boolean(product.isShowcase) || Boolean(product.previewPurchasable) || isUiShowcaseMode();
   const canPurchase = Boolean((!product.isDemo || isShowcase) && selected && selected.price !== null && selected.price > 0 && selected.stock > 0);
   const price = (!product.isDemo || isShowcase) && selected?.price && selected.price > 0 ? formatVnd(selected.price) : "Liên hệ";
   const cta = resolvePdpCta(canPurchase, contactHref, {

@@ -6,11 +6,13 @@ import { useCart } from "@/lib/cart-context";
 import { formatDimension, formatVnd } from "@/lib/format";
 
 import { isUiShowcaseMode, getShowcaseCartItems, evaluateCheckoutMutationGuard } from "@/lib/ui-showcase";
+import { useShowcaseMode } from "@/components/showcase-provider";
 
 export function CheckoutForm({ bankTransferEnabled = false }: { bankTransferEnabled?: boolean }) {
   const router = useRouter();
   const { items: realItems, subtotal: realSubtotal, clear } = useCart();
-  const showcaseMode = isUiShowcaseMode();
+  const showcaseContextMode = useShowcaseMode();
+  const showcaseMode = showcaseContextMode || isUiShowcaseMode();
   const useShowcaseCartFallback = showcaseMode && realItems.length === 0;
   const items = useShowcaseCartFallback ? getShowcaseCartItems() : realItems;
   const subtotal = useShowcaseCartFallback ? items.reduce((acc, item) => acc + item.price * item.quantity, 0) : realSubtotal;
@@ -21,7 +23,7 @@ export function CheckoutForm({ bankTransferEnabled = false }: { bankTransferEnab
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
-    const mutationGuard = evaluateCheckoutMutationGuard(isUiShowcaseMode());
+    const mutationGuard = evaluateCheckoutMutationGuard(showcaseMode);
     if (!mutationGuard.allowed) {
       setError(mutationGuard.message);
       return;

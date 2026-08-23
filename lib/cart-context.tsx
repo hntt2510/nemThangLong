@@ -16,9 +16,15 @@ type CartContextValue = {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+export function CartProvider({
+  showcaseMode = false,
+  children,
+}: {
+  showcaseMode?: boolean;
+  children: React.ReactNode;
+}) {
   const [items, setItems] = useState<CartItem[]>(() => {
-    if (isUiShowcaseMode()) {
+    if (showcaseMode || isUiShowcaseMode()) {
       return getShowcaseCartItems();
     }
     return [];
@@ -30,10 +36,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       try { // eslint-disable-next-line react-hooks/set-state-in-effect
         setItems(JSON.parse(saved) as CartItem[]);
       } catch { window.localStorage.removeItem("thang-long-cart"); }
-    } else if (isUiShowcaseMode()) {
+    } else if (showcaseMode || isUiShowcaseMode()) {
       setItems(getShowcaseCartItems());
     }
-  }, []);
+  }, [showcaseMode]);
 
   useEffect(() => {
     window.localStorage.setItem("thang-long-cart", JSON.stringify(items));

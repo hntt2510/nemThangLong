@@ -6,6 +6,7 @@ import type { CatalogProductSummary } from "@/lib/catalog";
 import { catalogBreadcrumbs, breadcrumbJsonLd, productJsonLd } from "@/lib/seo";
 import type { Product } from "@/lib/types";
 import { isDemoMedia, mediaAlt } from "@/lib/product-media";
+import { isUiShowcaseMode } from "@/lib/ui-showcase";
 
 type ProductSettings = { contactPhone?: string | null; contactEmail?: string | null } | null;
 
@@ -27,6 +28,7 @@ export function GenericProductPdp({ product, related, settings }: { product: Pro
   const delivery = product.content?.delivery?.published && product.content.delivery.body ? product.content.delivery : null;
   const warranty = product.content?.warranty?.published && product.content.warranty.body ? product.content.warranty : null;
   const secondaryMedia = product.media[1] ?? product.media[0];
+  const isShowcase = product.source === "showcase" || Boolean(product.isShowcase) || Boolean(product.previewPurchasable) || isUiShowcaseMode();
 
   return (
     <div className="generic-product-page">
@@ -36,7 +38,7 @@ export function GenericProductPdp({ product, related, settings }: { product: Pro
         <nav className="container breadcrumb-nav" aria-label="Breadcrumb">{breadcrumbs.map((crumb, index) => <span key={crumb.item}>{index > 0 && <b aria-hidden="true">/</b>}{index === breadcrumbs.length - 1 ? <span aria-current="page">{crumb.name}</span> : <Link href={crumb.item as never}>{crumb.name}</Link>}</span>)}</nav>
         <GenericProductPurchase product={product} contactHref={consultationHref} />
         <div className="container generic-compare-entry"><Link href={("/so-sanh?items=" + encodeURIComponent(product.slug)) as never} className="text-link">So sánh dòng nệm này <span aria-hidden="true">→</span></Link></div>
-        {product.isDemo && <p className="container product-data-note">Hình ảnh minh họa · Sản phẩm chưa có giá, tồn kho hoặc tổ hợp mua được xác nhận.</p>}
+        {!isShowcase && product.isDemo && <p className="container product-data-note">Hình ảnh minh họa · Sản phẩm chưa có giá, tồn kho hoặc tổ hợp mua được xác nhận.</p>}
 
         {audience && <section className="generic-editorial container"><div className="generic-editorial-media">{secondaryMedia && <Image src={secondaryMedia.url} alt={mediaAlt(product, secondaryMedia)} fill sizes="(max-width: 860px) 100vw, 55vw" style={{ objectFit: secondaryMedia.fit ?? "cover" }} />}{secondaryMedia && isDemoMedia(product, secondaryMedia) && <span className="demo-badge">Hình ảnh minh họa</span>}</div><div><p className="section-label">PHÙ HỢP VỚI</p><h2>{audience.title}</h2><p>{audience.body}</p></div></section>}
         {materialStory && <section className="generic-content-section container"><p className="section-label">MATERIAL STORY</p><h2>{materialStory.title}</h2><p>{materialStory.body}</p></section>}

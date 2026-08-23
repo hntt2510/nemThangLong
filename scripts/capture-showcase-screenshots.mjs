@@ -3,41 +3,35 @@ import fs from "fs";
 import path from "path";
 import http from "http";
 
-const CHROME_PATH = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
-const ARTIFACT_DIR = "C:\\Users\\LEGION\\.gemini\\antigravity\\brain\\a03cd9b1-9a7c-4dbb-9934-e9b20d6cf5c0\\screenshots";
+// Determine paths dynamically
+const ROOT_DIR = process.cwd();
+const QA_DIR = path.join(ROOT_DIR, "QA", "showcase");
+const BRAIN_ARTIFACT_DIR = "C:\\Users\\LEGION\\.gemini\\antigravity\\brain\\a03cd9b1-9a7c-4dbb-9934-e9b20d6cf5c0\\screenshots";
 
-if (!fs.existsSync(ARTIFACT_DIR)) {
-  fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
+// Ensure directories exist
+if (!fs.existsSync(QA_DIR)) fs.mkdirSync(QA_DIR, { recursive: true });
+if (fs.existsSync(path.dirname(BRAIN_ARTIFACT_DIR))) {
+  if (!fs.existsSync(BRAIN_ARTIFACT_DIR)) fs.mkdirSync(BRAIN_ARTIFACT_DIR, { recursive: true });
 }
 
-async function assertImagesLoaded(page, pageName) {
-  await page.evaluate(`(async () => {
-    const imgs = Array.from(document.querySelectorAll("img"));
-    await Promise.all(imgs.map(img => {
-      if (img.loading === "lazy") img.loading = "eager";
-      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-      return img.decode().catch(() => {});
-    }));
-  })()`);
-  await sleep(1000);
-
-  const imageCheck = await page.evaluate(`(() => {
-    const imgs = Array.from(document.querySelectorAll("img"));
-    const broken = imgs.filter(img => {
-      const src = img.src || img.getAttribute("src");
-      if (!src) return false;
-      return !img.complete || img.naturalWidth === 0 || img.naturalHeight === 0;
-    }).map(img => img.src || img.getAttribute("src"));
-    return {
-      total: imgs.length,
-      broken: broken
-    };
-  })()`);
-
-  if (imageCheck.broken.length > 0) {
-    throw new Error("IMAGE LOAD FAILURE on [" + pageName + "]: Broken images: " + imageCheck.broken.join(", "));
+function findChromePath() {
+  if (process.env.CHROME_PATH && fs.existsSync(process.env.CHROME_PATH)) {
+    return process.env.CHROME_PATH;
   }
-  console.log("  ✓ Image check passed for " + pageName + " (" + imageCheck.total + " images verified with natural dimensions)");
+  const candidates = [
+    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+    path.join(process.env.LOCALAPPDATA || "", "Google", "Chrome", "Application", "chrome.exe"),
+    path.join(process.env.PROGRAMFILES || "", "Google", "Chrome", "Application", "chrome.exe"),
+    path.join(process.env["PROGRAMFILES(X86)"] || "", "Google", "Chrome", "Application", "chrome.exe"),
+    "/usr/bin/google-chrome",
+    "/usr/bin/chromium-browser",
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  ];
+  for (const p of candidates) {
+    if (p && fs.existsSync(p)) return p;
+  }
+  throw new Error("Could not find Google Chrome binary. Please set CHROME_PATH environment variable.");
 }
 
 function isPortOpen(port) {
@@ -50,16 +44,6 @@ function isPortOpen(port) {
       req.destroy();
       resolve(false);
     });
-  });
-}
-
-function fetchHtml(url) {
-  return new Promise((resolve) => {
-    http.get(url, (res) => {
-      let data = "";
-      res.on("data", (c) => (data += c));
-      res.on("end", () => resolve(data));
-    }).on("error", () => resolve(""));
   });
 }
 
@@ -118,7 +102,7 @@ class CdpClient {
       awaitPromise: true,
     });
     if (res.exceptionDetails) {
-      throw new Error(`Evaluation failed: ${JSON.stringify(res.exceptionDetails)}`);
+      throw new Error("Evaluation error: " + (res.exceptionDetails.exception?.description || JSON.stringify(res.exceptionDetails)));
     }
     return res.result?.value;
   }
@@ -128,279 +112,423 @@ class CdpClient {
   }
 }
 
-async function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function waitForFunction(page, fnExpr, maxWaitMs = 15000, intervalMs = 250) {
+  const start = Date.now();
+  while (Date.now() - start < maxWaitMs) {
+    try {
+      const result = await page.evaluate(`(${fnExpr})`);
+      if (result) return true;
+    } catch {
+      // ignore
+    }
+    await sleep(intervalMs);
+  }
+  const bodyDump = await page.evaluate(`document.body.innerText.slice(0, 300)`);
+  throw new Error(`Timeout waiting for condition: (${fnExpr}). Body preview:\n${bodyDump}`);
 }
 
-async function waitForFunction(page, fnString, timeout = 30000) {
-  const start = Date.now();
-  while (Date.now() - start < timeout) {
-    try {
-      const result = await page.evaluate(fnString);
-      if (result) return result;
-    } catch {
-      // ignore while page compiles/hydrates
-    }
-    await sleep(400);
+async function preparePageForCapture(page) {
+  // 1. Force load and decode all images
+  await page.evaluate(`(async () => {
+    const imgs = Array.from(document.querySelectorAll("img"));
+    await Promise.all(imgs.map(img => {
+      if (img.loading === "lazy") img.loading = "eager";
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+      return img.decode().catch(() => {});
+    }));
+  })()`);
+
+  // 2. Clear GSAP animations and force visible opacity for deterministic QA
+  await page.evaluate(`(() => {
+    // Clear transforms and force full opacity on any potential animated container
+    const animated = document.querySelectorAll('.homepage, .home-hero, .home-hero-media, .home-hero-copy, .home-range, .home-find, .home-luxury-editorial, .home-latex, .home-needs, .home-compare, .home-project, .home-trust, .catalog-grid, .finder-wizard, .finder-results, .compare-matrix, .cart-layout, .checkout-page');
+    animated.forEach(el => {
+      el.style.opacity = '1';
+      el.style.visibility = 'visible';
+    });
+  })()`);
+
+  await sleep(400);
+}
+
+async function assertGlobalPageHealth(page, contextName, viewportWidth) {
+  await preparePageForCapture(page);
+
+  // 1. Runtime Marker Assertion
+  const isShowcase = await page.evaluate(`document.body.dataset.uiShowcase === "true"`);
+  if (!isShowcase) {
+    throw new Error(`SHOWCASE RUNTIME MARKER FAILED on [${contextName}]: document.body.dataset.uiShowcase is NOT 'true'`);
   }
-  const bodyText = await page.evaluate(`document.body ? document.body.innerText.substring(0, 300) : "NO BODY"`).catch(() => "EVAL FAILED");
-  const currentUrl = await page.evaluate(`window.location.href`).catch(() => "NO URL");
-  throw new Error(`Timeout waiting for condition on ${currentUrl} (${fnString}). Body: ${bodyText}`);
+
+  // 2. Broken Image Assertion
+  const imageHealth = await page.evaluate(`(() => {
+    const imgs = Array.from(document.querySelectorAll("img"));
+    const broken = imgs.filter(img => {
+      const src = img.src || img.getAttribute("src");
+      if (!src) return false;
+      return !img.complete || img.naturalWidth === 0 || img.naturalHeight === 0;
+    }).map(img => img.src || img.getAttribute("src"));
+    return { total: imgs.length, broken };
+  })()`);
+
+  if (imageHealth.broken.length > 0) {
+    throw new Error(`IMAGE LOAD FAILURE on [${contextName}]: Broken images: ${imageHealth.broken.join(", ")}`);
+  }
+
+  // 3. Document-wide overflow check
+  const overflow = await page.evaluate(`(() => {
+    const docEl = document.documentElement;
+    return {
+      scrollWidth: docEl.scrollWidth,
+      clientWidth: docEl.clientWidth,
+      hasOverflow: docEl.scrollWidth > docEl.clientWidth + 1
+    };
+  })()`);
+
+  if (overflow.hasOverflow) {
+    throw new Error(`PAGE OVERFLOW FAILURE on [${contextName}]: scrollWidth=${overflow.scrollWidth} > clientWidth=${overflow.clientWidth}`);
+  }
+
+  // 4. Geometry Offender Check (for mobile / narrow viewports)
+  if (viewportWidth <= 480) {
+    const offenders = await page.evaluate(`(() => {
+      const vw = window.innerWidth;
+      const all = Array.from(document.querySelectorAll("body *"));
+      const bad = [];
+      for (const el of all) {
+        if (el.closest('.compare-matrix-wrap') || el.closest('.compare-table-section') || el.closest('.finder-steps-progress')) {
+          continue;
+        }
+        const rect = el.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          if (rect.left < -2 || rect.right > vw + 2) {
+            bad.push({
+              tag: el.tagName.toLowerCase(),
+              className: el.className,
+              left: Math.round(rect.left),
+              right: Math.round(rect.right),
+              width: Math.round(rect.width)
+            });
+            if (bad.length >= 5) break;
+          }
+        }
+      }
+      return bad;
+    })()`);
+
+    if (offenders.length > 0) {
+      console.warn(`  [Warning] Bounding rect overflow candidates on ${contextName}:`, offenders);
+    }
+  }
+
+  // 5. Sticky header top assertion
+  const headerTop = await page.evaluate(`(() => {
+    const h = document.querySelector('.site-header');
+    if (!h) return 0;
+    return Math.round(h.getBoundingClientRect().top);
+  })()`);
+
+  if (Math.abs(headerTop) > 2) {
+    throw new Error(`STICKY HEADER MISALIGNED on [${contextName}]: header top is ${headerTop}px (expected 0px)`);
+  }
+}
+
+function saveScreenshot(shotData, filename) {
+  const buffer = Buffer.from(shotData, "base64");
+  const qaPath = path.join(QA_DIR, filename);
+  fs.writeFileSync(qaPath, buffer);
+  const stat = fs.statSync(qaPath);
+
+  // Copy to BRAIN_ARTIFACT_DIR if exists
+  if (fs.existsSync(BRAIN_ARTIFACT_DIR)) {
+    const brainPath = path.join(BRAIN_ARTIFACT_DIR, filename);
+    fs.writeFileSync(brainPath, buffer);
+  }
+
+  console.log(`  -> Saved ${filename} (${stat.size} bytes)`);
 }
 
 async function run() {
-  const remotePort = 9228;
-  const baseUrl = "http://localhost:3388";
+  const chromePath = findChromePath();
+  console.log("\n=======================================================");
+  console.log("FINAL SHOWCASE RUNTIME & VISUAL QA SUITE V2");
+  console.log("=======================================================");
+  console.log(`Working Directory: ${ROOT_DIR}`);
+  console.log(`QA Output Dir:     ${QA_DIR}`);
+  console.log(`Chrome Binary:     ${chromePath}`);
+  console.log(`NODE_ENV:          ${process.env.NODE_ENV || "production"}`);
+  console.log(`APP_ENV:           ${process.env.APP_ENV || "staging"}`);
+  console.log(`UI_SHOWCASE_MODE:  ${Boolean(process.env.UI_SHOWCASE_MODE === "true" || true)}`);
+  console.log(`Build Mode:        Production next start (Port 3388)`);
+  console.log("=======================================================\n");
 
-  // Check if showcase server is already running, otherwise build and start production server
+  // Step 1: Production Build
+  console.log("1. Building Next.js production bundle with UI_SHOWCASE_MODE=true APP_ENV=staging...");
+  execSync("npm run build", {
+    cwd: ROOT_DIR,
+    stdio: "inherit",
+    env: {
+      ...process.env,
+      NODE_ENV: "production",
+      APP_ENV: "staging",
+      UI_SHOWCASE_MODE: "true",
+      NEXT_PUBLIC_UI_SHOWCASE_MODE: "true",
+    },
+  });
+
+  // Step 2: Start Next.js Production Server
+  const PORT = 3388;
+  const baseUrl = `http://127.0.0.1:${PORT}`;
+
   let serverProc = null;
-  const isUp = await isPortOpen(3388);
-  if (!isUp) {
-    console.log("Building Next.js production bundle with UI_SHOWCASE_MODE=true APP_ENV=staging...");
-    execSync("npm run build", {
-      cwd: "D:\\HOCTAP\\latvat\\nemThangLong",
+  const serverAlreadyRunning = await isPortOpen(PORT);
+
+  if (!serverAlreadyRunning) {
+    console.log(`\n2. Starting Next.js production server on port ${PORT}...`);
+    serverProc = spawn("npx", ["next", "start", "-p", String(PORT)], {
+      cwd: ROOT_DIR,
+      stdio: "pipe",
+      shell: true,
       env: {
         ...process.env,
-        UI_SHOWCASE_MODE: "true",
+        PORT: String(PORT),
+        NODE_ENV: "production",
         APP_ENV: "staging",
+        UI_SHOWCASE_MODE: "true",
+        NEXT_PUBLIC_UI_SHOWCASE_MODE: "true",
       },
-      stdio: "inherit",
     });
 
-    console.log("Starting Next.js production server on port 3388 (no dev indicator)...");
-    serverProc = spawn(process.execPath, ["./node_modules/next/dist/bin/next", "start", "-p", "3388"], {
-      cwd: "D:\\HOCTAP\\latvat\\nemThangLong",
-      env: {
-        ...process.env,
-        UI_SHOWCASE_MODE: "true",
-        APP_ENV: "staging",
-      },
-      stdio: "ignore",
+    serverProc.stdout?.on("data", (data) => {
+      const msg = data.toString();
+      if (msg.includes("Ready in") || msg.includes("started server")) {
+        console.log(`[Next.js Server] ${msg.trim()}`);
+      }
     });
 
-    console.log("Waiting for Next.js production server to become ready on http://localhost:3388...");
-    const start = Date.now();
+    serverProc.stderr?.on("data", (data) => {
+      console.error(`[Next.js Server Err] ${data.toString().trim()}`);
+    });
+
     let ready = false;
-    while (Date.now() - start < 30000) {
-      if (await isPortOpen(3388)) {
+    for (let i = 0; i < 40; i++) {
+      await sleep(500);
+      if (await isPortOpen(PORT)) {
         ready = true;
         break;
       }
-      await sleep(1000);
     }
+
     if (!ready) {
-      if (serverProc) serverProc.kill();
-      throw new Error("Failed to start Next.js showcase production server within 30s");
+      throw new Error(`Production server failed to start on port ${PORT}`);
     }
-    console.log("Next.js showcase production server is listening!");
+    console.log(`✓ Next.js production server listening on ${baseUrl}`);
   } else {
-    console.log("Next.js showcase server is already running on http://localhost:3388");
+    console.log(`✓ Production server already listening on ${baseUrl}`);
   }
 
-  console.log("Pre-warming all storefront routes...");
-  const warmupUrls = [
-    `${baseUrl}/`,
-    `${baseUrl}/nem`,
-    `${baseUrl}/nem/america`,
-    `${baseUrl}/nem/luxury`,
-    `${baseUrl}/tim-nem`,
-    `${baseUrl}/so-sanh`,
-    `${baseUrl}/gio-hang`,
-    `${baseUrl}/checkout`,
-    `${baseUrl}/tai-khoan`,
-  ];
-  for (const u of warmupUrls) {
-    const html = await fetchHtml(u);
-    console.log(`  Warmed: ${u} (HTML length: ${html.length})`);
-  }
-
-  console.log("\nLaunching headless Chrome for visual QA and assertions...");
-  const chromeProc = spawn(CHROME_PATH, [
+  // Step 3: Launch Headless Chrome
+  const remoteDebuggingPort = 9333;
+  console.log(`\n3. Launching headless Chrome (debugging port ${remoteDebuggingPort})...`);
+  const chromeProc = spawn(chromePath, [
     "--headless=new",
-    `--remote-debugging-port=${remotePort}`,
+    `--remote-debugging-port=${remoteDebuggingPort}`,
     "--no-first-run",
     "--no-default-browser-check",
-    "--disable-gpu",
     "--disable-background-networking",
+    "--disable-features=Translate,BackForwardCache",
+    "--disable-gpu",
+    "--window-size=1440,900",
+    "--hide-scrollbars",
   ]);
 
-  await sleep(2000);
+  await sleep(1500);
+  const targets = await fetchJson(`http://127.0.0.1:${remoteDebuggingPort}/json/list`);
+  const pageTarget = targets.find((t) => t.type === "page") || targets[0];
+  if (!pageTarget || !pageTarget.webSocketDebuggerUrl) {
+    throw new Error("Could not find a valid page target in Chrome");
+  }
+  const page = new CdpClient(pageTarget.webSocketDebuggerUrl);
+  await page.connect();
+  await page.send("Page.enable");
+  await page.send("Runtime.enable");
+  await page.send("DOM.enable");
+  await page.send("CSS.enable");
+
+  // Emulate reduced motion for deterministic visual QA
+  await page.send("Emulation.setEmulatedMedia", {
+    features: [{ name: "prefers-reduced-motion", value: "reduce" }],
+  });
 
   try {
-    const targets = await fetchJson(`http://127.0.0.1:${remotePort}/json`);
-    const target = targets.find((t) => t.type === "page") || targets[0];
-    const page = new CdpClient(target.webSocketDebuggerUrl);
-    await page.connect();
+    console.log("\n=======================================================");
+    console.log("RUNNING STRICT SHOWCASE VALIDATION & ASSERTIONS");
+    console.log("=======================================================\n");
 
-    await page.send("Page.enable");
-    await page.send("DOM.enable");
-    await page.send("CSS.enable");
-    await page.send("Runtime.enable");
-
-    // Force reduced motion for baseline capture
-    await page.send("Emulation.setEmulatedMedia", {
-      features: [{ name: "prefers-reduced-motion", value: "reduce" }],
-    });
-
-    console.log("\n==========================================");
-    console.log("RUNNING STRICT SHOWCASE RUNTIME ASSERTIONS");
-    console.log("==========================================\n");
-
-    // Assertion 1: Badge check on /
+    // 1. Homepage & Hero Assertion
     await page.send("Page.navigate", { url: `${baseUrl}/` });
     await sleep(1500);
-    await waitForFunction(page, `Boolean(document.body && (document.body.textContent.includes("Dữ liệu trình diễn") || document.body.innerText.includes("UI Preview")))`);
-    await assertImagesLoaded(page, "Homepage");
-    console.log("✓ Badge check passed: Showcase indicator is present.");
+    await waitForFunction(page, `Boolean(document.body.dataset.uiShowcase === "true")`);
+    await assertGlobalPageHealth(page, "Homepage", 1440);
 
-    // Assertion 2: /nem Catalog populated state
+    const heroImgValid = await page.evaluate(`(() => {
+      const img = document.querySelector('.home-hero-media img');
+      if (!img) return false;
+      const rect = img.getBoundingClientRect();
+      const style = window.getComputedStyle(img);
+      return img.complete && img.naturalWidth > 0 && img.naturalHeight > 0 && parseFloat(style.opacity || '1') > 0 && rect.height > 0;
+    })()`);
+    if (!heroImgValid) throw new Error("ASSERTION FAILED on Homepage Hero: hero image is missing or has naturalWidth === 0");
+    console.log("✓ Homepage Hero verified: image complete, naturalWidth > 0, opacity > 0.");
+
+    // 2. Catalog Assertion (/nem)
     await page.send("Page.navigate", { url: `${baseUrl}/nem` });
     await sleep(1500);
-    await waitForFunction(page, `Boolean(document.querySelectorAll('.catalog-card').length >= 6 && document.body.innerText.includes("4.900.000"))`);
-    await assertImagesLoaded(page, "Catalog");
-    const catalogCards = await page.evaluate(`document.querySelectorAll('.catalog-card').length`);
-    const catalogDemoNote = await page.evaluate(`document.body.innerText.includes("Thông tin giá bán và tình trạng còn hàng đang được cập nhật")`);
-    const catalogHasPrice = await page.evaluate(`document.body.innerText.includes("4.900.000")`);
-    if (catalogCards < 6 || catalogDemoNote || !catalogHasPrice) {
-      throw new Error(`ASSERTION FAILED on /nem: cards=${catalogCards}, demoNote=${catalogDemoNote}, hasPrice=${catalogHasPrice}`);
+    await assertGlobalPageHealth(page, "Catalog (/nem)", 1440);
+    const catalogCheck = await page.evaluate(`(() => {
+      const cards = document.querySelectorAll('.product-card');
+      const text = document.body.innerText;
+      const hasCmsFallback = text.includes("Thông tin giá bán và tình trạng tồn kho đang được cập nhật") || text.includes("Thông tin đang cập nhật");
+      const hasFormattedPrice = text.includes("Từ 4.900.000") || text.includes("Từ 6.900.000");
+      return { cardCount: cards.length, hasCmsFallback, hasFormattedPrice };
+    })()`);
+    if (catalogCheck.cardCount !== 6 || catalogCheck.hasCmsFallback || !catalogCheck.hasFormattedPrice) {
+      throw new Error(`ASSERTION FAILED on /nem: count=${catalogCheck.cardCount} (expected 6), fallback=${catalogCheck.hasCmsFallback}, price=${catalogCheck.hasFormattedPrice}`);
     }
-    console.log(`✓ /nem check passed: ${catalogCards} populated product cards with prices.`);
+    console.log("✓ Catalog (/nem) verified: exactly 6 cards, prices visible, 0 CMS fallbacks.");
 
-    // Assertion 3: /nem/america PDP populated state
+    // 3. America PDP (/nem/america)
     await page.send("Page.navigate", { url: `${baseUrl}/nem/america` });
     await sleep(1500);
-    await waitForFunction(page, `Boolean(document.querySelectorAll('.pdp-pill').length >= 3 && (document.body.innerText.includes("4.900.000") || document.body.innerText.includes("6.700.000")))`);
-    await assertImagesLoaded(page, "America PDP");
-    const americaPrice = await page.evaluate(`document.body.innerText.includes("4.900.000") || document.body.innerText.includes("6.700.000")`);
-    const americaPills = await page.evaluate(`document.querySelectorAll('.pdp-pill').length`);
-    const americaBuyButton = await page.evaluate(`document.body.innerText.toLowerCase().includes("mua ngay") || document.body.innerText.toLowerCase().includes("thêm vào giỏ") || document.body.textContent.includes("Mua ngay")`);
-    if (!americaPrice || americaPills < 3 || !americaBuyButton) {
-      throw new Error(`ASSERTION FAILED on /nem/america: price=${americaPrice}, pills=${americaPills}, buyButton=${americaBuyButton}`);
+    await assertGlobalPageHealth(page, "PDP America (/nem/america)", 1440);
+    const americaCheck = await page.evaluate(`(() => {
+      const text = document.body.innerText.toLowerCase();
+      const pills = document.querySelectorAll('.pdp-pill');
+      const hasBuyBtn = text.includes("mua ngay");
+      const hasAddToCart = text.includes("thêm vào giỏ");
+      const hasStock = text.includes("còn hàng");
+      const hasPrice = text.includes("4.900.000") || text.includes("6.700.000");
+      return { pillCount: pills.length, hasBuyBtn, hasAddToCart, hasStock, hasPrice };
+    })()`);
+    if (americaCheck.pillCount < 5 || !americaCheck.hasBuyBtn || !americaCheck.hasAddToCart || !americaCheck.hasPrice) {
+      throw new Error(`ASSERTION FAILED on /nem/america: pills=${americaCheck.pillCount}, buy=${americaCheck.hasBuyBtn}, cart=${americaCheck.hasAddToCart}, price=${americaCheck.hasPrice}`);
     }
-    console.log(`✓ /nem/america check passed: price & dimensions (${americaPills} pills) active.`);
+    console.log(`✓ PDP America verified: ${americaCheck.pillCount} pills, populated price, Buy & Add-to-Cart CTAs active.`);
 
-    // Assertion 4: /nem/luxury PDP populated state
+    // 4. Luxury PDP (/nem/luxury)
     await page.send("Page.navigate", { url: `${baseUrl}/nem/luxury` });
     await sleep(1500);
-    await waitForFunction(page, `Boolean(document.querySelectorAll('.pdp-pill').length >= 3 && (document.body.innerText.includes("22.900.000") || document.body.innerText.includes("18.900.000") || document.body.innerText.includes("20.900.000")))`);
-    await assertImagesLoaded(page, "Luxury PDP");
-    const luxuryPrice = await page.evaluate(`document.body.innerText.includes("22.900.000") || document.body.innerText.includes("18.900.000") || document.body.innerText.includes("20.900.000")`);
-    const luxuryPills = await page.evaluate(`document.querySelectorAll('.pdp-pill').length`);
-    if (!luxuryPrice || luxuryPills < 3) {
-      throw new Error(`ASSERTION FAILED on /nem/luxury: price=${luxuryPrice}, pills=${luxuryPills}`);
+    await assertGlobalPageHealth(page, "PDP Luxury (/nem/luxury)", 1440);
+    const luxuryCheck = await page.evaluate(`(() => {
+      const text = document.body.innerText.toLowerCase();
+      const pills = document.querySelectorAll('.pdp-pill');
+      const hasPrice = text.includes("20.900.000") || text.includes("18.900.000");
+      const hasBuy = text.includes("mua ngay");
+      return { pillCount: pills.length, hasPrice, hasBuy };
+    })()`);
+    if (luxuryCheck.pillCount < 4 || !luxuryCheck.hasPrice || !luxuryCheck.hasBuy) {
+      throw new Error(`ASSERTION FAILED on /nem/luxury: pills=${luxuryCheck.pillCount}, price=${luxuryCheck.hasPrice}, buy=${luxuryCheck.hasBuy}`);
     }
-    console.log(`✓ /nem/luxury check passed: luxury price & dimensions (${luxuryPills} pills) active.`);
+    console.log(`✓ PDP Luxury verified: ${luxuryCheck.pillCount} pills, luxury price, purchase state active.`);
 
-    // Assertion 5: /tim-nem Finder options
+    // 5. Finder (/tim-nem)
     await page.send("Page.navigate", { url: `${baseUrl}/tim-nem` });
     await sleep(1500);
-    await waitForFunction(page, `Boolean(document.querySelectorAll('.finder-pill-card').length >= 4 && document.body.innerText.includes("160 cm"))`);
-    const finderPills = await page.evaluate(`document.querySelectorAll('.finder-pill-card').length`);
-    const finderHas160 = await page.evaluate(`document.body.innerText.includes("160 cm")`);
-    if (finderPills < 4 || !finderHas160) {
-      throw new Error(`ASSERTION FAILED on /tim-nem: finderPills=${finderPills}, has160=${finderHas160}`);
+    await assertGlobalPageHealth(page, "Finder (/tim-nem)", 1440);
+    const finderPillsCheck = await page.evaluate(`(() => {
+      const text = document.body.innerText;
+      const has100 = text.includes("100 cm");
+      const has120 = text.includes("120 cm");
+      const has140 = text.includes("140 cm");
+      const has160 = text.includes("160 cm");
+      const has180 = text.includes("180 cm");
+      const has200 = text.includes("200 cm");
+      return has100 && has120 && has140 && has160 && has180 && has200;
+    })()`);
+    if (!finderPillsCheck) {
+      throw new Error("ASSERTION FAILED on /tim-nem: Dimension pills (100, 120, 140, 160, 180, 200 cm) are missing!");
     }
-    console.log(`✓ /tim-nem check passed: ${finderPills} dimension options available.`);
+    console.log("✓ Finder Step 1 verified: full width range (100, 120, 140, 160, 180, 200 cm) active.");
 
-    // Assertion 6: /so-sanh Compare preselection & matrix
+    // 6. Finder Results (/tim-nem?width=160&feel=balanced&priority=support#results)
+    await page.send("Page.navigate", { url: `${baseUrl}/tim-nem?width=160&feel=balanced&priority=support#results` });
+    await sleep(1500);
+    await assertGlobalPageHealth(page, "Finder Results", 1440);
+    const finderResultsCheck = await page.evaluate(`(() => {
+      const resultsSection = document.querySelector('#results');
+      const cards = document.querySelectorAll('.finder-result');
+      const text = document.body.innerText;
+      const hasPrimary = text.includes("GỢI Ý CHÍNH") || text.includes("Một lựa chọn đáng xem xét");
+      const hasAlternatives = text.includes("LỰA CHỌN THAM KHẢO") || cards.length >= 2;
+      return { hasSection: Boolean(resultsSection), count: cards.length, hasPrimary, hasAlternatives };
+    })()`);
+    if (!finderResultsCheck.hasSection || finderResultsCheck.count < 2 || !finderResultsCheck.hasPrimary) {
+      throw new Error(`ASSERTION FAILED on Finder Results: count=${finderResultsCheck.count}, primary=${finderResultsCheck.hasPrimary}`);
+    }
+    console.log(`✓ Finder Results verified: ${finderResultsCheck.count} cards rendered, genuine primary recommendation present.`);
+
+    // 7. Compare (/so-sanh)
     await page.send("Page.navigate", { url: `${baseUrl}/so-sanh` });
     await sleep(1500);
-    await waitForFunction(page, `Boolean(document.body.innerText.includes("Nệm Thăng Long Luxury") && document.body.innerText.includes("Nệm Thăng Long America"))`);
-    await assertImagesLoaded(page, "Compare Matrix");
-    const compareMatrix = await page.evaluate(`document.querySelectorAll('.compare-matrix, .compare-table-section').length > 0`);
-    const compareHasLuxury = await page.evaluate(`document.body.innerText.includes("Nệm Thăng Long Luxury")`);
-    const compareHasAmerica = await page.evaluate(`document.body.innerText.includes("Nệm Thăng Long America")`);
-    const compareHasFormattedPrice = await page.evaluate(`document.body.innerText.includes("4.900.000") || document.body.innerText.includes("₫")`);
-    if (!compareMatrix || !compareHasLuxury || !compareHasAmerica || !compareHasFormattedPrice) {
-      throw new Error(`ASSERTION FAILED on /so-sanh: matrix=${compareMatrix}, hasLuxury=${compareHasLuxury}, hasAmerica=${compareHasAmerica}, formattedPrice=${compareHasFormattedPrice}`);
+    await assertGlobalPageHealth(page, "Compare (/so-sanh)", 1440);
+    const compareCheck = await page.evaluate(`(() => {
+      const text = document.body.innerText;
+      const matrix = document.querySelector('.compare-table-section, .compare-matrix');
+      const hasAmerica = text.includes("Nệm Thăng Long America");
+      const hasMemoryFoam = text.includes("Nệm Thăng Long Memory Foam");
+      const hasLuxury = text.includes("Nệm Thăng Long Luxury");
+      const hasVnd = text.includes("4.900.000 ₫") || text.includes("4.900.000");
+      return { hasMatrix: Boolean(matrix), hasAmerica, hasMemoryFoam, hasLuxury, hasVnd };
+    })()`);
+    if (!compareCheck.hasMatrix || !compareCheck.hasAmerica || !compareCheck.hasMemoryFoam || !compareCheck.hasLuxury || !compareCheck.hasVnd) {
+      throw new Error(`ASSERTION FAILED on /so-sanh: matrix=${compareCheck.hasMatrix}, America=${compareCheck.hasAmerica}, MemoryFoam=${compareCheck.hasMemoryFoam}, Luxury=${compareCheck.hasLuxury}`);
     }
-    console.log("✓ /so-sanh check passed: preselected matrix with formatted VND prices.");
+    console.log("✓ Compare (/so-sanh) verified: preselected with 3 showcase products, matrix visible with formatted VND prices.");
 
-    // Assertion 7: /gio-hang Cart presentation items
+    // 8. Cart (/gio-hang)
     await page.send("Page.navigate", { url: `${baseUrl}/gio-hang` });
     await sleep(1500);
-    await waitForFunction(page, `Boolean(document.body.innerText.includes("Nệm Thăng Long Luxury") && document.body.innerText.includes("Nệm Thăng Long Classic"))`);
-    await assertImagesLoaded(page, "Cart");
-    const cartItems = await page.evaluate(`document.body.innerText.includes("Nệm Thăng Long Luxury") && document.body.innerText.includes("Nệm Thăng Long Classic")`);
-    if (!cartItems) {
-      throw new Error("ASSERTION FAILED on /gio-hang: showcase cart items missing!");
+    await assertGlobalPageHealth(page, "Cart (/gio-hang)", 1440);
+    const cartCheck = await page.evaluate(`(() => {
+      const items = document.querySelectorAll('.cart-item');
+      const text = document.body.innerText;
+      const hasLuxury = text.includes("Nệm Thăng Long Luxury");
+      const hasClassic = text.includes("Nệm Thăng Long Classic");
+      return { count: items.length, hasLuxury, hasClassic };
+    })()`);
+    if (cartCheck.count !== 2 || !cartCheck.hasLuxury || !cartCheck.hasClassic) {
+      throw new Error(`ASSERTION FAILED on /gio-hang: items=${cartCheck.count} (expected 2)`);
     }
-    console.log("✓ /gio-hang check passed: 2 showcase cart line items present with working images.");
+    console.log("✓ Cart (/gio-hang) verified: 2 showcase cart line items rendered with working images.");
 
-    // Assertion 8: /checkout Populated preview
+    // 9. Checkout (/checkout)
     await page.send("Page.navigate", { url: `${baseUrl}/checkout` });
     await sleep(1500);
-    await waitForFunction(page, `Boolean(document.body.innerText.includes("Nệm Thăng Long Luxury") && document.body.innerText.includes("ĐẶT HÀNG"))`);
-    const checkoutCustomer = await page.evaluate(`(() => {
+    await assertGlobalPageHealth(page, "Checkout (/checkout)", 1440);
+    const checkoutCheck = await page.evaluate(`(() => {
       const nameInput = document.querySelector('input[name="customerName"]');
       const phoneInput = document.querySelector('input[name="customerPhone"]');
-      return {
-        name: nameInput?.value,
-        phone: phoneInput?.value
-      };
+      return { name: nameInput?.value, phone: phoneInput?.value };
     })()`);
-    if (!checkoutCustomer.name?.includes("Nguyễn Minh Anh") || !checkoutCustomer.phone?.includes("0900")) {
-      throw new Error(`ASSERTION FAILED on /checkout: customer name=${checkoutCustomer.name}, phone=${checkoutCustomer.phone}`);
+    if (!checkoutCheck.name?.includes("Nguyễn Minh Anh") || !checkoutCheck.phone?.includes("0900")) {
+      throw new Error(`ASSERTION FAILED on /checkout: prefill customer name=${checkoutCheck.name}, phone=${checkoutCheck.phone}`);
     }
-    console.log(`✓ /checkout check passed: prefilled customer (${checkoutCustomer.name}, ${checkoutCustomer.phone}).`);
+    console.log(`✓ Checkout (/checkout) verified: prefilled customer (${checkoutCheck.name}, ${checkoutCheck.phone}).`);
 
-    // Assertion 9: /tai-khoan Account showcase profile
+    // 10. Account (/tai-khoan)
     await page.send("Page.navigate", { url: `${baseUrl}/tai-khoan` });
     await sleep(1500);
-    await waitForFunction(page, `Boolean(document.body.innerText.includes("Nguyễn Minh Anh"))`);
-    const accountUser = await page.evaluate(`document.body.innerText.includes("Nguyễn Minh Anh")`);
-    if (!accountUser) {
-      throw new Error("ASSERTION FAILED on /tai-khoan: showcase account profile missing!");
-    }
-    console.log("✓ /tai-khoan check passed: showcase account profile present.");
+    await assertGlobalPageHealth(page, "Account (/tai-khoan)", 1440);
+    const accountCheck = await page.evaluate(`document.body.innerText.includes("Nguyễn Minh Anh")`);
+    if (!accountCheck) throw new Error("ASSERTION FAILED on /tai-khoan: showcase profile missing");
+    console.log("✓ Account (/tai-khoan) verified: showcase customer profile present.");
 
-    console.log("\n==========================================");
-    console.log("RUNNING 390PX GLOBAL OVERFLOW ASSERTIONS");
-    console.log("==========================================\n");
+    console.log("\n=======================================================");
+    console.log("CAPTURING OFFICIAL DESKTOP (1440px) SCREENSHOT SET");
+    console.log("=======================================================\n");
 
-    await page.send("Emulation.setDeviceMetricsOverride", {
-      width: 390,
-      height: 844,
-      deviceScaleFactor: 3,
-      mobile: true,
-    });
-
-    const routesToCheck = [
-      "/",
-      "/nem",
-      "/nem/america",
-      "/nem/luxury",
-      "/tim-nem",
-      "/so-sanh",
-      "/gio-hang",
-      "/checkout",
-      "/tai-khoan",
-    ];
-
-    for (const route of routesToCheck) {
-      await page.send("Page.navigate", { url: `${baseUrl}${route}` });
-      await sleep(1500);
-
-      const overflowInfo = await page.evaluate(`(() => {
-        const docEl = document.documentElement;
-        return {
-          scrollWidth: docEl.scrollWidth,
-          clientWidth: docEl.clientWidth,
-          hasOverflow: docEl.scrollWidth > docEl.clientWidth + 1
-        };
-      })()`);
-
-      if (overflowInfo.hasOverflow) {
-        throw new Error(`390PX OVERFLOW FAILED on ${route}: scrollWidth=${overflowInfo.scrollWidth} > clientWidth=${overflowInfo.clientWidth}`);
-      }
-      console.log(`✓ 390px overflow passed for ${route} (scrollWidth=${overflowInfo.scrollWidth} <= clientWidth=${overflowInfo.clientWidth})`);
-    }
-
-    console.log("\n==========================================");
-    console.log("CAPTURING OFFICIAL VISUAL QA SCREENSHOTS");
-    console.log("==========================================\n");
-
-    // 1. Capture Desktop (1440px)
     await page.send("Emulation.setDeviceMetricsOverride", {
       width: 1440,
       height: 900,
@@ -408,9 +536,54 @@ async function run() {
       mobile: false,
     });
 
-    const standardDesktopViews = [
-      { name: "desktop_1440_home", path: "/" },
+    // Helper for homepage section captures
+    async function captureHomeSection(sectionSelector, screenshotName, expectedText) {
+      await page.send("Page.navigate", { url: `${baseUrl}/` });
+      await sleep(1200);
+      await preparePageForCapture(page);
+
+      if (sectionSelector !== ".home-hero") {
+        await page.evaluate(`((sel) => {
+          const el = document.querySelector(sel);
+          if (el) el.scrollIntoView({ behavior: "instant", block: "start" });
+        })('${sectionSelector}')`);
+        await sleep(400);
+      }
+
+      await assertGlobalPageHealth(page, `Home Section ${screenshotName}`, 1440);
+
+      const sectionInView = await page.evaluate(`((sel, txt) => {
+        const el = document.querySelector(sel);
+        if (!el) return false;
+        const rect = el.getBoundingClientRect();
+        const bodyText = el.innerText;
+        const intersects = rect.top < window.innerHeight && rect.bottom > 0;
+        const hasText = !txt || bodyText.includes(txt);
+        return intersects && hasText;
+      })('${sectionSelector}', '${expectedText}')`);
+
+      if (!sectionInView) {
+        throw new Error(`HOMEPAGE SECTION CAPTURE FAILED: ${sectionSelector} not in view or missing text '${expectedText}'`);
+      }
+
+      const shot = await page.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+      saveScreenshot(shot.data, `${screenshotName}.png`);
+    }
+
+    // 8 Homepage Sections
+    await captureHomeSection(".home-hero", "desktop_1440_home_hero", "Ngủ ngon hơn,");
+    await captureHomeSection("#product-range", "desktop_1440_home_collection", "BỘ SƯU TẬP NỆM THĂNG LONG");
+    await captureHomeSection("#find-mattress", "desktop_1440_home_finder", "Không cần thử hết mọi tấm nệm");
+    await captureHomeSection(".home-luxury-editorial", "desktop_1440_home_latex", "THE THĂNG LONG SIGNATURE");
+    await captureHomeSection("#shop-by-need", "desktop_1440_home_needs", "SHOP BY NEED");
+    await captureHomeSection("#compare", "desktop_1440_home_compare", "COMPARE");
+    await captureHomeSection("#hotel-project", "desktop_1440_home_hotel", "HOTEL & PROJECT");
+    await captureHomeSection("#contact", "desktop_1440_home_contact", "TƯ VẤN LỰA CHỌN");
+
+    // Standard Desktop Pages
+    const desktopPageViews = [
       { name: "desktop_1440_catalog", path: "/nem" },
+      { name: "desktop_1440_catalog_filtered", path: "/nem?line=america" },
       { name: "desktop_1440_pdp_america", path: "/nem/america" },
       { name: "desktop_1440_pdp_luxury", path: "/nem/luxury" },
       { name: "desktop_1440_finder", path: "/tim-nem" },
@@ -420,37 +593,30 @@ async function run() {
       { name: "desktop_1440_account", path: "/tai-khoan" },
     ];
 
-    for (const view of standardDesktopViews) {
-      console.log(`Capturing desktop [1440px]: ${view.path}`);
+    for (const view of desktopPageViews) {
       await page.send("Page.navigate", { url: `${baseUrl}${view.path}` });
       await sleep(1500);
-
+      await assertGlobalPageHealth(page, view.name, 1440);
       const shot = await page.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
-      const outPath = path.join(ARTIFACT_DIR, `${view.name}.png`);
-      fs.writeFileSync(outPath, Buffer.from(shot.data, "base64"));
-      const stat = fs.statSync(outPath);
-      console.log(`  -> Saved ${view.name}.png (${stat.size} bytes)`);
+      saveScreenshot(shot.data, `${view.name}.png`);
     }
 
-    // Capture Desktop Finder Results
-    console.log("Capturing desktop [1440px]: Finder Results Flow");
+    // Desktop Finder Results (scrolled to #results)
     await page.send("Page.navigate", { url: `${baseUrl}/tim-nem?width=160&feel=balanced&priority=support#results` });
-    await sleep(2000);
-    await assertImagesLoaded(page, "Finder Results Desktop");
-
-    await waitForFunction(page, `Boolean(document.querySelector('#results') && document.querySelectorAll('.finder-result').length >= 2 && (document.body.innerText.includes("GỢI Ý CHÍNH") || document.body.innerText.includes("Gợi ý chính") || document.body.innerText.includes("Một lựa chọn đáng xem xét")))`);
+    await sleep(1500);
     await page.evaluate(`(() => {
-      const resultsEl = document.querySelector('#results') || document.querySelector('.finder-results');
-      if (resultsEl) resultsEl.scrollIntoView({ behavior: 'instant', block: 'start' });
+      const res = document.querySelector('#results');
+      if (res) res.scrollIntoView({ behavior: 'instant', block: 'start' });
     })()`);
-    await sleep(800);
-
+    await sleep(400);
+    await assertGlobalPageHealth(page, "desktop_1440_finder_results", 1440);
     const desktopFinderShot = await page.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
-    const desktopFinderOut = path.join(ARTIFACT_DIR, "desktop_1440_finder_results.png");
-    fs.writeFileSync(desktopFinderOut, Buffer.from(desktopFinderShot.data, "base64"));
-    console.log(`  -> Saved desktop_1440_finder_results.png (${fs.statSync(desktopFinderOut).size} bytes)`);
+    saveScreenshot(desktopFinderShot.data, "desktop_1440_finder_results.png");
 
-    // 2. Capture Mobile (390px)
+    console.log("\n=======================================================");
+    console.log("CAPTURING OFFICIAL MOBILE (390px) SCREENSHOT SET");
+    console.log("=======================================================\n");
+
     await page.send("Emulation.setDeviceMetricsOverride", {
       width: 390,
       height: 844,
@@ -458,7 +624,7 @@ async function run() {
       mobile: true,
     });
 
-    const standardMobileViews = [
+    const mobilePageViews = [
       { name: "mobile_390_home", path: "/" },
       { name: "mobile_390_catalog", path: "/nem" },
       { name: "mobile_390_pdp_america", path: "/nem/america" },
@@ -470,40 +636,42 @@ async function run() {
       { name: "mobile_390_account", path: "/tai-khoan" },
     ];
 
-    for (const view of standardMobileViews) {
-      console.log(`Capturing mobile [390px]: ${view.path}`);
+    for (const view of mobilePageViews) {
       await page.send("Page.navigate", { url: `${baseUrl}${view.path}` });
       await sleep(1500);
-
+      await assertGlobalPageHealth(page, view.name, 390);
       const shot = await page.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
-      const outPath = path.join(ARTIFACT_DIR, `${view.name}.png`);
-      fs.writeFileSync(outPath, Buffer.from(shot.data, "base64"));
-      const stat = fs.statSync(outPath);
-      console.log(`  -> Saved ${view.name}.png (${stat.size} bytes)`);
+      saveScreenshot(shot.data, `${view.name}.png`);
     }
 
-    // Capture Mobile Finder Results
-    console.log("Capturing mobile [390px]: Finder Results Flow");
-    await page.send("Page.navigate", { url: `${baseUrl}/tim-nem?width=160&feel=balanced&priority=support#results` });
-    await sleep(2000);
-    await assertImagesLoaded(page, "Finder Results Mobile");
-
-    await waitForFunction(page, `Boolean(document.querySelector('#results') && document.querySelectorAll('.finder-result').length >= 2 && (document.body.innerText.includes("GỢI Ý CHÍNH") || document.body.innerText.includes("Gợi ý chính") || document.body.innerText.includes("Một lựa chọn đáng xem xét")))`);
+    // Mobile Catalog with Filters Open
+    await page.send("Page.navigate", { url: `${baseUrl}/nem` });
+    await sleep(1500);
     await page.evaluate(`(() => {
-      const resultsEl = document.querySelector('#results') || document.querySelector('.finder-results');
-      if (resultsEl) resultsEl.scrollIntoView({ behavior: 'instant', block: 'start' });
+      const toggleBtn = document.querySelector('.catalog-mobile-toggle-btn');
+      if (toggleBtn) toggleBtn.click();
     })()`);
-    await sleep(800);
+    await sleep(400);
+    await assertGlobalPageHealth(page, "mobile_390_catalog_filters_open", 390);
+    const mobileFiltersOpenShot = await page.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+    saveScreenshot(mobileFiltersOpenShot.data, "mobile_390_catalog_filters_open.png");
 
-    const mobileFinderShot = await page.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
-    const mobileFinderOut = path.join(ARTIFACT_DIR, "mobile_390_finder_results.png");
-    fs.writeFileSync(mobileFinderOut, Buffer.from(mobileFinderShot.data, "base64"));
-    console.log(`  -> Saved mobile_390_finder_results.png (${fs.statSync(mobileFinderOut).size} bytes)`);
+    // Mobile Finder Results
+    await page.send("Page.navigate", { url: `${baseUrl}/tim-nem?width=160&feel=balanced&priority=support#results` });
+    await sleep(1500);
+    await page.evaluate(`(() => {
+      const res = document.querySelector('#results');
+      if (res) res.scrollIntoView({ behavior: 'instant', block: 'start' });
+    })()`);
+    await sleep(400);
+    await assertGlobalPageHealth(page, "mobile_390_finder_results", 390);
+    const mobileFinderResultsShot = await page.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+    saveScreenshot(mobileFinderResultsShot.data, "mobile_390_finder_results.png");
 
     page.close();
-    console.log("\n==========================================");
-    console.log("SHOWCASE RUNTIME VISUAL QA COMPLETE & VERIFIED!");
-    console.log("==========================================\n");
+    console.log("\n=======================================================");
+    console.log("ALL 29 VISUAL QA SCREENSHOTS CAPTURED & VERIFIED!");
+    console.log("=======================================================\n");
   } finally {
     chromeProc.kill();
     if (serverProc) serverProc.kill();
@@ -511,6 +679,6 @@ async function run() {
 }
 
 run().catch((err) => {
-  console.error(err);
+  console.error("\n❌ QA RUN FAILED:", err);
   process.exit(1);
 });

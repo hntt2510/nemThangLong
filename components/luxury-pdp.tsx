@@ -10,6 +10,7 @@ import type { Product, ProductVariant } from "@/lib/types";
 import { GsapReveal } from "./gsap-reveal";
 import { MattressLabTeaser } from "./mattress-lab-teaser";
 import { resolvePdpCta } from "@/lib/product-cta";
+import { isUiShowcaseMode } from "@/lib/ui-showcase";
 
 import { activeVariants, dimensionOptions, initialSelection, resolveVariant, selectVariant, selectionFromVariant, type VariantDimension } from "@/lib/variant-selection";
 
@@ -21,7 +22,7 @@ export function LuxuryPdp({ product }: { product: Product }) {
   const [mediaIndex, setMediaIndex] = useState(0);
   const selected = resolveVariant(variants, selection);
   const media = product.media[mediaIndex] ?? product.media[0];
-  const isShowcase = product.source === "showcase" || Boolean(product.isShowcase) || Boolean(product.previewPurchasable);
+  const isShowcase = product.source === "showcase" || Boolean(product.isShowcase) || Boolean(product.previewPurchasable) || isUiShowcaseMode();
   const canPurchase = Boolean(
     (!product.isDemo || isShowcase) &&
     selected &&

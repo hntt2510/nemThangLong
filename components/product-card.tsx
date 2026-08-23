@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatVnd } from "@/lib/format";
 import type { CatalogProductSummary } from "@/lib/catalog";
+import { isUiShowcaseMode } from "@/lib/ui-showcase";
 
 export type ProductCardProduct = Pick<CatalogProductSummary, "slug" | "name" | "eyebrow" | "description" | "image" | "imageAlt" | "isDemo" | "imageIsDemo" | "minPrice"> & {
   isShowcase?: boolean;
@@ -9,7 +10,7 @@ export type ProductCardProduct = Pick<CatalogProductSummary, "slug" | "name" | "
 };
 
 export function ProductCard({ product, index, className = "" }: { product: ProductCardProduct; index?: number; className?: string }) {
-  const isShowcase = Boolean(product.isShowcase) || Boolean(product.previewPurchasable);
+  const isShowcase = Boolean(product.isShowcase) || Boolean(product.previewPurchasable) || isUiShowcaseMode();
   const priceLabel = product.isDemo && !isShowcase ? "Thông tin đang cập nhật" : product.minPrice ? "Từ " + formatVnd(product.minPrice) : "Liên hệ tư vấn";
   return (
     <article className={"home-product-card product-card " + className}>

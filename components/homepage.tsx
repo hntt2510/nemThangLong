@@ -24,6 +24,7 @@ export function Homepage({
   luxuryProduct: Product;
   settings: HomepageSettings | null;
 }) {
+  const showcaseMode = isUiShowcaseMode();
   const luxury = products.find((product) => product.slug === "luxury") ?? products[products.length - 1];
   const latex = products.find((product) => product.slug === "cao-su-thien-nhien") ?? products[0];
   const deliveryConfigured = settings?.shippingFee !== null && settings?.shippingFee !== undefined;
@@ -49,7 +50,7 @@ export function Homepage({
                     Khám phá sản phẩm
                   </Link>
                 </div>
-                {!isUiShowcaseMode() && (
+                {!showcaseMode && (
                   <p className="home-demo-note">Ảnh minh họa · Thông tin sản phẩm đang được cập nhật.</p>
                 )}
               </div>

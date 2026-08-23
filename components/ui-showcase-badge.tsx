@@ -1,7 +1,8 @@
 import { isUiShowcaseMode } from "@/lib/ui-showcase";
 
-export function UiShowcaseBadge() {
-  if (!isUiShowcaseMode()) return null;
+export function UiShowcaseBadge({ showcaseMode }: { showcaseMode?: boolean } = {}) {
+  const active = typeof showcaseMode === "boolean" ? showcaseMode : isUiShowcaseMode();
+  if (!active) return null;
   return (
     <div className="ui-showcase-badge" role="status" aria-label="Chế độ dữ liệu trình diễn giao diện">
       <span className="ui-showcase-badge-dot" />
@@ -10,3 +11,4 @@ export function UiShowcaseBadge() {
     </div>
   );
 }
+
