@@ -12,8 +12,9 @@ export type ProductCardProduct = Pick<CatalogProductSummary, "slug" | "name" | "
 export function ProductCard({ product, index, className = "" }: { product: ProductCardProduct; index?: number; className?: string }) {
   const isShowcase = Boolean(product.isShowcase) || Boolean(product.previewPurchasable) || isUiShowcaseMode();
   const priceLabel = product.isDemo && !isShowcase ? "Thông tin đang cập nhật" : product.minPrice ? "Từ " + formatVnd(product.minPrice) : "Liên hệ tư vấn";
+  const isLuxury = product.slug === "luxury";
   return (
-    <article className={"home-product-card product-card " + className}>
+    <article className={"home-product-card product-card " + (isLuxury ? "product-card-luxury " : "") + className}>
       <div className="home-product-media product-card-media">
         <Link href={"/nem/" + product.slug as never} aria-label={"Xem " + product.name}>
           <Image src={product.image} alt={product.imageAlt} fill sizes="(max-width: 680px) 100vw, (max-width: 1100px) 50vw, 33vw" style={{ objectFit: "cover" }} />

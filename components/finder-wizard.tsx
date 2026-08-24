@@ -127,7 +127,7 @@ export function FinderWizard({
             <div className="finder-pills-grid">
               <button
                 type="button"
-                className={"finder-pill-card " + (state.width === null ? "is-selected" : "")}
+                className={"finder-pill-card finder-pill-card-all " + (state.width === null ? "is-selected" : "")}
                 aria-pressed={state.width === null}
                 onClick={() => update("width", null)}
               >
