@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
-export default function SignInPage() {
+function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState("");
@@ -31,6 +31,33 @@ export default function SignInPage() {
     }
   }
 
+  const callbackUrl = searchParams.get("callbackUrl");
+  const registerHref = callbackUrl ? `/dang-ky?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/dang-ky";
+
+  return (
+    <>
+      <form onSubmit={submit}>
+        <label>
+          <span>Email</span>
+          <input name="email" type="email" required autoComplete="email" placeholder="email@example.com" />
+        </label>
+        <label>
+          <span>Mật khẩu</span>
+          <input name="password" type="password" required minLength={8} autoComplete="current-password" placeholder="••••••••" />
+        </label>
+        {error && <p className="form-error" role="alert">{error}</p>}
+        <button className="button button-primary auth-submit-btn" disabled={loading}>
+          {loading ? "Đang đăng nhập…" : "Đăng nhập"}
+        </button>
+      </form>
+      <p className="auth-switch">
+        Chưa có tài khoản? <Link href={registerHref as never}>Đăng ký tài khoản mới</Link>
+      </p>
+    </>
+  );
+}
+
+export default function SignInPage() {
   return (
     <main className="auth-page">
       <div className="auth-header">
@@ -43,23 +70,9 @@ export default function SignInPage() {
         <p className="eyebrow">TÀI KHOẢN</p>
         <h1>Chào mừng trở lại.</h1>
         <p className="auth-lede">Đăng nhập để xem lịch sử đơn hàng, sổ địa chỉ và hỗ trợ sau mua.</p>
-        <form onSubmit={submit}>
-          <label>
-            <span>Email</span>
-            <input name="email" type="email" required autoComplete="email" placeholder="email@example.com" />
-          </label>
-          <label>
-            <span>Mật khẩu</span>
-            <input name="password" type="password" required minLength={8} autoComplete="current-password" placeholder="••••••••" />
-          </label>
-          {error && <p className="form-error" role="alert">{error}</p>}
-          <button className="button button-primary auth-submit-btn" disabled={loading}>
-            {loading ? "Đang đăng nhập…" : "Đăng nhập"}
-          </button>
-        </form>
-        <p className="auth-switch">
-          Chưa có tài khoản? <Link href={searchParams.get("callbackUrl") ? `/dang-ky?callbackUrl=${encodeURIComponent(searchParams.get("callbackUrl")!)}` : "/dang-ky"}>Đăng ký tài khoản mới</Link>
-        </p>
+        <Suspense fallback={null}>
+          <SignInForm />
+        </Suspense>
       </div>
     </main>
   );

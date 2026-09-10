@@ -5,7 +5,15 @@ import { z } from "zod";
 import { getPrisma } from "@/lib/db";
 import { getEnv } from "@/lib/env";
 
-const authSecret = getEnv().AUTH_SECRET ?? (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test" ? "thang-long-local-dev-secret-change-me" : undefined);
+let authSecret: string | undefined;
+try {
+  authSecret = getEnv().AUTH_SECRET;
+} catch {
+  authSecret = process.env.AUTH_SECRET;
+}
+if (!authSecret && (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test" || !process.env.VERCEL)) {
+  authSecret = "thang-long-local-dev-secret-change-me";
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: authSecret,

@@ -41,12 +41,17 @@ const SUGGESTION_CHIPS = [
 ];
 
 export function ChatWidget() {
+  const [hasMounted, setHasMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_GREETING]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -163,6 +168,8 @@ export function ChatWidget() {
     });
   };
 
+  if (!hasMounted) return null;
+
   return (
     <>
       {/* Floating Trigger Button (Bottom-Right) */}
@@ -206,7 +213,7 @@ export function ChatWidget() {
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="font-bold text-[14px] tracking-wide text-white">
-                    NỆM THẮNG LONG
+                    {SITE_CONFIG.brand.name.toUpperCase()}
                   </span>
                   <span className="rounded bg-[#C8A27A]/25 px-1.5 py-0.2 text-[9.5px] font-semibold tracking-wider text-[#E8D6C1] uppercase">
                     KIRA AI
