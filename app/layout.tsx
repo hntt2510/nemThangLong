@@ -10,8 +10,13 @@ const ui = Be_Vietnam_Pro({
   weight: ["400", "500", "600", "700", "800"],
 });
 
+const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+const siteUrl = rawSiteUrl && rawSiteUrl.length > 0
+  ? rawSiteUrl
+  : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(siteUrl.startsWith("http") ? siteUrl : `https://${siteUrl}`),
   title: "Nệm Thăng Long — Sleep, considered.",
   description: "Khám phá những lựa chọn nệm được sắp xếp để bạn tìm thấy cảm giác phù hợp.",
 };

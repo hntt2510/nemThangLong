@@ -11,9 +11,11 @@ const spring = { stiffness: 260, damping: 20 };
 function MagneticLink({ children, className }: { children: ReactNode; className: string }) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
+  const springX = useSpring(x, spring);
+  const springY = useSpring(y, spring);
   const reduceMotion = useReducedMotion();
 
-  return <motion.div style={reduceMotion ? undefined : { x: useSpring(x, spring), y: useSpring(y, spring) }} whileHover={reduceMotion ? undefined : { y: -2, boxShadow: "0 10px 25px -5px rgba(30, 58, 95, 0.25)" }} whileTap={{ scale: 0.98 }} onPointerMove={(event) => {
+  return <motion.div style={reduceMotion ? undefined : { x: springX, y: springY }} whileHover={reduceMotion ? undefined : { y: -2, boxShadow: "0 10px 25px -5px rgba(30, 58, 95, 0.25)" }} whileTap={{ scale: 0.98 }} onPointerMove={(event) => {
     if (reduceMotion || window.matchMedia("(pointer: coarse)").matches) return;
     const rect = event.currentTarget.getBoundingClientRect();
     x.set((event.clientX - rect.left - rect.width / 2) * 0.08);
