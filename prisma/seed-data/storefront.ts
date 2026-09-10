@@ -91,9 +91,9 @@ export const localStorefrontProducts = [
 export const localPages = [
   { slug: "home", title: "Thăng Long", sections: [
     { key: "hero", type: "hero", payload: { eyebrow: "THĂNG LONG / SLEEP, CONSIDERED.", title: "Ngủ ngon hơn, mỗi ngày.", body: "Khám phá các dòng nệm Thăng Long và nhận tư vấn theo nhu cầu, kích thước phòng ngủ.", primaryCta: { label: "Tìm nệm phù hợp", href: "/tim-nem" }, secondaryCta: { label: "Khám phá sản phẩm", href: "/nem" } } },
-    { key: "company", type: "company", payload: { name: "Công ty TNHH Nệm Thăng Long Việt Nam", taxCode: "0317564090", phone: "0987 068 277", email: "nemthanglong@gmail.com", address: "79 Đường số 11, Bình Hưng Hòa, TP.HCM" } },
+    { key: "company", type: "company", payload: { name: "Công ty TNHH Nệm Thăng Long Việt Nam", taxCode: "0317564090", phone: "0911 251 004", email: "nemthanglong@gmail.com", address: "79 Đường số 11, Bình Hưng Hòa, TP.HCM" } },
   ] },
-  { slug: "contact", title: "Liên hệ", sections: [{ key: "intro", type: "intro", payload: { eyebrow: "THĂNG LONG", title: "Liên hệ", body: "Công ty TNHH Nệm Thăng Long Việt Nam · hotline 0987 068 277 · nemthanglong@gmail.com." } }] },
+  { slug: "contact", title: "Liên hệ", sections: [{ key: "intro", type: "intro", payload: { eyebrow: "THĂNG LONG", title: "Liên hệ", body: "Công ty TNHH Nệm Thăng Long Việt Nam · hotline 0911 251 004 · nemthanglong@gmail.com." } }] },
   { slug: "hotel-project", title: "Khách sạn & dự án", sections: [{ key: "intro", type: "intro", payload: { eyebrow: "THĂNG LONG B2B", title: "Khách sạn & dự án", body: "Trao đổi cùng đội ngũ về nhu cầu trang bị không gian nghỉ ngơi." } }] },
   { slug: "chinh-sach", title: "Chính sách chất lượng", sections: [{ key: "quality", type: "policy", payload: { body: "Khách hàng kiểm tra sản phẩm khi nhận; điều kiện đổi trả và bảo hành áp dụng theo chính sách chất lượng công bố của nhà sản xuất. Phí và thời gian giao hàng được xác nhận khi tư vấn." } }] },
   { slug: "showrooms", title: "Hệ thống showroom & đại lý", sections: [{ key: "dealers", type: "dealers", payload: { body: "Danh sách showroom và đại lý được cập nhật theo trang đại lý chính thức. Vui lòng liên hệ hotline để xác nhận điểm gần nhất và thời gian phục vụ." } }] },

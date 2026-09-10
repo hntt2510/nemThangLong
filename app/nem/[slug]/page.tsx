@@ -17,8 +17,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function GenericProductRoute({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const [product, related, settings] = await Promise.all([getStorefrontProduct(slug), getRelatedCatalogProducts(slug), getSiteSettings()]);
+  const [product, settings] = await Promise.all([getStorefrontProduct(slug), getSiteSettings()]);
   if (!product) notFound();
+  const related = await getRelatedCatalogProducts(product);
   return (
     <>
       <SiteHeader solid />

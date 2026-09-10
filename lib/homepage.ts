@@ -24,9 +24,9 @@ async function getHomepageReviews() {
   if (!prisma) return [];
   try {
     return await prisma.review.findMany({
-      where: { approved: true, isFixture: false },
+      where: { approved: true, ...(process.env.NODE_ENV === "production" ? { isFixture: false } : {}) },
       orderBy: { createdAt: "desc" },
-      take: 3,
+      take: 12,
       select: { authorName: true, body: true, rating: true, product: { select: { name: true } } },
     }).then((reviews) => reviews.map((review) => ({ ...review, productName: review.product.name })));
   } catch {

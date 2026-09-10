@@ -3,6 +3,10 @@ import "server-only";
 import type { Product, ProductVariant } from "@/lib/types";
 import { getDiscoveryProducts } from "@/lib/discovery";
 import { hasMatchingVariant } from "@/lib/variant-constraints";
+import { getRelatedPriceTierProducts } from "@/lib/product-recommendations";
+
+export { getRelatedPriceTierProducts, getProductEffectivePrice, getPriceTier } from "@/lib/product-recommendations";
+export type { PriceTier, AnyProductWithPrice } from "@/lib/product-recommendations";
 
 export type CatalogSort = "featured" | "price-asc" | "price-desc" | "name-asc";
 
@@ -192,7 +196,15 @@ export async function getCatalogData(params: RawSearchParams = {}) {
   return { products: filtered, facets: facets(source.products), query, total: filtered.length, databaseAvailable: source.databaseAvailable } satisfies CatalogData;
 }
 
-export async function getRelatedCatalogProducts(slug: string, limit = 3) {
+export async function getRelatedCatalogProducts(
+  target: string | { slug: string; id?: string; minPrice?: number | null; price?: number | null; variants?: any[] },
+  limit = 3
+) {
   const source = await getCatalogProducts();
-  return sortCatalogProducts(source.products.filter((product) => product.slug !== slug), "featured").slice(0, limit);
+  const slug = typeof target === "string" ? target : target.slug;
+  const current =
+    typeof target === "string"
+      ? source.products.find((product) => product.slug === slug) ?? { slug, id: slug }
+      : target;
+  return getRelatedPriceTierProducts(current, source.products, limit);
 }

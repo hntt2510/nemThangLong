@@ -3,6 +3,7 @@ import Link from "next/link";
 import { GsapReveal } from "@/components/gsap-reveal";
 import { HomeFaq } from "@/components/home-faq";
 import { HomeHeroSlider } from "@/components/home-hero-slider";
+import { LandingReviewsCarousel } from "@/components/landing-reviews-carousel";
 import { ProductCard } from "@/components/product-card";
 import { SiteFooter } from "@/components/site-footer";
 import { getContactHref, type HomepageProductSummary } from "@/lib/homepage";
@@ -33,6 +34,15 @@ const faqItems = [
   { question: "Cách vệ sinh và bảo quản nệm?", answer: "Giữ nệm ở nơi khô thoáng, dùng ga phủ phù hợp và xem hướng dẫn đi kèm sản phẩm trước khi vệ sinh." },
 ];
 
+const landingHoverImages: Record<string, string> = {
+  classic: "/images/products/classic/02.webp",
+  "cao-su-thien-nhien": "/images/products/cao-su-thien-nhien/02.webp",
+  "hoat-tinh": "/images/products/hoat-tinh/02.webp",
+  "memory-foam": "/images/products/memory-foam/02.webp",
+  "khach-san": "/images/products/khach-san/02.webp",
+  america: "/images/products/america/02.webp",
+};
+
 export function Homepage({ products, reviews, settings, hero, databaseAvailable }: { products: HomepageProductSummary[]; reviews: HomepageReview[]; settings: HomepageSettings | null; hero: HomeHero | null; databaseAvailable: boolean }) {
   const contactHref = getContactHref(settings);
   const productCards = products.slice(0, 6);
@@ -46,7 +56,7 @@ export function Homepage({ products, reviews, settings, hero, databaseAvailable 
         <HomeHeroSlider hero={hero} />
         <section className="landing-trust" aria-label="Thông tin mua sắm"><div className="landing-shell landing-trust-grid">{trustItems.map((item, index) => <div key={item.title}><span aria-hidden="true">0{index + 1}</span><div><strong>{item.title}</strong><p>{item.body}</p></div></div>)}</div></section>
 
-        <GsapReveal variant="stagger" staggerSelector=".landing-product-card"><section className="landing-shell landing-collection" id="product-range"><div className="landing-section-heading landing-section-heading-center"><p className="section-label">BỘ SƯU TẬP NỆM THĂNG LONG</p><h2>Bộ sưu tập nệm Thăng Long</h2><p>Mỗi dòng nệm được phát triển cho những nhu cầu nghỉ ngơi khác nhau của gia đình Việt.</p></div><div className="landing-product-grid">{productCards.map((product) => <ProductCard key={product.slug} product={product} presentation="landing" />)}</div></section></GsapReveal>
+        <GsapReveal variant="stagger" staggerSelector=".landing-product-card"><section className="landing-shell landing-collection" id="product-range"><div className="landing-section-heading landing-section-heading-center"><p className="section-label">BỘ SƯU TẬP NỆM THĂNG LONG</p><h2>Bộ sưu tập nệm Thăng Long</h2><p>Mỗi dòng nệm được phát triển cho những nhu cầu nghỉ ngơi khác nhau của gia đình Việt.</p></div><div className="landing-product-grid">{productCards.map((product) => <ProductCard key={product.slug} product={product} className="landing-product-card" presentation="landing" hoverImage={landingHoverImages[product.slug]} />)}</div></section></GsapReveal>
 
         <GsapReveal variant="editorial"><section className="landing-construction" aria-labelledby="construction-title"><div className="landing-shell landing-construction-grid"><div className="landing-construction-visual"><div className="landing-construction-media"><Image src="/images/homepage-construction.png" alt="Cấu tạo các lớp nệm Thăng Long" fill sizes="(max-width: 860px) 100vw, 44vw" /></div><ol className="landing-construction-labels"><li>Lớp vỏ êm ái</li><li>Lớp comfort</li><li>Lõi cao su thiên nhiên</li><li>Lớp nâng đỡ</li><li>Đế ổn định</li></ol></div><div className="landing-construction-copy"><p className="section-label">CÔNG NGHỆ &amp; CHẤT LIỆU</p><h2 id="construction-title">Cấu tạo được chọn cho giấc ngủ hằng ngày.</h2><p>Các lớp vật liệu được sắp xếp để mang đến cảm giác êm ái, nâng đỡ cân bằng và sử dụng bền bỉ.</p><Link href="/nem/cao-su-thien-nhien" className="landing-button landing-button-dark">Xem dòng nệm <span aria-hidden="true">→</span></Link></div></div></section></GsapReveal>
 
@@ -56,7 +66,7 @@ export function Homepage({ products, reviews, settings, hero, databaseAvailable 
 
         <GsapReveal><section className="landing-shell landing-showroom"><div className="landing-showroom-media"><Image src="/images/landing-showroom-v2.png" alt="Showroom trưng bày nệm Thăng Long" fill sizes="(max-width: 860px) 100vw, 1280px" /></div><div className="landing-showroom-copy"><div><p className="section-label">TRẢI NGHIỆM THỰC TẾ</p><h2>Đến showroom, nằm thử và cảm nhận.</h2><p>Không gian gọn gàng để bạn thử từng dòng nệm và nhận tư vấn phù hợp.</p></div><Link href="/lien-he" className="landing-button landing-button-outline">Liên hệ showroom <span aria-hidden="true">→</span></Link></div></section></GsapReveal>
 
-        <GsapReveal variant="stagger" staggerSelector=".landing-review-card"><section className="landing-shell landing-reviews"><div className="landing-section-heading"><p className="section-label">PHẢN HỒI KHÁCH HÀNG</p><h2>Khách hàng chia sẻ</h2></div><div className="landing-review-grid">{displayedReviews.map((review) => <article key={`${review.authorName}-${review.body}`} className="landing-review-card"><div><span className="landing-review-stars" aria-label={`${review.rating} trên 5`}>{"★".repeat(review.rating)}</span><p>“{review.body}”</p></div><footer><div><b>{review.authorName}</b>{review.detail && <span>{review.detail}</span>}</div><span>{review.productName}</span></footer></article>)}</div></section></GsapReveal>
+        <GsapReveal variant="stagger" staggerSelector=".landing-review-card"><section className="landing-shell landing-reviews"><div className="landing-section-heading"><p className="section-label">PHẢN HỒI KHÁCH HÀNG</p><h2>Khách hàng chia sẻ</h2></div><LandingReviewsCarousel reviews={displayedReviews} /></section></GsapReveal>
 
         <GsapReveal variant="stagger" staggerSelector=".landing-journal-card"><section className="landing-shell landing-journal"><div className="landing-section-heading landing-section-heading-row"><div><p className="section-label">KIẾN THỨC GIẤC NGỦ</p><h2>Tin tức và chia sẻ</h2></div><Link href={"/kien-thuc-giac-ngu" as never} className="landing-text-link">Xem tất cả <span aria-hidden="true">→</span></Link></div><div className="landing-journal-grid">{sleepJournalPosts.map((post) => <Link key={post.slug} className="landing-journal-card" href={`/kien-thuc-giac-ngu/${post.slug}` as never}><span><Image src={post.image} alt="" fill sizes="(max-width: 860px) 100vw, 33vw" /></span><strong>{post.title}</strong><small>{post.excerpt}</small></Link>)}</div></section></GsapReveal>
 

@@ -1,12 +1,13 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-brand-canvas: #faf8f4;
-  --color-brand-surface: #f0eae1;
-  --color-brand-ink: #302820;
-  --color-brand-copy: #62574c;
-  --color-brand-accent: #947047;
-  --font-brand-display: var(--font-display);
+  --color-brand-canvas: #f7f8fa;
+  --color-brand-surface: #e8ecef;
+  --color-brand-ink: #0f172a;
+  --color-brand-copy: #475569;
+  --color-brand-accent: #c89d66;
+  --color-brand-primary: #1e3a5f;
+  --font-brand-display: var(--font-ui);
   --font-brand-ui: var(--font-ui);
   --radius-brand: 0.25rem;
 }
@@ -100,50 +101,52 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+@layer base {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
 
-button {
-  color: inherit;
-  cursor: pointer;
-  border: 0;
-  background: transparent;
-}
+  button {
+    color: inherit;
+    cursor: pointer;
+    border: 0;
+    background: transparent;
+  }
 
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid var(--warm);
-  outline-offset: 3px;
-}
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid var(--warm);
+    outline-offset: 3px;
+  }
 
-h1,
-h2,
-h3,
-h4,
-p {
-  margin: 0;
-}
+  h1,
+  h2,
+  h3,
+  h4,
+  p {
+    margin: 0;
+  }
 
-h1,
-h2,
-h3,
-h4 {
-  font-family: var(--font-display), Georgia, serif;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  color: var(--text);
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display), Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
 }
 
 .container {
@@ -3693,20 +3696,36 @@ h4 {
 }
 
 .lead-form .form-grid input,
+.lead-form .form-grid select,
 .lead-form .form-grid textarea {
   width: 100%;
   min-height: 48px;
   padding: 12px 14px;
-  border: 1px solid var(--border);
+  border: 1px solid #cbd5e1;
   border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--text);
-  transition: border-color var(--transition-fast);
+  background: #fff;
+  color: #0f172a;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.lead-form .form-grid input::placeholder,
+.lead-form .form-grid textarea::placeholder {
+  color: #94a3b8;
 }
 
 .lead-form .form-grid input:focus,
+.lead-form .form-grid select:focus,
 .lead-form .form-grid textarea:focus {
-  border-color: var(--warm);
+  border-color: #1E3A5F;
+  box-shadow: 0 0 0 4px rgb(30 58 95 / 20%);
+}
+
+.lead-form .form-grid label {
+  transition: color 180ms ease;
+}
+
+.lead-form .form-grid label:focus-within span {
+  color: var(--warm);
 }
 
 .lead-form .form-grid textarea {
@@ -3726,6 +3745,39 @@ h4 {
 
 .lead-form .button {
   margin-top: 26px;
+}
+
+.partner-marquee-row {
+  overflow: hidden;
+  width: 100%;
+}
+
+.partner-marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 16px;
+  padding-left: 16px;
+  animation: partner-marquee 36s linear infinite;
+  will-change: transform;
+}
+
+.partner-marquee-row[data-direction="reverse"] .partner-marquee-track {
+  animation-direction: reverse;
+  animation-delay: -18s;
+}
+
+.partner-marquee:hover .partner-marquee-track,
+.partner-marquee:focus-within .partner-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes partner-marquee {
+  to { transform: translateX(calc(-50% - 8px)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .partner-marquee-row { overflow-x: auto; }
+  .partner-marquee-track { animation: none; }
 }
 
 .lead-honeypot {
@@ -8716,3 +8768,22 @@ h4 {
 }
 
 @media (prefers-reduced-motion: reduce) { .about-page *, .finder-page *, .catalog-page *, .b2b-page *, .journal-page *, .journal-article * { transition:none !important; animation:none !important; scroll-behavior:auto !important; } }
+
+/* B2B contrast lock: these controls sit on navy surfaces and must not inherit storefront text colors. */
+.b2b-primary-cta,
+.b2b-primary-cta:visited,
+.b2b-primary-cta:hover,
+.b2b-primary-cta svg,
+.b2b-project-inquiry .b2b-inquiry-heading,
+.b2b-project-inquiry .b2b-lead-submit,
+.b2b-project-inquiry .b2b-lead-submit:disabled {
+  color: #ffffff !important;
+}
+
+.b2b-project-inquiry .b2b-inquiry-kicker {
+  color: #c89d66 !important;
+}
+
+.b2b-project-inquiry .b2b-inquiry-copy {
+  color: #cbd5e1 !important;
+}

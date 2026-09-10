@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { getMenuItems } from "@/lib/storefront-cms";
+import { SITE_CONFIG } from "@/config/site-config";
 
 export async function SiteFooter({ contactPhone, contactEmail }: { contactPhone?: string | null; contactEmail?: string | null }) {
   const [explore, support] = await Promise.all([getMenuItems("footer-explore"), getMenuItems("footer-support")]);
+  const displayPhone = contactPhone || SITE_CONFIG.contact.hotlineDisplay;
+  const displayEmail = contactEmail || SITE_CONFIG.contact.supportEmail;
+  const telLink = displayPhone.replace(/\s+/g, "");
 
   return (
     <footer className="border-t border-brand-ink/10 bg-brand-canvas text-brand-copy" id="about">
@@ -11,11 +15,11 @@ export async function SiteFooter({ contactPhone, contactEmail }: { contactPhone?
           <Link href="/" className="inline-flex items-center gap-2.5 text-brand-ink" aria-label="Thăng Long trang chủ">
             <span className="font-brand-display border-r border-brand-ink/30 pr-2 text-3xl font-semibold leading-none tracking-[-0.08em]" aria-hidden="true">TL</span>
             <span className="flex flex-col leading-none">
-              <b className="font-brand-display text-base font-semibold tracking-[0.12em]">THĂNG LONG</b>
+              <b className="font-brand-display text-base font-semibold tracking-[0.12em]">{SITE_CONFIG.brand.name.toUpperCase()}</b>
               <small className="mt-1 text-[0.56rem] font-bold tracking-[0.15em] text-brand-copy">GIẤC NGỦ VIỆT</small>
             </span>
           </Link>
-          <p className="mt-5 max-w-xs text-sm leading-6">Giấc ngủ tốt hơn, cuộc sống đẹp hơn.</p>
+          <p className="mt-5 max-w-xs text-sm leading-6">{SITE_CONFIG.brand.slogan}.</p>
         </div>
         <div className="grid content-start gap-3 text-sm">
           <p className="mb-1 text-xs font-bold tracking-[0.14em] text-brand-ink">KHÁM PHÁ</p>
@@ -27,9 +31,8 @@ export async function SiteFooter({ contactPhone, contactEmail }: { contactPhone?
         </div>
         <div className="grid content-start gap-3 text-sm">
           <p className="mb-1 text-xs font-bold tracking-[0.14em] text-brand-ink">LIÊN HỆ</p>
-          {contactPhone ? <a href={`tel:${contactPhone}`} className="w-fit hover:text-brand-accent">{contactPhone}</a> : null}
-          {contactEmail ? <a href={`mailto:${contactEmail}`} className="w-fit hover:text-brand-accent">{contactEmail}</a> : null}
-          {!contactPhone && !contactEmail ? <span>Thông tin đang cập nhật</span> : null}
+          {displayPhone ? <a href={`tel:${telLink}`} className="w-fit hover:text-brand-accent">{displayPhone}</a> : null}
+          {displayEmail ? <a href={`mailto:${displayEmail}`} className="w-fit hover:text-brand-accent">{displayEmail}</a> : null}
         </div>
       </div>
       <div className="border-t border-brand-ink/10">

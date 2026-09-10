@@ -6,6 +6,7 @@ import { getDiscoveryProducts } from "@/lib/discovery";
 import { getSiteSettings } from "@/lib/products";
 import { breadcrumbJsonLd, contactPageMetadata } from "@/lib/seo";
 import { getPageIntro } from "@/lib/storefront-cms";
+import { SITE_CONFIG } from "@/config/site-config";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,37 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
   const requestedSlug = typeof params.product === "string" ? params.product : null;
   const product = databaseAvailable ? products.find((item) => item.slug === requestedSlug) ?? null : null;
   const breadcrumbs = breadcrumbJsonLd([{ name: "Trang chủ", item: "/" }, { name: "Liên hệ", item: "/lien-he" }]);
-  const contactHref = settings?.contactPhone ? "tel:" + settings.contactPhone : settings?.contactEmail ? "mailto:" + settings.contactEmail : null;
-  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs).replace(/</g, "\\u003c") }} /><SiteHeader solid /><main className="lead-page contact-page"><section className="lead-hero container"><p className="eyebrow">{intro?.eyebrow ?? "NỘI DUNG ĐANG CẬP NHẬT"}</p><h1>{intro?.title ?? "Liên hệ"}</h1><p>{intro?.body ?? ""}</p></section><section className="lead-layout container"><div className="lead-form-panel"><p className="section-label">TƯ VẤN SẢN PHẨM</p>{product && <p className="lead-context">Bạn đang quan tâm: <strong>{product.name}</strong></p>}<LeadForm type="CONSULTATION" productSlug={product?.slug} /></div><aside className="lead-aside"><p className="section-label">LIÊN HỆ TRỰC TIẾP</p>{contactHref ? <div className="lead-direct"><p>Trao đổi thêm qua kênh đã cấu hình.</p>{settings?.contactPhone && <a href={"tel:" + settings.contactPhone}>{settings.contactPhone}</a>}{settings?.contactEmail && <a href={"mailto:" + settings.contactEmail}>{settings.contactEmail}</a>}</div> : <p>Thông tin liên hệ trực tiếp đang được cập nhật.</p>}</aside></section></main><SiteFooter contactPhone={settings?.contactPhone} contactEmail={settings?.contactEmail} /></>;
+  const displayPhone = settings?.contactPhone || SITE_CONFIG.contact.hotlineDisplay;
+  const displayEmail = settings?.contactEmail || SITE_CONFIG.contact.supportEmail;
+  const telHref = displayPhone ? "tel:" + displayPhone.replace(/\s+/g, "") : null;
+  const mailtoHref = displayEmail ? "mailto:" + displayEmail : null;
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs).replace(/</g, "\\u003c") }} />
+      <SiteHeader solid />
+      <main className="lead-page contact-page">
+        <section className="lead-hero container">
+          <p className="eyebrow">{intro?.eyebrow ?? "NỘI DUNG ĐANG CẬP NHẬT"}</p>
+          <h1>{intro?.title ?? "Liên hệ"}</h1>
+          <p>{intro?.body ?? ""}</p>
+        </section>
+        <section className="lead-layout container">
+          <div className="lead-form-panel">
+            <p className="section-label">TƯ VẤN SẢN PHẨM</p>
+            {product && <p className="lead-context">Bạn đang quan tâm: <strong>{product.name}</strong></p>}
+            <LeadForm type="CONSULTATION" productSlug={product?.slug} />
+          </div>
+          <aside className="lead-aside">
+            <p className="section-label">LIÊN HỆ TRỰC TIẾP</p>
+            <div className="lead-direct">
+              <p>Trao đổi trực tiếp qua hotline hoặc email hỗ trợ:</p>
+              {displayPhone && telHref && <a href={telHref}>{displayPhone}</a>}
+              {displayEmail && mailtoHref && <a href={mailtoHref}>{displayEmail}</a>}
+            </div>
+          </aside>
+        </section>
+      </main>
+      <SiteFooter contactPhone={displayPhone} contactEmail={displayEmail} />
+    </>
+  );
 }

@@ -28,14 +28,14 @@ export async function bootstrapDevelopment(prisma: PrismaClient, source: NodeJS.
         shippingFee: 0,
         freeShippingThreshold: null,
         bankTransferReservationMinutes: 30,
-        contactPhone: "0987 068 277",
+        contactPhone: "0911 251 004",
         contactEmail: "nemthanglong@gmail.com",
       },
       create: {
         id: "default",
         shippingFee: 0,
         bankTransferReservationMinutes: 30,
-        contactPhone: "0987 068 277",
+        contactPhone: "0911 251 004",
         contactEmail: "nemthanglong@gmail.com",
       },
     });

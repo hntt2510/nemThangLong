@@ -1,21 +1,13 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Manrope } from "next/font/google";
+import { Be_Vietnam_Pro } from "next/font/google";
 import { AppProviders } from "@/components/app-providers";
 import "./globals.css";
 
-// Keep the existing CSS variables so the editorial typography can be upgraded
-// without touching every component that already opts into the display font.
-const display = Cormorant_Garamond({
-  subsets: ["latin", "vietnamese"],
-  variable: "--font-display",
-  display: "swap",
-  weight: ["400", "500", "600", "700"],
-});
-const ui = Manrope({
+const ui = Be_Vietnam_Pro({
   subsets: ["latin", "vietnamese"],
   variable: "--font-ui",
   display: "swap",
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -27,7 +19,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="vi">
-      <body suppressHydrationWarning className={display.variable + " " + ui.variable}>
+      <body suppressHydrationWarning className={ui.variable}>
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

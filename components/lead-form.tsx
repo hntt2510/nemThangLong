@@ -19,12 +19,14 @@ export function LeadForm({ type, productSlug }: LeadFormProps) {
     setError("");
     const form = new FormData(event.currentTarget);
     const estimatedQuantity = String(form.get("estimatedQuantity") ?? "").trim();
+    const projectNeed = String(form.get("projectNeed") ?? "").trim();
+    const message = String(form.get("message") ?? "").trim();
     const body = {
       type,
       fullName: String(form.get("fullName") ?? ""),
       phone: String(form.get("phone") ?? ""),
       email: String(form.get("email") ?? ""),
-      message: String(form.get("message") ?? ""),
+      message: projectNeed ? `Nhu cầu dự án: ${projectNeed}${message ? `\n${message}` : ""}` : message,
       ...(productSlug ? { productSlug } : {}),
       ...(b2b ? {
         organization: String(form.get("organization") ?? ""),
@@ -55,16 +57,17 @@ export function LeadForm({ type, productSlug }: LeadFormProps) {
 
   return <form className="lead-form" onSubmit={(event) => void submit(event)}>
     <div className="form-grid">
-      <label><span>Họ và tên <b aria-hidden="true">*</b></span><input name="fullName" required maxLength={120} autoComplete="name" /></label>
-      <label><span>Số điện thoại <b aria-hidden="true">*</b></span><input name="phone" required maxLength={32} autoComplete="tel" inputMode="tel" /></label>
+      <label><span>{b2b ? "Tên người liên hệ" : "Họ và tên"} <b aria-hidden="true">*</b></span><input name="fullName" required maxLength={120} autoComplete="name" /></label>
+      <label><span>{b2b ? "Số điện thoại / Zalo" : "Số điện thoại"} <b aria-hidden="true">*</b></span><input name="phone" required maxLength={32} autoComplete="tel" inputMode="tel" /></label>
       <label><span>Email</span><input name="email" type="email" maxLength={254} autoComplete="email" /></label>
-      {b2b && <label><span>Tổ chức / công ty</span><input name="organization" maxLength={160} autoComplete="organization" /> </label>}
+      {b2b && <label><span>Tên dự án / khách sạn</span><input name="organization" maxLength={160} autoComplete="organization" /> </label>}
       {b2b && <label><span>Địa điểm dự án</span><input name="projectLocation" maxLength={200} autoComplete="street-address" /></label>}
-      {b2b && <label><span>Số lượng dự kiến</span><input name="estimatedQuantity" type="number" min={1} step={1} inputMode="numeric" /></label>}
+      {b2b && <label><span>Số lượng phòng dự kiến</span><input name="estimatedQuantity" type="number" min={1} step={1} inputMode="numeric" /></label>}
+      {b2b && <label><span>Nhu cầu</span><select name="projectNeed" defaultValue=""><option value="">Chọn nhu cầu</option><option value="Trang bị mới">Trang bị mới</option><option value="Thay thế nệm hiện tại">Thay thế nệm hiện tại</option></select></label>}
       <label className="full"><span>Nội dung trao đổi</span><textarea name="message" maxLength={2000} rows={5} /></label>
       <label className="lead-honeypot" aria-hidden="true"><span>Website</span><input name="website" tabIndex={-1} autoComplete="off" /></label>
     </div>
     {error && <p ref={errorRef} className="form-error" role="alert" tabIndex={-1}>{error}</p>}
-    <button className="button button-primary" type="submit" disabled={pending}>{pending ? "Đang gửi…" : "Gửi yêu cầu"}</button>
+    <button className={`button button-primary${b2b ? " b2b-lead-submit" : ""}`} type="submit" disabled={pending}>{pending ? "Đang gửi…" : b2b ? "Gửi yêu cầu dự án" : "Gửi yêu cầu"}</button>
   </form>;
 }
