@@ -46,10 +46,10 @@ describe("OpenAPI contract", () => {
     };
     await SwaggerParser.validate(document as never);
     const operations = Object.entries(document.paths).flatMap(([path, item]) => Object.entries(item).filter(([method]) => ["get", "post", "put", "patch", "delete"].includes(method)).map(([method, operation]) => `${method.toUpperCase()} ${path}`));
-    expect(operations).toHaveLength(37);
-    expect(new Set(operations).size).toBe(37);
+    expect(operations).toHaveLength(58);
+    expect(new Set(operations).size).toBe(58);
     expect(operations.every((operation) => document.paths[operation.split(" ")[1]][operation.split(" ")[0].toLowerCase()].operationId)).toBe(true);
-    expect(new Set(Object.values(document.paths).flatMap((item) => Object.values(item).map((operation) => operation.operationId))).size).toBe(37);
+    expect(new Set(Object.values(document.paths).flatMap((item) => Object.values(item).map((operation) => operation.operationId))).size).toBe(58);
     expect(operations).toContain("POST /api/checkout");
     expect(operations).toContain("PATCH /api/admin/payment-reviews/{id}");
     expect(operations).not.toContain("GET /api/fake");

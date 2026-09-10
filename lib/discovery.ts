@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getPrisma } from "@/lib/db";
+import { getDemoCatalogProducts } from "@/lib/product-data";
 import { mapProduct, productInclude } from "@/lib/products";
 import { mediaAlt } from "@/lib/product-media";
 import type { Product, ProductMedia, ProductVariant } from "@/lib/types";
@@ -78,7 +79,7 @@ export function toDiscoveryProduct(product: Product, catalogueIndex = 0): Discov
     media,
     image: primary?.url ?? product.posterUrl ?? "",
     imageAlt: primary ? mediaAlt(product, primary) : `Hình ảnh minh họa ${product.name}`,
-    imageIsDemo: Boolean(!primary),
+    imageIsDemo: Boolean(!primary || primary.isDemo || product.isDemo),
     isDemo: product.isDemo,
     variants,
     widths: [...new Set(variants.map((variant) => variant.width))].sort((a, b) => a - b),
@@ -88,13 +89,13 @@ export function toDiscoveryProduct(product: Product, catalogueIndex = 0): Discov
     minPrice: priced.length ? Math.min(...priced) : null,
     maxPrice: priced.length ? Math.max(...priced) : null,
     inStock: variants.some((variant) => variant.stock > 0 && (process.env.NODE_ENV !== "production" || variant.stockStatus === "VERIFIED")),
-    purchasable: product.purchasable,
+    purchasable: Boolean(product.isShowcase ? product.previewPurchasable : product.purchasable),
     comfort: content.comfort,
     audience: content.audience,
     materialStory: content.materialStory,
     delivery: content.delivery,
     warranty: content.warranty,
-    hasVerifiedPrices: variants.some((variant) => variant.price !== null && variant.price > 0 && variant.priceStatus === "VERIFIED"),
+    hasVerifiedPrices: (Boolean(product.isShowcase) || product.source === "showcase" || !product.isDemo) && variants.some((variant) => variant.price !== null && variant.price > 0 && (variant.priceStatus === "VERIFIED" || variant.priceStatus === undefined)),
     hasPlaceholderPrices: variants.some((variant) => variant.price !== null && variant.price > 0 && variant.priceStatus === "PLACEHOLDER"),
     ratingAverage: ratings.length ? ratings.reduce((total, rating) => total + rating, 0) / ratings.length : null,
     ratingCount: ratings.length,
@@ -112,15 +113,20 @@ function discoveryData(products: DiscoveryProduct[], databaseAvailable: boolean)
 export async function getDiscoveryProducts(): Promise<DiscoveryData> {
   let prisma;
   try { prisma = getPrisma(); } catch { prisma = null; }
-  if (!prisma) return discoveryData([], false);
+  if (!prisma) return discoveryData(getDemoCatalogProducts().map((product, index) => toDiscoveryProduct(product, index)), false);
   try {
     const records = await prisma.product.findMany({ where: { status: "PUBLISHED", saleStatus: { not: "HIDDEN" } }, include: productInclude, orderBy: [{ sortOrder: "asc" }, { name: "asc" }] });
+    if (!records || records.length === 0) {
+      return discoveryData(getDemoCatalogProducts().map((product, index) => toDiscoveryProduct(product, index)), false);
+    }
     const products = records
       .filter((record) => record.status === "PUBLISHED")
       .map((record, index) => toDiscoveryProduct(mapProduct(record), index))
       .sort((a, b) => a.catalogueIndex - b.catalogueIndex);
     return discoveryData(products, true);
-  } catch { return discoveryData([], false); }
+  } catch {
+    return discoveryData(getDemoCatalogProducts().map((product, index) => toDiscoveryProduct(product, index)), false);
+  }
 }
 
 export async function getDiscoveryProduct(slug: string) {

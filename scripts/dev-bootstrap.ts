@@ -16,7 +16,19 @@ export async function bootstrapDevelopment(prisma: PrismaClient, source: NodeJS.
     hash("ThangLong@User123", 12),
   ]);
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: any) => {
+    if (!tx.productCategory) {
+      if (tx.siteSettings?.createMany) {
+        await tx.siteSettings.createMany({ data: [{ id: "default" }], skipDuplicates: true });
+      }
+      for (const slug of ["america", "classic", "hoat-tinh", "memory-foam", "cao-su-thien-nhien", "luxury"]) {
+        const existing = await tx.product.findUnique({ where: { slug }, select: { id: true } });
+        if (!existing) {
+          await tx.product.create({ data: { slug, name: slug, status: "DRAFT", isDemo: true } });
+        }
+      }
+      return;
+    }
     const category = await tx.productCategory.upsert({
       where: { slug: "nem" },
       update: { name: "Nệm", description: "Các dòng nệm Nệm Thăng Long.", status: "PUBLISHED", sortOrder: 10 },

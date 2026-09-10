@@ -18,42 +18,58 @@ function asItems(items: Array<{ label: string; href: string; enabled: boolean }>
 }
 
 export async function getMenuItems(key: string): Promise<NavigationItem[]> {
-  const prisma = getPrisma();
-  if (!prisma) return [];
-  const menu = await prisma.menu.findUnique({ where: { key }, include: { items: { where: { parentId: null, enabled: true }, orderBy: { sortOrder: "asc" } } } }).catch(() => null);
-  return menu ? asItems(menu.items) : [];
+  try {
+    const prisma = getPrisma();
+    if (!prisma) return [];
+    const menu = await prisma.menu.findUnique({ where: { key }, include: { items: { where: { parentId: null, enabled: true }, orderBy: { sortOrder: "asc" } } } });
+    return menu ? asItems(menu.items) : [];
+  } catch {
+    return [];
+  }
 }
 
 export async function getStorefrontNavigation(): Promise<SiteNavigation> {
-  const prisma = getPrisma();
-  if (!prisma) return { mattressLines: [], needs: [], primary: [] };
-  const menus = await prisma.menu.findMany({
-    where: { key: { in: ["header-mattress", "header-needs", "header-primary"] } },
-    include: { items: { where: { parentId: null }, orderBy: { sortOrder: "asc" } } },
-  }).catch(() => []);
-  const byKey = new Map(menus.map((menu) => [menu.key, asItems(menu.items)]));
-  return { mattressLines: byKey.get("header-mattress") ?? [], needs: byKey.get("header-needs") ?? [], primary: byKey.get("header-primary") ?? [] };
+  try {
+    const prisma = getPrisma();
+    if (!prisma) return { mattressLines: [], needs: [], primary: [] };
+    const menus = await prisma.menu.findMany({
+      where: { key: { in: ["header-mattress", "header-needs", "header-primary"] } },
+      include: { items: { where: { parentId: null }, orderBy: { sortOrder: "asc" } } },
+    });
+    const byKey = new Map(menus.map((menu) => [menu.key, asItems(menu.items)]));
+    return { mattressLines: byKey.get("header-mattress") ?? [], needs: byKey.get("header-needs") ?? [], primary: byKey.get("header-primary") ?? [] };
+  } catch {
+    return { mattressLines: [], needs: [], primary: [] };
+  }
 }
 
 export async function getHomeHero(): Promise<HomeHero | null> {
-  const prisma = getPrisma();
-  if (!prisma) return null;
-  const section = await prisma.pageSection.findFirst({
-    where: { key: "hero", enabled: true, page: { slug: "home", status: "PUBLISHED" } },
-    include: { media: { orderBy: { sortOrder: "asc" }, include: { mediaAsset: true } } },
-  }).catch(() => null);
-  if (!section) return null;
-  const parsed = heroPayloadSchema.safeParse(section.payload);
-  if (!parsed.success) return null;
-  const image = section.media.find((item) => item.mediaAsset.reviewStatus === "APPROVED" || process.env.NODE_ENV !== "production")?.mediaAsset;
-  return { ...parsed.data, imageUrl: image?.url ?? null, imageAlt: image?.alt ?? null };
+  try {
+    const prisma = getPrisma();
+    if (!prisma) return null;
+    const section = await prisma.pageSection.findFirst({
+      where: { key: "hero", enabled: true, page: { slug: "home", status: "PUBLISHED" } },
+      include: { media: { orderBy: { sortOrder: "asc" }, include: { mediaAsset: true } } },
+    });
+    if (!section) return null;
+    const parsed = heroPayloadSchema.safeParse(section.payload);
+    if (!parsed.success) return null;
+    const image = section.media.find((item) => item.mediaAsset.reviewStatus === "APPROVED" || process.env.NODE_ENV !== "production")?.mediaAsset;
+    return { ...parsed.data, imageUrl: image?.url ?? null, imageAlt: image?.alt ?? null };
+  } catch {
+    return null;
+  }
 }
 
 export async function getPageIntro(slug: string) {
-  const prisma = getPrisma();
-  if (!prisma) return null;
-  const section = await prisma.pageSection.findFirst({ where: { key: "intro", enabled: true, page: { slug, status: "PUBLISHED" } } }).catch(() => null);
-  if (!section) return null;
-  const parsed = introPayloadSchema.safeParse(section.payload);
-  return parsed.success ? parsed.data : null;
+  try {
+    const prisma = getPrisma();
+    if (!prisma) return null;
+    const section = await prisma.pageSection.findFirst({ where: { key: "intro", enabled: true, page: { slug, status: "PUBLISHED" } } });
+    if (!section) return null;
+    const parsed = introPayloadSchema.safeParse(section.payload);
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
 }

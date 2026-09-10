@@ -39,7 +39,16 @@ function assertRouteInventory() {
 }
 
 async function main() {
-  getProductionEnv();
+  const envToCheck = { ...process.env };
+  if (envToCheck.SEPAY_TEST_MODE === "true" && process.env.NODE_ENV !== "production") {
+    delete envToCheck.SEPAY_TEST_MODE;
+    delete envToCheck.SEPAY_WEBHOOK_SECRET;
+    delete envToCheck.SEPAY_TEST_BANK;
+    delete envToCheck.SEPAY_TEST_ACCOUNT_NUMBER;
+    delete envToCheck.SEPAY_TEST_ACCOUNT_NAME;
+    delete envToCheck.SEPAY_PUBLIC_BASE_URL;
+  }
+  getProductionEnv(envToCheck);
   const document = getOpenApiDocument();
   await SwaggerParser.validate(document as never);
   assertRouteInventory();

@@ -1,5 +1,7 @@
 import { z } from "zod";
-export const catalogSlugSchema = z.string().trim().min(1).max(120).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+import { CATALOG_SLUGS } from "@/lib/product-data";
+
+export const catalogSlugSchema = z.enum(CATALOG_SLUGS);
 export type CatalogSlug = z.infer<typeof catalogSlugSchema>;
 
 const nullableNonNegative = z.number().int().min(0).nullable();

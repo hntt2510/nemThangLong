@@ -11,8 +11,8 @@ try {
 } catch {
   authSecret = process.env.AUTH_SECRET;
 }
-if (!authSecret && (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test" || !process.env.VERCEL)) {
-  authSecret = "thang-long-local-dev-secret-change-me";
+if (!authSecret) {
+  authSecret = process.env.AUTH_SECRET || "thang-long-dev-secret-at-least-32-characters-long";
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({

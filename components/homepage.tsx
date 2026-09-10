@@ -48,7 +48,7 @@ export function Homepage({ products, reviews, settings, hero, databaseAvailable 
   const productCards = products.slice(0, 6);
   const displayedReviews: LandingReview[] = reviews.length > 0 ? reviews : fallbackReviews;
 
-  if (!databaseAvailable) return <main className="storefront-unavailable container"><p className="eyebrow">TẠM THỜI KHÔNG THỂ KẾT NỐI</p><h1>Dữ liệu cửa hàng đang tạm thời không sẵn sàng.</h1><p>Vui lòng thử lại sau ít phút.</p></main>;
+  if (!databaseAvailable && productCards.length === 0) return <main className="storefront-unavailable container"><p className="eyebrow">TẠM THỜI KHÔNG THỂ KẾT NỐI</p><h1>Dữ liệu cửa hàng đang tạm thời không sẵn sàng.</h1><p>Vui lòng thử lại sau ít phút.</p></main>;
 
   return (
     <div className="landing-page">

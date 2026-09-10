@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { Product, ProductVariant } from "@/lib/types";
+import { CATALOG_SLUGS } from "@/lib/product-data";
 import { getDiscoveryProducts } from "@/lib/discovery";
 import { hasMatchingVariant } from "@/lib/variant-constraints";
 import { getRelatedPriceTierProducts } from "@/lib/product-recommendations";
@@ -84,7 +85,7 @@ export function parseCatalogQuery(params: RawSearchParams = {}): CatalogQuery {
   const sort = values(params.sort)[0];
   return {
     search: values(params.q)[0]?.trim().slice(0, 100) ?? "",
-    lines: values(params.line),
+    lines: values(params.line).filter((line): line is (typeof CATALOG_SLUGS)[number] => (CATALOG_SLUGS as readonly string[]).includes(line)),
     widths: positiveInts(params.width),
     thicknesses: positiveInts(params.thickness),
     minPrice: optionalPrice(params.minPrice),
@@ -100,7 +101,9 @@ function materialStory(product: Product) {
 }
 
 export function toCatalogProduct(product: Product): CatalogProductSummary {
-  const variants = product.variants.filter((variant) => variant.active);
+  const isShowcase = Boolean(product.isShowcase);
+  const isDemo = Boolean(product.isDemo) && !isShowcase;
+  const variants = isDemo ? [] : product.variants.filter((variant) => variant.active);
   const priced = variants.filter((variant) => process.env.NODE_ENV !== "production" || variant.priceStatus === "VERIFIED").map((variant) => variant.price).filter((price): price is number => typeof price === "number" && price > 0);
   const media = product.media[0];
   const ratings = product.reviews.map((review) => review.rating).filter((rating) => Number.isFinite(rating));
@@ -112,10 +115,12 @@ export function toCatalogProduct(product: Product): CatalogProductSummary {
     image: media?.url ?? product.posterUrl ?? "",
     imageAlt: media?.alt ?? `Hình ảnh minh họa ${product.name}`,
     isDemo: product.isDemo,
-    imageIsDemo: !media,
+    imageIsDemo: product.isDemo || !media || Boolean(media.isDemo),
     minPrice: priced.length > 0 ? Math.min(...priced) : null,
     maxPrice: priced.length > 0 ? Math.max(...priced) : null,
-    purchasable: product.purchasable,
+    purchasable: isShowcase
+      ? Boolean(product.previewPurchasable)
+      : (!isDemo && (product.purchasable || variants.some((v) => v.active && typeof v.price === "number" && v.price > 0 && v.stock > 0))),
     inStock: variants.some((variant) => variant.stock > 0),
     widths: [...new Set(variants.map((variant) => variant.width))].sort((a, b) => a - b),
     thicknesses: [...new Set(variants.map((variant) => variant.thickness))].sort((a, b) => a - b),
