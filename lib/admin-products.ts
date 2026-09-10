@@ -18,7 +18,7 @@ export function neutralProductName(slug: CatalogSlug) {
 }
 
 export async function initializeAdminProduct(prisma: PrismaClient, slug: CatalogSlug) {
-  return prisma.product.create({ data: { slug, name: neutralProductName(slug), status: "DRAFT", isDemo: false, saleStatus: "HIDDEN", verificationStatus: "PLACEHOLDER", mattressLab: false }, select: { id: true, slug: true, name: true, status: true, isDemo: true, updatedAt: true } });
+  return prisma.product.create({ data: { slug, name: neutralProductName(slug), status: "DRAFT", isDemo: true, saleStatus: "HIDDEN", verificationStatus: "PLACEHOLDER", mattressLab: false }, select: { id: true, slug: true, name: true, status: true, isDemo: true, updatedAt: true } });
 }
 
 export async function saveAdminProductDocument(prisma: PrismaClient, slug: CatalogSlug, document: AdminProductDocument) {
