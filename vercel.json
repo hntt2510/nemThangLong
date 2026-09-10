@@ -1,3 +1,1 @@
-{
-  "crons": [{ "path": "/api/cron/release-reservations", "schedule": "*/15 * * * *" }]
-}
+{}
