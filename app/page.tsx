@@ -1,11 +1,11 @@
 import { Homepage } from "@/components/homepage";
 import { SiteHeader } from "@/components/site-header";
 import { getHomepageData } from "@/lib/homepage";
-import { getStorefrontProduct } from "@/lib/products";
+import { getHomeHero } from "@/lib/storefront-cms";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [{ products, settings }, luxuryProduct] = await Promise.all([getHomepageData(), getStorefrontProduct("luxury")]);
-  return <><SiteHeader solid /><Homepage products={products} luxuryProduct={luxuryProduct} settings={settings} /></>;
+  const [{ products, reviews, settings, databaseAvailable }, hero] = await Promise.all([getHomepageData(), getHomeHero()]);
+  return <><SiteHeader solid landing /><Homepage products={products} reviews={reviews} settings={settings} hero={hero} databaseAvailable={databaseAvailable} /></>;
 }

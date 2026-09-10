@@ -5,16 +5,12 @@ import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 import { formatDimension, formatVnd } from "@/lib/format";
 
-import { isUiShowcaseMode, getShowcaseCartItems } from "@/lib/ui-showcase";
-import { useShowcaseMode } from "@/components/showcase-provider";
+import { shippingFeeForSubtotal, type ShippingPolicy } from "@/lib/shipping";
 
-export function CartPage() {
-  const { items: realItems, removeItem, subtotal: realSubtotal } = useCart();
-  const showcaseContextMode = useShowcaseMode();
-  const showcaseMode = showcaseContextMode || isUiShowcaseMode();
-  const isShowcase = showcaseMode && realItems.length === 0;
-  const items = isShowcase ? getShowcaseCartItems() : realItems;
-  const subtotal = isShowcase ? items.reduce((acc, item) => acc + item.price * item.quantity, 0) : realSubtotal;
+export function CartPage({ shippingPolicy }: { shippingPolicy: ShippingPolicy }) {
+  const { items, removeItem, subtotal } = useCart();
+  const shippingFee = shippingFeeForSubtotal(subtotal, shippingPolicy);
+  const total = shippingFee === null ? null : subtotal + shippingFee;
 
   if (!items.length) {
     return (
@@ -65,7 +61,8 @@ export function CartPage() {
             <span>Tạm tính</span>
             <strong>{formatVnd(subtotal)}</strong>
           </div>
-          <p className="cart-summary-note">Phí vận chuyển và phương thức thanh toán được chọn ở bước thanh toán.</p>
+          <dl className="order-cost-summary"><div><dt>Phí giao hàng</dt><dd>{shippingFee === null ? "Xác nhận khi thanh toán" : shippingFee === 0 ? "Miễn phí" : formatVnd(shippingFee)}</dd></div>{shippingPolicy.freeShippingThreshold !== null && shippingPolicy.freeShippingThreshold > 0 && <div className="order-cost-hint">Miễn phí giao hàng từ {formatVnd(shippingPolicy.freeShippingThreshold)}.</div>}{total !== null && <div className="order-cost-total"><dt>Tổng dự kiến</dt><dd>{formatVnd(total)}</dd></div>}</dl>
+          <p className="cart-summary-note">Tổng cuối cùng được xác nhận khi tạo đơn hàng.</p>
           <Link href="/checkout" className="button button-primary">
             Tiến hành thanh toán
           </Link>

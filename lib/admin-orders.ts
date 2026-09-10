@@ -49,8 +49,9 @@ export function canTransitionOrderStatus(from: OrderStatus, to: OrderStatus) { r
 export async function updateFulfillmentStatus(prisma: PrismaClient, id: string, status: OrderStatus) {
   if (!(status in transitions)) throw new Error("INVALID_TRANSITION");
   return withSerializable(prisma, async (tx) => {
-    const current = await tx.order.findUnique({ where: { id }, select: { status: true } }); if (!current) throw new Error("NOT_FOUND");
+    const current = await tx.order.findUnique({ where: { id }, select: { status: true, paymentStatus: true } }); if (!current) throw new Error("NOT_FOUND");
     if (!canTransitionOrderStatus(current.status, status)) throw new Error("INVALID_TRANSITION");
+    if (status === "COMPLETED" && current.paymentStatus !== "PAID") throw new Error("INVALID_STATE");
     if (current.status === status) return tx.order.findUniqueOrThrow({ where: { id }, select: { id: true, status: true, paymentStatus: true } });
     return tx.order.update({ where: { id }, data: { status }, select: { id: true, status: true, paymentStatus: true } });
   });

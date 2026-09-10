@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/db";
-import { CATALOG_SLUGS } from "@/lib/product-data";
-import { catalogSlugSchema, initializeAdminProduct, neutralProductName } from "@/lib/admin-products";
+import { catalogSlugSchema, initializeAdminProduct } from "@/lib/admin-products";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 
@@ -15,8 +14,8 @@ export async function GET() {
   const prisma = getPrisma();
   if (!prisma) return NextResponse.json({ error: "Database chưa được cấu hình." }, { status: 503 });
   try {
-    const products = await prisma.product.findMany({ where: { slug: { in: [...CATALOG_SLUGS] } }, orderBy: { slug: "asc" }, select: { id: true, slug: true, name: true, status: true, isDemo: true, updatedAt: true, _count: { select: { media: true } }, variants: { where: { active: true }, select: { price: true, stock: true } } } });
-    return NextResponse.json(CATALOG_SLUGS.map((slug) => { const product = products.find((item) => item.slug === slug); return product ? { ...product, activeVariantCount: product.variants.length, purchasableVariantCount: product.isDemo ? 0 : product.variants.filter((variant) => variant.price !== null && variant.price > 0 && variant.stock > 0).length, variants: undefined, mediaCount: product._count.media } : { slug, name: neutralProductName(slug), status: null, isDemo: null, updatedAt: null, activeVariantCount: 0, purchasableVariantCount: 0, mediaCount: 0 }; }));
+    const products = await prisma.product.findMany({ orderBy: [{ sortOrder: "asc" }, { name: "asc" }], select: { id: true, slug: true, name: true, status: true, isDemo: true, verificationStatus: true, saleStatus: true, updatedAt: true, _count: { select: { mediaLinks: true } }, variants: { where: { active: true }, select: { price: true, stock: true } } } });
+    return NextResponse.json(products.map((product) => ({ ...product, activeVariantCount: product.variants.length, purchasableVariantCount: product.saleStatus === "ACTIVE" ? product.variants.filter((variant) => variant.price !== null && variant.price > 0 && variant.stock > 0).length : 0, variants: undefined, mediaCount: product._count.mediaLinks })));
   } catch { return NextResponse.json({ error: "Database hiện chưa khả dụng." }, { status: 503 }); }
 }
 

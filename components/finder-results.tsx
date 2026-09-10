@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import { GsapReveal } from "@/components/gsap-reveal";
 import { ProductCard } from "@/components/product-card";
 import { formatVnd } from "@/lib/format";
@@ -115,12 +118,16 @@ function AlternativeCandidateCard({ candidate }: { candidate: FinderCandidate })
 }
 
 export function FinderResultsPanel({ results }: { results: FinderResults }) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (window.location.hash === "#results") headingRef.current?.focus();
+  }, [results]);
   if (results.empty) {
     return (
       <section id="results" className="finder-results container" aria-live="polite">
         <div className="finder-empty">
           <p className="section-label">KẾT QUẢ</p>
-          <h2>Chưa có sản phẩm với dữ liệu đã xác nhận phù hợp các điều kiện này.</h2>
+          <h2 ref={headingRef} tabIndex={-1}>Chưa có sản phẩm với dữ liệu đã xác nhận phù hợp các điều kiện này.</h2>
           <div className="finder-result-actions">
             <Link href="/tim-nem#finder-form" className="button button-secondary">
               Điều chỉnh điều kiện
@@ -138,7 +145,7 @@ export function FinderResultsPanel({ results }: { results: FinderResults }) {
       <section id="results" className="finder-results container" aria-live="polite">
         <div className="finder-results-heading">
           <p className="section-label">KẾT QUẢ GỢI Ý</p>
-          <h2>{results.primary ? "Một lựa chọn đáng xem xét." : "Danh sách để bạn khám phá."}</h2>
+          <h2 ref={headingRef} tabIndex={-1}>{results.primary ? "Một lựa chọn đáng xem xét." : "Danh sách để bạn khám phá."}</h2>
           <p>
             {results.primary
               ? "Gợi ý này dựa trên các trường dữ liệu và thông số kích thước đã được công bố."

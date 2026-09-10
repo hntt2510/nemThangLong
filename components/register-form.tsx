@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -29,7 +30,8 @@ export function RegisterForm() {
       setLoading(false);
       return;
     }
-    router.push("/dang-nhap");
+    const callbackUrl = searchParams.get("callbackUrl");
+    router.push(callbackUrl && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//") ? `/dang-nhap?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/dang-nhap");
   }
 
   return (
@@ -51,7 +53,7 @@ export function RegisterForm() {
         {loading ? "Đang tạo…" : "Tạo tài khoản"}
       </button>
       <p className="auth-switch">
-        Đã có tài khoản? <Link href="/dang-nhap">Đăng nhập</Link>
+        Đã có tài khoản? <Link href={searchParams.get("callbackUrl") ? `/dang-nhap?callbackUrl=${encodeURIComponent(searchParams.get("callbackUrl")!)}` : "/dang-nhap"}>Đăng nhập</Link>
       </p>
     </form>
   );

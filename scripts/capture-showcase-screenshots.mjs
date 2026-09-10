@@ -233,6 +233,124 @@ async function assertGlobalPageHealth(page, contextName, viewportWidth) {
   if (Math.abs(headerTop) > 2) {
     throw new Error(`STICKY HEADER MISALIGNED on [${contextName}]: header top is ${headerTop}px (expected 0px)`);
   }
+
+  // 6. Showcase Badge & Layout Architecture Assertions
+  const badgeHealth = await page.evaluate(`(() => {
+    const isDesktop = window.innerWidth > 860;
+    const allBadges = Array.from(document.querySelectorAll('.header-showcase-badge, .header-mobile-showcase-strip'));
+    const visibleBadges = allBadges.filter(b => {
+      const style = window.getComputedStyle(b);
+      return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+    });
+
+    // Assertion 1: exactly 1 visible badge in showcase mode
+    const countOk = visibleBadges.length === 1;
+
+    // Assertion 2 & 3: desktop/mobile badge position is NOT fixed or absolute
+    let positionOk = true;
+    let positionDetail = "";
+    if (visibleBadges.length > 0) {
+      const pos = window.getComputedStyle(visibleBadges[0]).position;
+      if (pos === 'fixed' || pos === 'absolute') {
+        positionOk = false;
+        positionDetail = pos;
+      }
+    }
+
+    // Assertion 4: Badge does not overlap nav, breadcrumb, h1
+    const activeBadge = visibleBadges[0];
+    const rectBadge = activeBadge?.getBoundingClientRect();
+
+    let overlapsNav = false;
+    let overlapsContent = false;
+
+    if (isDesktop) {
+      const accountLink = document.querySelector('.header-actions .account-link');
+      const cartLink = document.querySelector('.header-actions .cart-link');
+      const cartSup = document.querySelector('.header-actions sup');
+      const rectAccount = accountLink?.getBoundingClientRect();
+      const rectCart = cartLink?.getBoundingClientRect();
+
+      if (rectBadge && rectAccount) {
+        if (rectBadge.right > rectAccount.left && rectBadge.left < rectAccount.right) overlapsNav = true;
+      }
+      if (rectBadge && rectCart) {
+        if (rectBadge.right > rectCart.left && rectBadge.left < rectCart.right) overlapsNav = true;
+      }
+
+      const accountVisible = Boolean(rectAccount && rectAccount.width > 0 && rectAccount.height > 0);
+      const cartVisible = Boolean(rectCart && rectCart.width > 0 && rectCart.height > 0);
+      const cartCountVisible = Boolean(cartSup && cartSup.innerText.trim().length > 0);
+
+      return {
+        isDesktop,
+        countOk,
+        visibleCount: visibleBadges.length,
+        positionOk,
+        positionDetail,
+        accountVisible,
+        cartVisible,
+        cartCountVisible,
+        overlapsNav,
+        overlapsContent,
+      };
+    } else {
+      const strip = document.querySelector('.header-mobile-showcase-strip');
+      const cartLink = document.querySelector('.header-actions .cart-link');
+      const menuBtn = document.querySelector('.menu-toggle');
+      const rectStrip = strip?.getBoundingClientRect();
+      const rectCart = cartLink?.getBoundingClientRect();
+      const rectMenu = menuBtn?.getBoundingClientRect();
+
+      // Check breadcrumbs text and h1
+      const breadcrumbs = document.querySelector('.breadcrumbs a, .breadcrumbs span, nav[aria-label="Breadcrumb"] a, nav[aria-label="Breadcrumb"] span');
+      const h1 = document.querySelector('h1');
+      const rectBread = breadcrumbs?.getBoundingClientRect();
+      const rectH1 = h1?.getBoundingClientRect();
+
+      if (rectStrip && rectBread && rectBread.height > 0) {
+        if (rectStrip.bottom > rectBread.top + 2) overlapsContent = true;
+      }
+      if (rectStrip && rectH1 && rectH1.height > 0) {
+        if (rectStrip.bottom > rectH1.top + 2) overlapsContent = true;
+      }
+
+      return {
+        isDesktop,
+        countOk,
+        visibleCount: visibleBadges.length,
+        positionOk,
+        positionDetail,
+        stripVisible: Boolean(strip && rectStrip && rectStrip.height > 0),
+        cartVisible: Boolean(cartLink && rectCart && rectCart.width > 0),
+        menuVisible: Boolean(menuBtn && rectMenu && rectMenu.width > 0),
+        overlapsNav: false,
+        overlapsContent,
+      };
+    }
+  })()`);
+
+  if (!badgeHealth.countOk) {
+    throw new Error(`SHOWCASE BADGE COUNT ERROR on [${contextName}]: expected 1 visible badge, found ${badgeHealth.visibleCount}`);
+  }
+  if (!badgeHealth.positionOk) {
+    throw new Error(`SHOWCASE BADGE POSITION ERROR on [${contextName}]: badge position is '${badgeHealth.positionDetail}' (expected normal flow static/relative)`);
+  }
+  if (badgeHealth.isDesktop) {
+    if (!badgeHealth.accountVisible || !badgeHealth.cartVisible || !badgeHealth.cartCountVisible) {
+      throw new Error(`NAV HEADER HEALTH FAILED on [${contextName}]: account=${badgeHealth.accountVisible}, cart=${badgeHealth.cartVisible}, count=${badgeHealth.cartCountVisible}`);
+    }
+    if (badgeHealth.overlapsNav) {
+      throw new Error(`NAV HEADER BADGE OVERLAP DETECTED on [${contextName}]!`);
+    }
+  } else {
+    if (!badgeHealth.stripVisible || !badgeHealth.cartVisible || !badgeHealth.menuVisible) {
+      throw new Error(`MOBILE HEADER HEALTH FAILED on [${contextName}]: strip=${badgeHealth.stripVisible}, cart=${badgeHealth.cartVisible}, menu=${badgeHealth.menuVisible}`);
+    }
+    if (badgeHealth.overlapsContent) {
+      throw new Error(`MOBILE BADGE STRIP CONTENT OVERLAP DETECTED on [${contextName}]!`);
+    }
+  }
 }
 
 function saveScreenshot(shotData, filename) {
@@ -525,6 +643,37 @@ async function run() {
     if (!accountCheck) throw new Error("ASSERTION FAILED on /tai-khoan: showcase profile missing");
     console.log("✓ Account (/tai-khoan) verified: showcase customer profile present.");
 
+    const args = process.argv.slice(2);
+    const affectedOnly = args.includes("--affected") || args.includes("--affected-only");
+    const filterArg = args.find((a) => !a.startsWith("-")) || "";
+
+    const AFFECTED_NAMES = new Set([
+      "desktop_1440_catalog",
+      "desktop_1440_catalog_filtered",
+      "desktop_1440_pdp_america",
+      "desktop_1440_finder",
+      "desktop_1440_compare",
+      "desktop_1440_cart",
+      "desktop_1440_checkout",
+      "desktop_1440_account",
+      "mobile_390_home",
+      "mobile_390_catalog",
+      "mobile_390_catalog_filters_open",
+      "mobile_390_pdp_america",
+      "mobile_390_pdp_luxury",
+      "mobile_390_finder",
+      "mobile_390_compare",
+      "mobile_390_cart",
+      "mobile_390_checkout",
+      "mobile_390_account",
+    ]);
+
+    function shouldCapture(name) {
+      if (affectedOnly) return AFFECTED_NAMES.has(name);
+      if (filterArg) return name.includes(filterArg);
+      return true;
+    }
+
     console.log("\n=======================================================");
     console.log("CAPTURING OFFICIAL DESKTOP (1440px) SCREENSHOT SET");
     console.log("=======================================================\n");
@@ -538,6 +687,7 @@ async function run() {
 
     // Helper for homepage section captures
     async function captureHomeSection(sectionSelector, screenshotName, expectedText) {
+      if (!shouldCapture(screenshotName)) return;
       await page.send("Page.navigate", { url: `${baseUrl}/` });
       await sleep(1200);
       await preparePageForCapture(page);
@@ -594,6 +744,7 @@ async function run() {
     ];
 
     for (const view of desktopPageViews) {
+      if (!shouldCapture(view.name)) continue;
       await page.send("Page.navigate", { url: `${baseUrl}${view.path}` });
       await sleep(1500);
       await assertGlobalPageHealth(page, view.name, 1440);
@@ -602,16 +753,18 @@ async function run() {
     }
 
     // Desktop Finder Results (scrolled to #results)
-    await page.send("Page.navigate", { url: `${baseUrl}/tim-nem?width=160&feel=balanced&priority=support#results` });
-    await sleep(1500);
-    await page.evaluate(`(() => {
-      const res = document.querySelector('#results');
-      if (res) res.scrollIntoView({ behavior: 'instant', block: 'start' });
-    })()`);
-    await sleep(400);
-    await assertGlobalPageHealth(page, "desktop_1440_finder_results", 1440);
-    const desktopFinderShot = await page.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
-    saveScreenshot(desktopFinderShot.data, "desktop_1440_finder_results.png");
+    if (shouldCapture("desktop_1440_finder_results")) {
+      await page.send("Page.navigate", { url: `${baseUrl}/tim-nem?width=160&feel=balanced&priority=support#results` });
+      await sleep(1500);
+      await page.evaluate(`(() => {
+        const res = document.querySelector('#results');
+        if (res) res.scrollIntoView({ behavior: 'instant', block: 'start' });
+      })()`);
+      await sleep(400);
+      await assertGlobalPageHealth(page, "desktop_1440_finder_results", 1440);
+      const desktopFinderShot = await page.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+      saveScreenshot(desktopFinderShot.data, "desktop_1440_finder_results.png");
+    }
 
     console.log("\n=======================================================");
     console.log("CAPTURING OFFICIAL MOBILE (390px) SCREENSHOT SET");
@@ -637,6 +790,7 @@ async function run() {
     ];
 
     for (const view of mobilePageViews) {
+      if (!shouldCapture(view.name)) continue;
       await page.send("Page.navigate", { url: `${baseUrl}${view.path}` });
       await sleep(1500);
       await assertGlobalPageHealth(page, view.name, 390);
@@ -645,28 +799,32 @@ async function run() {
     }
 
     // Mobile Catalog with Filters Open
-    await page.send("Page.navigate", { url: `${baseUrl}/nem` });
-    await sleep(1500);
-    await page.evaluate(`(() => {
-      const toggleBtn = document.querySelector('.catalog-mobile-toggle-btn');
-      if (toggleBtn) toggleBtn.click();
-    })()`);
-    await sleep(400);
-    await assertGlobalPageHealth(page, "mobile_390_catalog_filters_open", 390);
-    const mobileFiltersOpenShot = await page.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
-    saveScreenshot(mobileFiltersOpenShot.data, "mobile_390_catalog_filters_open.png");
+    if (shouldCapture("mobile_390_catalog_filters_open")) {
+      await page.send("Page.navigate", { url: `${baseUrl}/nem` });
+      await sleep(1500);
+      await page.evaluate(`(() => {
+        const toggleBtn = document.querySelector('.catalog-mobile-toggle-btn');
+        if (toggleBtn) toggleBtn.click();
+      })()`);
+      await sleep(400);
+      await assertGlobalPageHealth(page, "mobile_390_catalog_filters_open", 390);
+      const mobileFiltersOpenShot = await page.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+      saveScreenshot(mobileFiltersOpenShot.data, "mobile_390_catalog_filters_open.png");
+    }
 
     // Mobile Finder Results
-    await page.send("Page.navigate", { url: `${baseUrl}/tim-nem?width=160&feel=balanced&priority=support#results` });
-    await sleep(1500);
-    await page.evaluate(`(() => {
-      const res = document.querySelector('#results');
-      if (res) res.scrollIntoView({ behavior: 'instant', block: 'start' });
-    })()`);
-    await sleep(400);
-    await assertGlobalPageHealth(page, "mobile_390_finder_results", 390);
-    const mobileFinderResultsShot = await page.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
-    saveScreenshot(mobileFinderResultsShot.data, "mobile_390_finder_results.png");
+    if (shouldCapture("mobile_390_finder_results")) {
+      await page.send("Page.navigate", { url: `${baseUrl}/tim-nem?width=160&feel=balanced&priority=support#results` });
+      await sleep(1500);
+      await page.evaluate(`(() => {
+        const res = document.querySelector('#results');
+        if (res) res.scrollIntoView({ behavior: 'instant', block: 'start' });
+      })()`);
+      await sleep(400);
+      await assertGlobalPageHealth(page, "mobile_390_finder_results", 390);
+      const mobileFinderResultsShot = await page.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
+      saveScreenshot(mobileFinderResultsShot.data, "mobile_390_finder_results.png");
+    }
 
     page.close();
     console.log("\n=======================================================");

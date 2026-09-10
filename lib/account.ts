@@ -40,8 +40,31 @@ export async function getAccountOrder(prisma: PrismaClient, userId: string, id: 
   return prisma.order.findFirst({
     where: { id, userId },
     select: {
-      id: true, code: true, createdAt: true, subtotal: true, shippingFee: true, total: true, status: true, paymentMethod: true, paymentStatus: true, shippingAddress: true,
-      items: { select: { id: true, productName: true, sku: true, width: true, length: true, thickness: true, quantity: true, unitPrice: true } },
+      id: true, code: true, publicToken: true, createdAt: true, subtotal: true, shippingFee: true, total: true, status: true, paymentMethod: true, paymentStatus: true, shippingAddress: true,
+      items: {
+        select: {
+          id: true, productName: true, sku: true, width: true, length: true, thickness: true, quantity: true, unitPrice: true,
+          variant: {
+            select: {
+              product: {
+                select: {
+                  mediaLinks: {
+                    where: { role: "gallery" },
+                    orderBy: { sortOrder: "asc" },
+                    take: 1,
+                    select: { mediaAsset: { select: { url: true, alt: true } } },
+                  },
+                  media: {
+                    orderBy: { sortOrder: "asc" },
+                    take: 1,
+                    select: { url: true, alt: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
       payments: { orderBy: { createdAt: "desc" }, take: 1, select: { status: true, expiresAt: true, provider: true } },
     },
   });

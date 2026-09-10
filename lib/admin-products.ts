@@ -1,26 +1,24 @@
 import "server-only";
 
-import { CATALOG_SLUGS } from "@/lib/product-data";
 import type { PrismaClient, Prisma } from "@prisma/client";
 import { Prisma as PrismaNamespace } from "@prisma/client";
 import { productInclude } from "@/lib/products";
 import { withSerializable } from "@/lib/transaction";
-import { neutralCatalogProductName } from "@/lib/catalog-names";
 import { adminProductDocumentSchema, type AdminProductDocument, catalogSlugSchema, type CatalogSlug } from "@/lib/admin-product-validation";
 
 export { adminContentSchema, adminLayerSchema, adminMediaSchema, adminProductDocumentSchema, adminVariantSchema, catalogSlugSchema } from "@/lib/admin-product-validation";
 export type { AdminProductDocument, CatalogSlug } from "@/lib/admin-product-validation";
 
 export function isCatalogSlug(slug: string): slug is CatalogSlug {
-  return (CATALOG_SLUGS as readonly string[]).includes(slug);
+  return catalogSlugSchema.safeParse(slug).success;
 }
 
 export function neutralProductName(slug: CatalogSlug) {
-  return neutralCatalogProductName(slug);
+  return `Sản phẩm ${slug}`;
 }
 
 export async function initializeAdminProduct(prisma: PrismaClient, slug: CatalogSlug) {
-  return prisma.product.create({ data: { slug, name: neutralProductName(slug), status: "DRAFT", isDemo: true, mattressLab: false }, select: { id: true, slug: true, name: true, status: true, isDemo: true, updatedAt: true } });
+  return prisma.product.create({ data: { slug, name: neutralProductName(slug), status: "DRAFT", isDemo: false, saleStatus: "HIDDEN", verificationStatus: "PLACEHOLDER", mattressLab: false }, select: { id: true, slug: true, name: true, status: true, isDemo: true, updatedAt: true } });
 }
 
 export async function saveAdminProductDocument(prisma: PrismaClient, slug: CatalogSlug, document: AdminProductDocument) {

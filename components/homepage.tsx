@@ -1,282 +1,68 @@
 import Image from "next/image";
 import Link from "next/link";
 import { GsapReveal } from "@/components/gsap-reveal";
-import { MattressLabTeaser } from "@/components/mattress-lab-teaser";
+import { HomeFaq } from "@/components/home-faq";
+import { HomeHeroSlider } from "@/components/home-hero-slider";
 import { ProductCard } from "@/components/product-card";
 import { SiteFooter } from "@/components/site-footer";
-import { isUiShowcaseMode } from "@/lib/ui-showcase";
 import { getContactHref, type HomepageProductSummary } from "@/lib/homepage";
-import type { Product } from "@/lib/types";
+import { sleepJournalPosts } from "@/lib/sleep-journal";
+import type { HomeHero } from "@/lib/storefront-cms";
 
-type HomepageSettings = {
-  shippingFee: number | null;
-  contactPhone: string | null;
-  contactEmail: string | null;
-  navigation: unknown;
-};
+type HomepageSettings = { shippingFee: number | null; contactPhone: string | null; contactEmail: string | null; navigation: unknown };
+type HomepageReview = { authorName: string; body: string; rating: number; productName: string };
+type LandingReview = HomepageReview & { detail?: string };
 
-export function Homepage({
-  products,
-  luxuryProduct,
-  settings,
-}: {
-  products: HomepageProductSummary[];
-  luxuryProduct: Product;
-  settings: HomepageSettings | null;
-}) {
-  const showcaseMode = isUiShowcaseMode();
-  const luxury = products.find((product) => product.slug === "luxury") ?? products[products.length - 1];
-  const latex = products.find((product) => product.slug === "cao-su-thien-nhien") ?? products[0];
-  const deliveryConfigured = settings?.shippingFee !== null && settings?.shippingFee !== undefined;
+const trustItems = [
+  { title: "Tư vấn trước khi chọn", body: "Trao đổi về kích thước, thói quen nằm và mức giá phù hợp." },
+  { title: "Thông tin rõ ràng", body: "Xem dòng nệm, kích thước và mức giá trước khi quyết định." },
+  { title: "Giao hàng theo khu vực", body: "Chi phí và thời gian giao được xác nhận trước khi đặt hàng." },
+  { title: "Hỗ trợ sau mua", body: "Nhận hướng dẫn sử dụng, bảo quản và thông tin bảo hành." },
+];
+
+const fallbackReviews: LandingReview[] = [
+  { authorName: "Chị Thu Hà", detail: "Quận 7, TP. Hồ Chí Minh", productName: "Nệm Thăng Long Classic", rating: 5, body: "Tư vấn dễ hiểu, chọn được kích thước vừa với phòng. Nệm nằm êm và gia đình dùng thấy ổn." },
+  { authorName: "Anh Minh Quân", detail: "Hải Châu, Đà Nẵng", productName: "Nệm cao su thiên nhiên Thăng Long 3/4", rating: 5, body: "Được xem kỹ từng lựa chọn trước khi đặt. Nhân viên hỗ trợ nhiệt tình, giao hàng đúng hẹn đã trao đổi." },
+  { authorName: "Chị Bích Ngọc", detail: "Biên Hòa, Đồng Nai", productName: "Nệm Thăng Long Hoạt Tính", rating: 5, body: "Gia đình cần nệm cho phòng nhỏ, được tư vấn đúng nhu cầu. Cách dùng và bảo quản cũng được hướng dẫn rõ." },
+];
+
+const faqItems = [
+  { question: "Nệm nào phù hợp với nhu cầu của tôi?", answer: "Bạn có thể bắt đầu với công cụ tìm nệm hoặc liên hệ đội ngũ tư vấn để trao đổi về tư thế nằm, không gian và cảm giác mong muốn." },
+  { question: "Giao hàng được áp dụng như thế nào?", answer: "Thông tin giao hàng được tư vấn theo khu vực và đơn hàng. Chúng tôi sẽ xác nhận chi tiết trước khi bạn hoàn tất lựa chọn." },
+  { question: "Bảo hành được áp dụng ra sao?", answer: "Điều kiện bảo hành được áp dụng theo từng dòng sản phẩm và thông tin đã công bố khi mua hàng." },
+  { question: "Cách vệ sinh và bảo quản nệm?", answer: "Giữ nệm ở nơi khô thoáng, dùng ga phủ phù hợp và xem hướng dẫn đi kèm sản phẩm trước khi vệ sinh." },
+];
+
+export function Homepage({ products, reviews, settings, hero, databaseAvailable }: { products: HomepageProductSummary[]; reviews: HomepageReview[]; settings: HomepageSettings | null; hero: HomeHero | null; databaseAvailable: boolean }) {
   const contactHref = getContactHref(settings);
+  const productCards = products.slice(0, 6);
+  const displayedReviews: LandingReview[] = reviews.length > 0 ? reviews : fallbackReviews;
+
+  if (!databaseAvailable) return <main className="storefront-unavailable container"><p className="eyebrow">TẠM THỜI KHÔNG THỂ KẾT NỐI</p><h1>Dữ liệu cửa hàng đang tạm thời không sẵn sàng.</h1><p>Vui lòng thử lại sau ít phút.</p></main>;
 
   return (
-    <div className="homepage">
+    <div className="landing-page">
       <main>
-        <GsapReveal variant="hero" parallax>
-          <section className="home-hero">
-            <div className="container home-hero-grid">
-              <div className="home-hero-copy">
-                <p className="eyebrow">THĂNG LONG / SLEEP, CONSIDERED.</p>
-                <h1>Ngủ ngon hơn,<br />mỗi ngày.</h1>
-                <p className="home-hero-lede">
-                  Những lựa chọn nệm được sắp xếp để bạn dễ tìm thấy cảm giác phù hợp cho không gian nghỉ ngơi của mình.
-                </p>
-                <div className="home-hero-actions">
-                  <Link href={"/tim-nem" as never} className="button button-primary">
-                    Tìm nệm phù hợp
-                  </Link>
-                  <Link href="#product-range" className="button button-secondary">
-                    Khám phá sản phẩm
-                  </Link>
-                </div>
-                {!showcaseMode && (
-                  <p className="home-demo-note">Ảnh minh họa · Thông tin sản phẩm đang được cập nhật.</p>
-                )}
-              </div>
-              <div className="home-hero-media">
-                <Image
-                  src="/images/homepage-hero.webp"
-                  alt="Hình ảnh minh họa phòng ngủ với nệm Thăng Long"
-                  fill
-                  priority
-                  sizes="(max-width: 860px) 100vw, 58vw"
-                />
-                <span className="demo-badge">Ảnh minh họa</span>
-              </div>
-            </div>
-          </section>
-        </GsapReveal>
+        <HomeHeroSlider hero={hero} />
+        <section className="landing-trust" aria-label="Thông tin mua sắm"><div className="landing-shell landing-trust-grid">{trustItems.map((item, index) => <div key={item.title}><span aria-hidden="true">0{index + 1}</span><div><strong>{item.title}</strong><p>{item.body}</p></div></div>)}</div></section>
 
-        <section className="trust-strip" aria-label="Thông tin mua sắm">
-          <div className="container trust-strip-grid">
-            <span><b>01</b> Chọn theo nhu cầu</span>
-            <span><b>02</b> Tư vấn trước khi chọn</span>
-            <span><b>03</b> {deliveryConfigured ? "Giao hàng — xem chính sách áp dụng" : "Chính sách giao hàng đang cập nhật"}</span>
-            <span><b>04</b> Giá hoặc trạng thái liên hệ hiển thị theo từng sản phẩm</span>
-          </div>
-        </section>
+        <GsapReveal variant="stagger" staggerSelector=".landing-product-card"><section className="landing-shell landing-collection" id="product-range"><div className="landing-section-heading landing-section-heading-center"><p className="section-label">BỘ SƯU TẬP NỆM THĂNG LONG</p><h2>Bộ sưu tập nệm Thăng Long</h2><p>Mỗi dòng nệm được phát triển cho những nhu cầu nghỉ ngơi khác nhau của gia đình Việt.</p></div><div className="landing-product-grid">{productCards.map((product) => <ProductCard key={product.slug} product={product} presentation="landing" />)}</div></section></GsapReveal>
 
-        <GsapReveal variant="stagger" staggerSelector=".home-product-card">
-          <section id="product-range" className="home-range container">
-            <div className="home-collection-header">
-              <p className="section-label">BỘ SƯU TẬP NỆM THĂNG LONG</p>
-              <h2>Khám phá các dòng nệm cao cấp</h2>
-              <p className="home-collection-sub">
-                Mỗi dòng sản phẩm được phát triển để phục vụ một cảm giác nằm và thói quen nghỉ ngơi chuyên biệt.
-              </p>
-              <nav className="home-collection-nav" aria-label="Khám phá các dòng nệm">
-                <Link href="/nem" className="home-tab is-active">Tất cả nệm</Link>
-                <Link href="/nem/luxury" className="home-tab">Luxury</Link>
-                <Link href="/nem/cao-su-thien-nhien" className="home-tab">Cao Su Thiên Nhiên</Link>
-                <Link href="/nem/memory-foam" className="home-tab">Memory Foam</Link>
-                <Link href="/nem/hoat-tinh" className="home-tab">Hoạt Tính</Link>
-                <Link href="/nem/classic" className="home-tab">Classic</Link>
-              </nav>
-            </div>
-            <div className="home-product-grid">
-              {products.map((product, index) => (
-                <ProductCard key={product.slug} product={product} index={index} className={`home-product-card-${index + 1}`} />
-              ))}
-            </div>
-          </section>
-        </GsapReveal>
+        <GsapReveal variant="editorial"><section className="landing-construction" aria-labelledby="construction-title"><div className="landing-shell landing-construction-grid"><div className="landing-construction-visual"><div className="landing-construction-media"><Image src="/images/homepage-construction.png" alt="Cấu tạo các lớp nệm Thăng Long" fill sizes="(max-width: 860px) 100vw, 44vw" /></div><ol className="landing-construction-labels"><li>Lớp vỏ êm ái</li><li>Lớp comfort</li><li>Lõi cao su thiên nhiên</li><li>Lớp nâng đỡ</li><li>Đế ổn định</li></ol></div><div className="landing-construction-copy"><p className="section-label">CÔNG NGHỆ &amp; CHẤT LIỆU</p><h2 id="construction-title">Cấu tạo được chọn cho giấc ngủ hằng ngày.</h2><p>Các lớp vật liệu được sắp xếp để mang đến cảm giác êm ái, nâng đỡ cân bằng và sử dụng bền bỉ.</p><Link href="/nem/cao-su-thien-nhien" className="landing-button landing-button-dark">Xem dòng nệm <span aria-hidden="true">→</span></Link></div></div></section></GsapReveal>
 
-        <GsapReveal>
-          <section id="find-mattress" className="home-find container">
-            <div className="home-find-intro">
-              <p className="section-label">HOW TO CHOOSE</p>
-              <h2>Không cần thử hết mọi tấm nệm.</h2>
-              <p>Chỉ cần hiểu tư thế nằm, thói quen và cảm giác bạn muốn khi thức dậy.</p>
-              <Link href={"/tim-nem" as never} className="text-link">Bắt đầu chọn nệm <span aria-hidden="true">→</span></Link>
-            </div>
-            <div className="home-find-steps">
-              <div>
-                <span>01</span>
-                <strong>Tìm cảm giác bạn muốn mỗi đêm</strong>
-                <p>Nhận diện cảm giác bạn tìm kiếm trước khi xem thông số.</p>
-              </div>
-              <div>
-                <span>02</span>
-                <strong>Ngủ một mình hay cùng người thân?</strong>
-                <p>Chọn hướng khám phá phù hợp với không gian và thói quen ngủ.</p>
-              </div>
-              <div>
-                <span>03</span>
-                <strong>Cần tư vấn thêm?</strong>
-                <p>Để lại câu hỏi, chúng tôi sẽ cùng bạn thu hẹp lựa chọn.</p>
-              </div>
-            </div>
-          </section>
-        </GsapReveal>
+        <GsapReveal><section className="landing-shell landing-comfort" id="shop-by-need"><div className="landing-comfort-copy"><p className="section-label">GIẤC NGỦ VÀ SỰ THOẢI MÁI</p><h2>Chọn theo cảm giác nằm bạn cần.</h2><p>So sánh từng dòng nệm để tìm lựa chọn phù hợp với nhu cầu nghỉ ngơi hằng ngày.</p></div><div className="landing-comfort-list">{[["/images/homepage-natural-latex.webp", "Cao su thiên nhiên", "Chất liệu được chọn cho những ai yêu thích cảm giác gần gũi, thoáng thoải mái."], ["/images/homepage-latex.webp", "Bề mặt vải êm", "Ưu tiên cảm giác dễ chịu từ những chi tiết tiếp xúc mỗi ngày."], ["/images/homepage-hotel.webp", "Không gian nghỉ ngơi", "Một lựa chọn hài hoà với phòng ngủ và nhịp sống của gia đình."]].map(([image, title, body]) => <article key={title}><div><Image src={image} alt="" fill sizes="(max-width: 860px) 100vw, 22vw" /></div><h3>{title}</h3><p>{body}</p></article>)}</div></section></GsapReveal>
 
-        <GsapReveal variant="editorial" parallax>
-          <section className="home-luxury-editorial">
-            <div className="container home-luxury-grid">
-              <div className="home-luxury-media">
-                <Image src={luxury.image} alt={luxury.imageAlt} fill sizes="(max-width: 860px) 100vw, 55vw" style={{ objectFit: "cover" }} />
-                {luxury.imageIsDemo && <span className="demo-badge">Ảnh minh họa</span>}
-              </div>
-              <div className="home-luxury-copy">
-                <p className="eyebrow">THE THĂNG LONG SIGNATURE</p>
-                <h2>Luxury, được cân nhắc từ trải nghiệm nằm.</h2>
-                <p>{luxury.description}</p>
-                <div className="home-luxury-pillars">
-                  <div><span>01</span><strong>Lựa chọn kích thước</strong><small>Theo các biến thể hiện có</small></div>
-                  <div><span>02</span><strong>Cảm giác nằm</strong><small>Hiển thị theo dữ liệu đã công bố</small></div>
-                  <div><span>03</span><strong>Thông tin chất liệu</strong><small>Theo nội dung từng dòng sản phẩm</small></div>
-                  <div><span>04</span><strong>Tư vấn trước khi chọn</strong><small>Trao đổi thêm khi cần</small></div>
-                </div>
-                <Link href="/nem/luxury" className="button button-dark">Khám phá dòng Luxury <span aria-hidden="true">→</span></Link>
-              </div>
-            </div>
-          </section>
-        </GsapReveal>
+        <GsapReveal><section className="landing-finder"><div className="landing-shell landing-finder-inner"><div><p className="section-label">TÌM NỆM PHÙ HỢP</p><h2>Chọn nệm theo nhu cầu của bạn.</h2></div><p>Trả lời vài câu hỏi về thói quen nằm, không gian và cảm giác bạn mong muốn.</p><Link href="/tim-nem" className="landing-button landing-button-dark">Tìm nệm phù hợp <span aria-hidden="true">→</span></Link></div></section></GsapReveal>
 
-        <MattressLabTeaser product={luxuryProduct} />
+        <GsapReveal><section className="landing-shell landing-showroom"><div className="landing-showroom-media"><Image src="/images/landing-showroom-v2.png" alt="Showroom trưng bày nệm Thăng Long" fill sizes="(max-width: 860px) 100vw, 1280px" /></div><div className="landing-showroom-copy"><div><p className="section-label">TRẢI NGHIỆM THỰC TẾ</p><h2>Đến showroom, nằm thử và cảm nhận.</h2><p>Không gian gọn gàng để bạn thử từng dòng nệm và nhận tư vấn phù hợp.</p></div><Link href="/lien-he" className="landing-button landing-button-outline">Liên hệ showroom <span aria-hidden="true">→</span></Link></div></section></GsapReveal>
 
-        <GsapReveal variant="editorial" parallax>
-          <section id="natural-latex" className="home-latex container">
-            <div className="home-latex-copy">
-              <p className="section-label">NATURAL LATEX</p>
-              <h2>Một câu chuyện về cảm giác tự nhiên.</h2>
-              <p>{latex.materialStory?.body ?? "Thông tin chi tiết về dòng Cao Su Thiên Nhiên đang được cập nhật. Hình ảnh mang tính chất minh họa trải nghiệm."}</p>
-              <Link href="/nem/cao-su-thien-nhien" className="text-link">Xem dòng Cao Su Thiên Nhiên <span aria-hidden="true">→</span></Link>
-            </div>
-            <div className="home-latex-media">
-              <Image src="/images/homepage-natural-latex.webp" alt="Hình ảnh minh họa nguồn cao su tự nhiên" fill sizes="(max-width: 860px) 100vw, 58vw" />
-              <span className="demo-badge">Ảnh minh họa</span>
-            </div>
-          </section>
-        </GsapReveal>
+        <GsapReveal variant="stagger" staggerSelector=".landing-review-card"><section className="landing-shell landing-reviews"><div className="landing-section-heading"><p className="section-label">PHẢN HỒI KHÁCH HÀNG</p><h2>Khách hàng chia sẻ</h2></div><div className="landing-review-grid">{displayedReviews.map((review) => <article key={`${review.authorName}-${review.body}`} className="landing-review-card"><div><span className="landing-review-stars" aria-label={`${review.rating} trên 5`}>{"★".repeat(review.rating)}</span><p>“{review.body}”</p></div><footer><div><b>{review.authorName}</b>{review.detail && <span>{review.detail}</span>}</div><span>{review.productName}</span></footer></article>)}</div></section></GsapReveal>
 
-        <GsapReveal>
-          <section id="shop-by-need" className="home-needs container">
-            <div className="home-needs-intro">
-              <p className="section-label">SHOP BY NEED</p>
-              <h2>Chọn theo điều bạn cần mỗi đêm.</h2>
-              <p>Những gợi ý ban đầu để bạn bắt đầu với Finder. Mọi trường dữ liệu chưa được xác nhận sẽ được ghi rõ.</p>
-              <Link href={"/tim-nem" as never} className="text-link">Tìm nệm theo nhu cầu <span aria-hidden="true">→</span></Link>
-            </div>
-            <div className="home-needs-list">
-              {[
-                ["01", "Êm ái", "Cho cảm giác mềm mại, thư giãn."],
-                ["02", "Nâng đỡ", "Cho lựa chọn cân bằng và vững vàng."],
-                ["03", "Ngủ mát", "Cho không gian nghỉ ngơi thoáng đãng."],
-                ["04", "Cặp đôi & gia đình", "Cho những nhu cầu ngủ cùng nhau."],
-              ].map(([number, title, body]) => (
-                <Link key={number} href={"/tim-nem" as never}>
-                  <span>{number}</span>
-                  <strong>{title}</strong>
-                  <small>{body}</small>
-                  <b aria-hidden="true">↗</b>
-                </Link>
-              ))}
-            </div>
-          </section>
-        </GsapReveal>
+        <GsapReveal variant="stagger" staggerSelector=".landing-journal-card"><section className="landing-shell landing-journal"><div className="landing-section-heading landing-section-heading-row"><div><p className="section-label">KIẾN THỨC GIẤC NGỦ</p><h2>Tin tức và chia sẻ</h2></div><Link href={"/kien-thuc-giac-ngu" as never} className="landing-text-link">Xem tất cả <span aria-hidden="true">→</span></Link></div><div className="landing-journal-grid">{sleepJournalPosts.map((post) => <Link key={post.slug} className="landing-journal-card" href={`/kien-thuc-giac-ngu/${post.slug}` as never}><span><Image src={post.image} alt="" fill sizes="(max-width: 860px) 100vw, 33vw" /></span><strong>{post.title}</strong><small>{post.excerpt}</small></Link>)}</div></section></GsapReveal>
 
-        <GsapReveal>
-          <section id="compare" className="home-compare container">
-            <div>
-              <p className="section-label">COMPARE</p>
-              <h2>Chưa chắc lựa chọn nào hợp với bạn?</h2>
-              <p>Đặt cạnh các dòng nệm bằng dữ liệu đã được công bố.</p>
-              <Link href={"/so-sanh" as never} className="button button-secondary">Mở trang so sánh</Link>
-            </div>
-            <div className="home-compare-lines">
-              <span>Luxury</span>
-              <span>Memory Foam</span>
-              <span>Cao Su Thiên Nhiên</span>
-              <span>America</span>
-            </div>
-          </section>
-        </GsapReveal>
-
-        <GsapReveal variant="editorial">
-          <section id="hotel-project" className="home-project container">
-            <div className="home-project-media">
-              <Image src="/images/homepage-hotel.webp" alt="Hình ảnh minh họa phòng ngủ khách sạn" fill sizes="(max-width: 860px) 100vw, 58vw" />
-              <span className="demo-badge">Ảnh minh họa</span>
-            </div>
-            <div className="home-project-copy">
-              <p className="section-label">HOTEL &amp; PROJECT</p>
-              <h2>Giấc ngủ tốt, ở mọi quy mô.</h2>
-              <p>Thông tin dành cho khách sạn và dự án đang được chuẩn bị. Hãy trao đổi nhu cầu thực tế với đội ngũ Thăng Long.</p>
-              <Link href={"/khach-san-du-an" as never} className="text-link">Khám phá khách sạn &amp; dự án <span aria-hidden="true">→</span></Link>
-            </div>
-          </section>
-        </GsapReveal>
-
-        <GsapReveal variant="stagger" staggerSelector=".home-trust-copy > div">
-          <section className="home-trust container">
-            <div>
-              <p className="section-label">DELIVERY &amp; WARRANTY</p>
-              <h2>An tâm từ lúc chọn đến lúc nhận.</h2>
-            </div>
-            <div className="home-trust-copy">
-              <div>
-                <strong>{deliveryConfigured ? "Giao hàng" : "Giao hàng đang cập nhật"}</strong>
-                <p>{deliveryConfigured ? "Thông tin phí vận chuyển hiển thị theo cấu hình áp dụng." : "Chính sách giao hàng sẽ hiển thị khi được công bố."}</p>
-              </div>
-              <div>
-                <strong>Bảo hành</strong>
-                <p>Thông tin bảo hành sẽ hiển thị khi có dữ liệu chính thức theo từng dòng sản phẩm.</p>
-              </div>
-              <div>
-                <strong>Hỏi trước khi mua</strong>
-                <p>Liên hệ để nhận tư vấn phù hợp với nhu cầu và không gian của bạn.</p>
-              </div>
-            </div>
-          </section>
-        </GsapReveal>
-
-        <GsapReveal>
-          <section className="home-journal container">
-            <div>
-              <p className="section-label">SLEEP JOURNAL</p>
-              <h2>Những điều nhỏ làm nên một đêm ngon.</h2>
-            </div>
-            <div className="home-journal-empty">
-              <p>Nội dung đang được chuẩn bị.</p>
-              <span>Các bài viết chia sẻ về giấc ngủ sẽ sớm được cập nhật.</span>
-            </div>
-          </section>
-        </GsapReveal>
-
-        <section id="contact" className="home-consultation">
-          <div className="container">
-            <p className="eyebrow">TƯ VẤN LỰA CHỌN</p>
-            <h2>Bắt đầu bằng một câu hỏi đơn giản.</h2>
-            <p>Chúng tôi sẽ lắng nghe cách bạn ngủ trước khi gợi ý một lựa chọn.</p>
-            <div className="home-consultation-actions">
-              <Link className="button button-dark" href={"/lien-he" as never}>Liên hệ tư vấn <span aria-hidden="true">→</span></Link>
-              {contactHref && <a className="home-direct-contact text-link" href={contactHref}>Hoặc liên hệ trực tiếp</a>}
-            </div>
-          </div>
-        </section>
+        <GsapReveal><section className="landing-shell landing-faq"><div className="landing-section-heading"><p className="section-label">HỖ TRỢ KHÁCH HÀNG</p><h2>Những điều bạn thường hỏi.</h2></div><HomeFaq items={faqItems} /></section></GsapReveal>
+        <section className="landing-consultation" id="contact"><div className="landing-shell landing-consultation-inner"><div><p className="section-label">TƯ VẤN LỰA CHỌN</p><h2>Sẵn sàng cho giấc ngủ tốt hơn?</h2><p>Trao đổi với chúng tôi để chọn dòng nệm phù hợp với nhu cầu của bạn.</p></div><div className="landing-consultation-actions"><Link href="/lien-he" className="landing-button landing-button-light">Tư vấn ngay <span aria-hidden="true">→</span></Link>{contactHref && <a href={contactHref} className="landing-phone">{settings?.contactPhone ?? "Liên hệ trực tiếp"}</a>}</div></div></section>
       </main>
-
       <SiteFooter contactPhone={settings?.contactPhone} contactEmail={settings?.contactEmail} />
     </div>
   );

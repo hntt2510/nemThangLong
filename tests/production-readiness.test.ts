@@ -77,35 +77,18 @@ describe("database safety and production readiness", () => {
     });
   });
 
-  describe("MoMo production endpoint safety", () => {
-    it("passes production check when MoMo is completely disabled", () => {
+  describe("SePay Test Mode production safety", () => {
+    it("passes production check when SePay Test Mode is disabled", () => {
       expect(validateEnvironment(baseProdEnv, "production").success).toBe(true);
     });
 
-    it("fails validation when MoMo is partially configured in dev or prod", () => {
-      expect(validateEnvironment({ ...baseDevEnv, MOMO_PARTNER_CODE: "MOMO_PARTNER" }, "development").success).toBe(false);
-      expect(validateEnvironment({ ...baseProdEnv, MOMO_PARTNER_CODE: "MOMO_PARTNER", MOMO_ACCESS_KEY: "KEY" }, "production").success).toBe(false);
+    it("fails validation when SePay Test Mode is partially configured", () => {
+      expect(validateEnvironment({ ...baseDevEnv, SEPAY_TEST_BANK: "Vietcombank" }, "development").success).toBe(false);
+      expect(validateEnvironment({ ...baseProdEnv, SEPAY_TEST_BANK: "Vietcombank" }, "production").success).toBe(false);
     });
 
-    it("fails production check when MoMo is configured with test gateway or missing explicit endpoint", () => {
-      const fullMomo = { ...baseProdEnv, MOMO_PARTNER_CODE: "MOMO123", MOMO_ACCESS_KEY: "ACCESS123", MOMO_SECRET_KEY: "SECRET123" };
-      // Relying on default test endpoint
-      expect(validateEnvironment(fullMomo, "production").success).toBe(false);
-      // Explicit test gateway endpoint
-      expect(validateEnvironment({ ...fullMomo, MOMO_ENDPOINT: "https://test-payment.momo.vn/v2/gateway/api/create" }, "production").success).toBe(false);
-      // Non-HTTPS endpoint
-      expect(validateEnvironment({ ...fullMomo, MOMO_ENDPOINT: "http://payment.momo.vn/v2/gateway/api/create" }, "production").success).toBe(false);
-    });
-
-    it("passes production check when MoMo is configured with explicit non-test HTTPS endpoint", () => {
-      const validMomoProd = {
-        ...baseProdEnv,
-        MOMO_PARTNER_CODE: "MOMO123",
-        MOMO_ACCESS_KEY: "ACCESS123",
-        MOMO_SECRET_KEY: "SECRET123",
-        MOMO_ENDPOINT: "https://payment.momo.vn/v2/gateway/api/create",
-      };
-      expect(validateEnvironment(validMomoProd, "production").success).toBe(true);
+    it("rejects every SePay Test Mode setting in production", () => {
+      expect(validateEnvironment({ ...baseProdEnv, SEPAY_TEST_MODE: "true", SEPAY_WEBHOOK_SECRET: "s".repeat(32), SEPAY_TEST_BANK: "Vietcombank", SEPAY_TEST_ACCOUNT_NUMBER: "1234567890", SEPAY_TEST_ACCOUNT_NAME: "CONG TY TEST", SEPAY_PUBLIC_BASE_URL: "https://pay.example.com" }, "production").success).toBe(false);
     });
   });
 
@@ -176,18 +159,20 @@ describe("database safety and production readiness", () => {
       expect(() => getEnv(prodLocalhost, "production")).toThrow(/NEXT_PUBLIC_SITE_URL/);
     });
 
-    it("fails getEnv in production mode when MoMo is enabled with test-payment gateway", () => {
-      const prodMomoTest = {
+    it("fails getEnv in production mode when SePay Test Mode is enabled", () => {
+      const prodSePayTest = {
         AUTH_SECRET: "a".repeat(32),
         CRON_SECRET: "b".repeat(32),
         LEAD_RATE_LIMIT_SECRET: "c".repeat(32),
         NEXT_PUBLIC_SITE_URL: "https://example.com",
-        MOMO_PARTNER_CODE: "MOMO123",
-        MOMO_ACCESS_KEY: "KEY123",
-        MOMO_SECRET_KEY: "SECRET123",
-        MOMO_ENDPOINT: "https://test-payment.momo.vn/v2/gateway/api/create",
+        SEPAY_TEST_MODE: "true",
+        SEPAY_WEBHOOK_SECRET: "s".repeat(32),
+        SEPAY_TEST_BANK: "Vietcombank",
+        SEPAY_TEST_ACCOUNT_NUMBER: "1234567890",
+        SEPAY_TEST_ACCOUNT_NAME: "CONG TY TEST",
+        SEPAY_PUBLIC_BASE_URL: "https://pay.example.com",
       };
-      expect(() => getEnv(prodMomoTest, "production")).toThrow(/MOMO_ENDPOINT/);
+      expect(() => getEnv(prodSePayTest, "production")).toThrow(/SEPAY_TEST_MODE/);
     });
 
     it("fails getProductionEnv when DATABASE_URL or DIRECT_URL is missing", () => {

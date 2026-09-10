@@ -15,10 +15,10 @@ export function parseInventoryFilters(searchParams: URLSearchParams) {
 export async function listInventory(prisma: PrismaClient, filters: ReturnType<typeof parseInventoryFilters>) {
   const where = { ...(filters.slug ? { product: { slug: { contains: filters.slug, mode: "insensitive" as const } } } : {}), ...(filters.active === undefined ? {} : { active: filters.active }), ...(filters.zeroStock ? { stock: 0 } : {}) };
   const [items, total] = await prisma.$transaction([
-    prisma.productVariant.findMany({ where, orderBy: [{ product: { slug: "asc" } }, { width: "asc" }, { length: "asc" }, { thickness: "asc" }], skip: (filters.page - 1) * 50, take: 50, select: { id: true, sku: true, width: true, length: true, thickness: true, stock: true, active: true, product: { select: { slug: true, name: true } }, inventoryAdjustments: { orderBy: { createdAt: "desc" }, take: 1, select: { delta: true, reason: true, resultingStock: true, createdAt: true } } } }),
+    prisma.productVariant.findMany({ where, orderBy: [{ product: { slug: "asc" } }, { width: "asc" }, { length: "asc" }, { thickness: "asc" }], skip: (filters.page - 1) * 100, take: 100, select: { id: true, sku: true, width: true, length: true, thickness: true, stock: true, active: true, product: { select: { slug: true, name: true } }, inventoryAdjustments: { orderBy: { createdAt: "desc" }, take: 1, select: { delta: true, reason: true, resultingStock: true, createdAt: true } } } }),
     prisma.productVariant.count({ where }),
   ]);
-  return { items, total, page: filters.page, pageSize: 50 };
+  return { items, total, page: filters.page, pageSize: 100 };
 }
 
 export async function adjustInventory(prisma: PrismaClient, actorId: string, input: InventoryAdjustmentInput) {

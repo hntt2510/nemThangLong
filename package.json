@@ -18,10 +18,12 @@
     "db:generate": "node --env-file-if-exists=.env.local --import tsx scripts/database-command.ts generate",
     "db:validate": "node --env-file-if-exists=.env.local --import tsx scripts/database-command.ts validate",
     "db:migrate:dev": "node --env-file-if-exists=.env.local --import tsx scripts/database-command.ts migrate-dev",
-    "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate:deploy": "node --env-file-if-exists=.env.local node_modules/prisma/build/index.js migrate deploy",
     "db:migrate:status": "node --env-file-if-exists=.env.local --import tsx scripts/database-command.ts status",
     "db:studio": "node --env-file-if-exists=.env.local --import tsx scripts/database-command.ts studio",
-    "db:seed": "npm run db:dev:bootstrap"
+    "db:seed": "npm run db:dev:bootstrap",
+    "db:sync-navigation": "node --env-file-if-exists=.env.local --import tsx scripts/sync-storefront-navigation.ts",
+    "sepay:test:check": "node --env-file-if-exists=.env.local --import tsx scripts/sepay-test-check.ts"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.4",
@@ -35,6 +37,7 @@
     "gsap": "^3.13.0",
     "next": "^16.3.1",
     "next-auth": "^5.0.0-beta.29",
+    "qrcode": "^1.5.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "server-only": "^0.0.1",
@@ -44,13 +47,16 @@
   },
   "devDependencies": {
     "@apidevtools/swagger-parser": "^12.1.0",
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^22.15.30",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.6",
     "@types/swagger-ui-react": "^5.18.0",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.1",
     "prisma": "^6.16.0",
+    "tailwindcss": "^4.3.3",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "vitest": "^4.1.10"

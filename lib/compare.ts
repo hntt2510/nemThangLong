@@ -1,4 +1,3 @@
-import { CATALOG_SLUGS } from "@/lib/product-data";
 import type { DiscoveryProduct } from "@/lib/discovery";
 import { formatVnd } from "@/lib/format";
 
@@ -12,8 +11,7 @@ function values(value: string | string[] | undefined) {
 
 export function parseCompareItems(params: SearchParamsLike = {}) {
   const raw = values(params.items).flatMap((value) => value.split(",").map((item) => item.trim()));
-  const allowed = new Set<string>(CATALOG_SLUGS);
-  return [...new Set(raw.filter((item) => allowed.has(item)))].slice(0, COMPARE_LIMIT);
+  return [...new Set(raw.filter((item) => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item)))].slice(0, COMPARE_LIMIT);
 }
 
 export function selectCompareProducts(products: DiscoveryProduct[], items: string[]) {
@@ -40,10 +38,10 @@ function sectionText(section: { title?: string; body: string } | null) {
 
 export function buildCompareRows(products: DiscoveryProduct[]): CompareRow[] {
   const rows: CompareRow[] = [
-    { key: "description", label: "Mô tả đã công bố", values: products.map((product) => product.isDemo ? null : show(product.description)) },
+    { key: "description", label: "Mô tả đã công bố", values: products.map((product) => show(product.description)) },
     { key: "price", label: "Khoảng giá đã xác nhận", values: products.map((product) => formatPriceRange(product.minPrice, product.maxPrice)) },
-    { key: "purchasable", label: "Khả năng mua", values: products.map((product) => product.isDemo ? null : product.purchasable ? "Có" : "Chưa sẵn sàng") },
-    { key: "stock", label: "Tồn kho", values: products.map((product) => product.isDemo ? null : product.inStock ? "Còn biến thể" : "Hết hàng") },
+    { key: "purchasable", label: "Khả năng mua", values: products.map((product) => product.purchasable ? "Có" : "Chưa sẵn sàng") },
+    { key: "stock", label: "Tồn kho", values: products.map((product) => product.inStock ? "Còn biến thể" : "Hết hàng") },
     { key: "widths", label: "Chiều rộng", values: products.map((product) => product.widths.length ? product.widths.join(", ") + " cm" : null) },
     { key: "lengths", label: "Chiều dài", values: products.map((product) => product.lengths.length ? product.lengths.join(", ") + " cm" : null) },
     { key: "thicknesses", label: "Độ dày", values: products.map((product) => product.thicknesses.length ? product.thicknesses.join(", ") + " cm" : null) },

@@ -1,7 +1,6 @@
 import "server-only";
 
 import type { Product, ProductVariant } from "@/lib/types";
-import { CATALOG_SLUGS, getDemoProduct } from "@/lib/product-data";
 import { getDiscoveryProducts } from "@/lib/discovery";
 import { hasMatchingVariant } from "@/lib/variant-constraints";
 
@@ -36,6 +35,9 @@ export type CatalogProductSummary = {
   variants: ProductVariant[];
   skus: string[];
   materialStory?: { title: string; body: string } | null;
+  ratingAverage: number | null;
+  ratingCount: number;
+  hasPlaceholderPrices: boolean;
   isShowcase?: boolean;
   previewPurchasable?: boolean;
 };
@@ -78,7 +80,7 @@ export function parseCatalogQuery(params: RawSearchParams = {}): CatalogQuery {
   const sort = values(params.sort)[0];
   return {
     search: values(params.q)[0]?.trim().slice(0, 100) ?? "",
-    lines: values(params.line).filter((line): line is (typeof CATALOG_SLUGS)[number] => (CATALOG_SLUGS as readonly string[]).includes(line)),
+    lines: values(params.line),
     widths: positiveInts(params.width),
     thicknesses: positiveInts(params.thickness),
     minPrice: optionalPrice(params.minPrice),
@@ -94,10 +96,10 @@ function materialStory(product: Product) {
 }
 
 export function toCatalogProduct(product: Product): CatalogProductSummary {
-  const isShowcase = product.source === "showcase" || Boolean(product.isShowcase) || Boolean(product.previewPurchasable);
-  const variants = product.isDemo && !isShowcase ? [] : product.variants.filter((variant) => variant.active);
-  const priced = variants.map((variant) => variant.price).filter((price): price is number => typeof price === "number" && price > 0);
+  const variants = product.variants.filter((variant) => variant.active);
+  const priced = variants.filter((variant) => process.env.NODE_ENV !== "production" || variant.priceStatus === "VERIFIED").map((variant) => variant.price).filter((price): price is number => typeof price === "number" && price > 0);
   const media = product.media[0];
+  const ratings = product.reviews.map((review) => review.rating).filter((rating) => Number.isFinite(rating));
   return {
     slug: product.slug,
     name: product.name,
@@ -106,16 +108,19 @@ export function toCatalogProduct(product: Product): CatalogProductSummary {
     image: media?.url ?? product.posterUrl ?? "",
     imageAlt: media?.alt ?? `Hình ảnh minh họa ${product.name}`,
     isDemo: product.isDemo,
-    imageIsDemo: product.isDemo || !media || media.isDemo === true,
+    imageIsDemo: !media,
     minPrice: priced.length > 0 ? Math.min(...priced) : null,
     maxPrice: priced.length > 0 ? Math.max(...priced) : null,
-    purchasable: (!product.isDemo || isShowcase) && variants.some((variant) => variant.active && typeof variant.price === "number" && variant.price > 0 && variant.stock > 0),
+    purchasable: product.purchasable,
     inStock: variants.some((variant) => variant.stock > 0),
     widths: [...new Set(variants.map((variant) => variant.width))].sort((a, b) => a - b),
     thicknesses: [...new Set(variants.map((variant) => variant.thickness))].sort((a, b) => a - b),
     variants,
     skus: variants.map((variant) => variant.sku),
     materialStory: materialStory(product),
+    ratingAverage: ratings.length ? ratings.reduce((total, rating) => total + rating, 0) / ratings.length : null,
+    ratingCount: ratings.length,
+    hasPlaceholderPrices: variants.some((variant) => variant.price !== null && variant.price > 0 && variant.priceStatus === "PLACEHOLDER"),
     isShowcase: product.isShowcase,
     previewPurchasable: product.previewPurchasable,
   };
@@ -151,7 +156,6 @@ export function filterCatalogProducts(products: CatalogProductSummary[], query: 
 }
 
 export function sortCatalogProducts(products: CatalogProductSummary[], sort: CatalogSort) {
-  const featuredIndex = (slug: string) => CATALOG_SLUGS.indexOf(slug as (typeof CATALOG_SLUGS)[number]);
   return [...products].sort((a, b) => {
     if (sort === "name-asc") return a.name.localeCompare(b.name, "vi");
     if (sort === "price-asc" || sort === "price-desc") {
@@ -159,7 +163,7 @@ export function sortCatalogProducts(products: CatalogProductSummary[], sort: Cat
       if (a.minPrice !== null && b.minPrice === null) return -1;
       if (a.minPrice !== null && b.minPrice !== null) return sort === "price-asc" ? a.minPrice - b.minPrice : b.minPrice - a.minPrice;
     }
-    return featuredIndex(a.slug) - featuredIndex(b.slug);
+    return a.name.localeCompare(b.name, "vi");
   });
 }
 
@@ -174,12 +178,10 @@ function facets(products: CatalogProductSummary[]): CatalogFacets {
   };
 }
 
-export async function getCatalogProducts({ fallbackMissing = false } = {}): Promise<{ products: CatalogProductSummary[]; databaseAvailable: boolean }> {
+export async function getCatalogProducts(): Promise<{ products: CatalogProductSummary[]; databaseAvailable: boolean }> {
   const source = await getDiscoveryProducts();
   const bySlug = new Map(source.products.map((item) => [item.slug, toCatalogProduct(item.product)]));
-  const products = fallbackMissing
-    ? CATALOG_SLUGS.map((slug) => bySlug.get(slug) ?? toCatalogProduct(getDemoProduct(slug)))
-    : source.products.map((item) => bySlug.get(item.slug)!).filter(Boolean);
+  const products = source.products.map((item) => bySlug.get(item.slug)!).filter(Boolean);
   return { products, databaseAvailable: source.databaseAvailable };
 }
 

@@ -1,14 +1,29 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { ProductCard } from "@/components/product-card";
-import type { CatalogData } from "@/lib/catalog";
+import type { CatalogData, CatalogQuery } from "@/lib/catalog";
 
 type CatalogSettings = { contactPhone: string | null; contactEmail: string | null } | null;
 
 function checked(values: number[], value: number) {
   return values.includes(value);
+}
+
+function withoutFilter(query: CatalogQuery, key: "q" | "line" | "width" | "thickness" | "price" | "stock", value?: string | number) {
+  const params = new URLSearchParams();
+  if (key !== "q" && query.search) params.set("q", query.search);
+  query.lines.filter((item) => key !== "line" || item !== value).forEach((item) => params.append("line", item));
+  query.widths.filter((item) => key !== "width" || item !== value).forEach((item) => params.append("width", String(item)));
+  query.thicknesses.filter((item) => key !== "thickness" || item !== value).forEach((item) => params.append("thickness", String(item)));
+  if (key !== "price" && query.minPrice !== null) params.set("minPrice", String(query.minPrice));
+  if (key !== "price" && query.maxPrice !== null) params.set("maxPrice", String(query.maxPrice));
+  if (key !== "stock" && query.inStock) params.set("inStock", "1");
+  if (query.sort !== "featured") params.set("sort", query.sort);
+  const search = params.toString();
+  return ("/nem" + (search ? "?" + search : "")) as never;
 }
 
 export function CatalogPage({ data, settings }: { data: CatalogData; settings: CatalogSettings }) {
@@ -29,20 +44,25 @@ export function CatalogPage({ data, settings }: { data: CatalogData; settings: C
     (data.query.inStock ? 1 : 0);
 
   return (
-    <div className="catalog-page">
+    <div className="catalog-page bg-brand-canvas text-brand-ink">
       <main>
-        <div className="catalog-breadcrumb container">
-          <Link href="/">Trang chủ</Link>
+        <div className="mx-auto flex w-[min(calc(100%-40px),1280px)] items-center gap-2 pt-6 text-sm text-brand-copy md:w-[min(calc(100%-64px),1280px)]">
+          <Link href="/" className="hover:text-brand-accent">Trang chủ</Link>
           <span aria-hidden="true">/</span>
           <span>Bộ sưu tập nệm</span>
         </div>
 
-        <section className="catalog-intro container">
-          <p className="eyebrow">THĂNG LONG / SLEEP COLLECTION</p>
-          <h1>Bộ Sưu Tập Nệm Thăng Long</h1>
-          <p className="catalog-lede">
-            Được chế tác từ cảm giác nằm và nhu cầu nâng đỡ của người Việt. Mỗi dòng nệm đại diện cho một trải nghiệm nghỉ ngơi trọn vẹn.
-          </p>
+        <section className="mx-auto mt-6 grid min-h-0 w-[min(calc(100%-40px),1280px)] overflow-hidden rounded-brand bg-brand-surface md:w-[min(calc(100%-64px),1280px)] lg:grid-cols-[42fr_58fr]">
+          <div className="flex min-h-75 max-w-xl flex-col justify-center px-6 py-10 sm:px-10 lg:min-h-95 lg:px-14 lg:py-12">
+            <p className="mb-5 flex items-center gap-3 text-xs font-bold tracking-[0.16em] text-brand-accent"><span className="h-px w-9 bg-brand-accent/70" />BỘ SƯU TẬP NỆM</p>
+            <h1 className="max-w-[10ch] font-brand-display text-5xl leading-[1.06] font-semibold tracking-[-0.025em] sm:text-6xl">Tất cả sản phẩm</h1>
+            <p className="mt-5 max-w-md text-base leading-[1.7] text-brand-copy">
+              Khám phá bộ sưu tập nệm Thăng Long với đa dạng chất liệu, thiết kế và mức giá phù hợp nhu cầu nghỉ ngơi của gia đình Việt.
+            </p>
+          </div>
+          <div className="relative min-h-65 bg-[#ded3c3] sm:min-h-80 lg:min-h-95" aria-hidden="true">
+            <Image src="/images/homepage-hero.webp" alt="" fill sizes="(max-width: 1023px) 100vw, 58vw" priority className="object-cover" />
+          </div>
         </section>
 
         <div className="catalog-mobile-controls container">
@@ -109,7 +129,7 @@ export function CatalogPage({ data, settings }: { data: CatalogData; settings: C
                   <legend className="filter-legend">Dòng nệm</legend>
                   <div className="catalog-check-list">
                     {[
-                      ["luxury", "Luxury Thượng Hạng"],
+                      ["khach-san", "Cao Su Khách Sạn"],
                       ["cao-su-thien-nhien", "Cao Su Thiên Nhiên"],
                       ["memory-foam", "Memory Foam"],
                       ["hoat-tinh", "Hoạt Tính"],
@@ -236,6 +256,10 @@ export function CatalogPage({ data, settings }: { data: CatalogData; settings: C
               <h2>{data.total > 0 ? "Danh sách sản phẩm" : "Chưa có lựa chọn phù hợp"}</h2>
               <span className="catalog-count">{data.total} dòng nệm</span>
             </div>
+            {activeFilterCount > 0 && <div className="catalog-active-filters" aria-label="Bộ lọc đang chọn"><span>Đang lọc:</span>{data.query.search && <Link href={withoutFilter(data.query, "q")}>“{data.query.search}” <b aria-hidden="true">×</b></Link>}{data.query.lines.map((line) => <Link key={line} href={withoutFilter(data.query, "line", line)}>{line.replaceAll("-", " ")} <b aria-hidden="true">×</b></Link>)}{data.query.widths.map((width) => <Link key={width} href={withoutFilter(data.query, "width", width)}>{width} cm <b aria-hidden="true">×</b></Link>)}{data.query.thicknesses.map((thickness) => <Link key={thickness} href={withoutFilter(data.query, "thickness", thickness)}>{thickness} cm <b aria-hidden="true">×</b></Link>)}{(data.query.minPrice !== null || data.query.maxPrice !== null) && <Link href={withoutFilter(data.query, "price")}>Khoảng giá <b aria-hidden="true">×</b></Link>}{data.query.inStock && <Link href={withoutFilter(data.query, "stock")}>Còn hàng <b aria-hidden="true">×</b></Link>}<Link href="/nem" className="catalog-clear-filters">Xóa tất cả</Link></div>}
+            {data.products.some((product) => product.hasPlaceholderPrices) && (
+              <p className="catalog-demo-note">Giá và tồn kho trong UI Preview là dữ liệu thử nghiệm; giá chính thức được xác nhận khi tư vấn.</p>
+            )}
 
             {data.total > 0 ? (
               <div className="catalog-grid">

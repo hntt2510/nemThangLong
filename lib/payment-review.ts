@@ -6,24 +6,25 @@ import { paymentReviewResolutionSchema } from "@/lib/payment-review-validation";
 
 export { paymentReviewResolutionSchema } from "@/lib/payment-review-validation";
 
-const reviewSelect = { id: true, code: true, total: true, status: true, paymentStatus: true, customerName: true, customerPhone: true, guestEmail: true, createdAt: true, items: { select: { id: true, variantId: true, productName: true, sku: true, width: true, length: true, thickness: true, quantity: true, variant: { select: { stock: true } } } }, payments: { where: { provider: "MOMO" }, orderBy: { createdAt: "desc" }, take: 1, select: { id: true, status: true, amount: true, providerTransactionId: true, expiresAt: true, updatedAt: true } }, reservations: { select: { id: true, variantId: true, quantity: true, status: true, expiresAt: true, releasedAt: true } } } satisfies Prisma.OrderSelect;
+const paymentProviders: Array<"MOMO" | "SEPAY"> = ["MOMO", "SEPAY"];
+const reviewSelect = { id: true, code: true, total: true, status: true, paymentStatus: true, customerName: true, customerPhone: true, guestEmail: true, createdAt: true, items: { select: { id: true, variantId: true, productName: true, sku: true, width: true, length: true, thickness: true, quantity: true, variant: { select: { stock: true } } } }, payments: { where: { provider: { in: paymentProviders } }, orderBy: { createdAt: "desc" }, take: 1, select: { id: true, status: true, amount: true, providerTransactionId: true, expiresAt: true, updatedAt: true } }, reservations: { select: { id: true, variantId: true, quantity: true, status: true, expiresAt: true, releasedAt: true } } } satisfies Prisma.OrderSelect;
 
 export function maskReviewContact(value: string | null | undefined) { if (!value) return null; if (value.includes("@")) { const [name, domain] = value.split("@"); return `${name.slice(0, 1)}***@${domain}`; } return `${value.slice(0, 3)}***${value.slice(-2)}`; }
 
 export async function listPaymentReviews(prisma: PrismaClient) {
-  const rows = await prisma.order.findMany({ where: { paymentMethod: "MOMO", paymentStatus: "REVIEW_REQUIRED" }, orderBy: { updatedAt: "desc" }, take: 50, select: reviewSelect });
+  const rows = await prisma.order.findMany({ where: { paymentMethod: { in: paymentProviders }, paymentStatus: "REVIEW_REQUIRED" }, orderBy: { updatedAt: "desc" }, take: 50, select: reviewSelect });
   return rows.map((row) => ({ ...row, customerPhone: maskReviewContact(row.customerPhone), guestEmail: maskReviewContact(row.guestEmail) }));
 }
 
 export async function getPaymentReview(prisma: PrismaClient, id: string) {
-  return prisma.order.findFirst({ where: { id, paymentMethod: "MOMO", paymentStatus: "REVIEW_REQUIRED" }, select: reviewSelect });
+  return prisma.order.findFirst({ where: { id, paymentMethod: { in: paymentProviders }, paymentStatus: "REVIEW_REQUIRED" }, select: reviewSelect });
 }
 
 export async function resolvePaymentReview(prisma: PrismaClient, actorId: string, orderId: string, input: unknown) {
   const parsed = paymentReviewResolutionSchema.parse(input);
   return withSerializable(prisma, async (tx) => {
-    const order = await tx.order.findUnique({ where: { id: orderId }, include: { items: true, payments: { where: { provider: "MOMO" }, orderBy: { createdAt: "desc" }, take: 1 }, reservations: true } });
-    if (!order || order.paymentMethod !== "MOMO") throw new Error("NOT_FOUND");
+    const order = await tx.order.findUnique({ where: { id: orderId }, include: { items: true, payments: { where: { provider: { in: paymentProviders } }, orderBy: { createdAt: "desc" }, take: 1 }, reservations: true } });
+    if (!order || !paymentProviders.includes(order.paymentMethod as "MOMO" | "SEPAY")) throw new Error("NOT_FOUND");
     if (await tx.paymentReviewResolution.findFirst({ where: { orderId: order.id } })) throw new Error("ALREADY_RESOLVED");
     const attempt = order.payments[0];
     if (!attempt || attempt.status !== "REVIEW_REQUIRED" || !attempt.providerTransactionId || order.paymentStatus !== "REVIEW_REQUIRED" || order.status !== "CANCELLED") throw new Error("INVALID_STATE");

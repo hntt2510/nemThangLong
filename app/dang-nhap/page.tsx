@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 export default function SignInPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -24,7 +25,9 @@ export default function SignInPage() {
       setError("Email hoặc mật khẩu chưa đúng.");
       setLoading(false);
     } else {
-      router.push("/tai-khoan");
+      const callbackUrl = searchParams.get("callbackUrl");
+      router.push((callbackUrl && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/tai-khoan") as never);
+      router.refresh();
     }
   }
 
@@ -55,7 +58,7 @@ export default function SignInPage() {
           </button>
         </form>
         <p className="auth-switch">
-          Chưa có tài khoản? <Link href="/dang-ky">Đăng ký tài khoản mới</Link>
+          Chưa có tài khoản? <Link href={searchParams.get("callbackUrl") ? `/dang-ky?callbackUrl=${encodeURIComponent(searchParams.get("callbackUrl")!)}` : "/dang-ky"}>Đăng ký tài khoản mới</Link>
         </p>
       </div>
     </main>

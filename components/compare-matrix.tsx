@@ -42,7 +42,7 @@ export function CompareMatrix({ products, rows }: { products: DiscoveryProduct[]
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.key}>
+            <tr key={row.key} className={`compare-row-${row.key}`}>
               <th scope="row" className="criteria-label-cell">
                 {row.label}
               </th>

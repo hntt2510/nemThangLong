@@ -1,18 +1,13 @@
 import Link from "next/link";
-import { auth } from "@/auth";
 import { getPrisma } from "@/lib/db";
-import { CATALOG_SLUGS } from "@/lib/product-data";
-import { neutralProductName } from "@/lib/admin-products";
 
 export const dynamic = "force-dynamic";
+const badge = (value: string) => <span className={`ops-badge ${value.toLowerCase()}`}>{value}</span>;
 
 export default async function AdminProductsPage() {
-  const session = await auth();
-  if (!session?.user) return <main className="admin-placeholder"><Link href="/dang-nhap">Đăng nhập</Link></main>;
-  if (session.user.role !== "ADMIN" && session.user.role !== "EDITOR") return <main className="admin-placeholder"><h1>Không có quyền.</h1></main>;
   const prisma = getPrisma();
-  if (!prisma) return <main className="admin-placeholder"><h1>Không thể tải sản phẩm.</h1><p>Database chưa sẵn sàng.</p></main>;
-  const products = await prisma.product.findMany({ where: { slug: { in: [...CATALOG_SLUGS] } }, select: { id: true, slug: true, name: true, status: true, isDemo: true, updatedAt: true, _count: { select: { media: true } }, variants: { where: { active: true }, select: { price: true, stock: true } } }, orderBy: { slug: "asc" } }).catch(() => null);
-  if (!products) return <main className="admin-placeholder"><h1>Không thể tải sản phẩm.</h1><p>Đã xảy ra lỗi khi đọc dữ liệu.</p></main>;
-  return <main className="admin-placeholder"><Link href="/admin/dashboard">← Dashboard</Link><p className="eyebrow">ADMIN / PRODUCTS</p><h1>Catalog CMS</h1><p className="muted">Sáu dòng nệm được quản lý từ Prisma.</p><div className="admin-order-list">{CATALOG_SLUGS.map((slug) => { const product = products.find((item) => item.slug === slug); const active = product?.variants.length ?? 0; const purchasable = product && !product.isDemo ? product.variants.filter((item) => item.price !== null && item.price > 0 && item.stock > 0).length : 0; return <Link key={slug} className="admin-order-card" href={`/admin/products/${slug}`}><div><strong>{product?.name ?? neutralProductName(slug)}</strong><span>{slug} · {product?.status ?? "CHƯA KHỞI TẠO"} {product?.isDemo ? "· DEMO" : ""}</span></div><div><span>{active} active · {purchasable} purchasable · {product?._count.media ?? 0} media</span><small>{product?.updatedAt ? product.updatedAt.toLocaleString("vi-VN") : "Chưa có document"}</small></div></Link>; })}</div></main>;
+  if (!prisma) return <section className="ops-empty-state"><h2>Database chưa sẵn sàng</h2><p>Không thể tải danh mục sản phẩm.</p></section>;
+  const products = await prisma.product.findMany({ select: { id: true, slug: true, name: true, status: true, verificationStatus: true, saleStatus: true, _count: { select: { mediaLinks: true } }, variants: { where: { active: true }, select: { stock: true } }, mediaLinks: { take: 1, orderBy: { sortOrder: "asc" }, select: { mediaAsset: { select: { url: true } } } } }, orderBy: [{ sortOrder: "asc" }, { name: "asc" }] }).catch(() => null);
+  if (!products) return <section className="ops-empty-state"><h2>Không thể tải sản phẩm</h2><p>Hãy thử lại sau.</p></section>;
+  return <div className="ops-stack"><section className="ops-page-heading"><div><p className="ops-overline">SẢN PHẨM</p><h2>Danh mục sản phẩm</h2><p>Quản lý nội dung, giá và media từ PostgreSQL.</p></div><Link className="ops-button" href={"/admin/categories" as never}>Quản lý loại sản phẩm</Link></section><section className="ops-card ops-table-card"><div className="ops-data-table"><div className="ops-data-head"><span>Sản phẩm</span><span>Xuất bản</span><span>Dữ liệu</span><span>Biến thể</span><span>Tồn kho</span><span /></div>{products.map((product) => { const stock = product.variants.reduce((total, item) => total + item.stock, 0); return <Link className="ops-data-row" key={product.id} href={`/admin/products/${product.slug}` as never}><span className="ops-product-cell">{product.mediaLinks[0] ? <img src={product.mediaLinks[0].mediaAsset.url} alt="" /> : <i>—</i>}<b>{product.name}<small>{product.slug} · {product._count.mediaLinks} ảnh</small></b></span><span>{badge(product.status)}</span><span>{badge(product.verificationStatus)}</span><span>{product.variants.length}</span><span>{stock}</span><span>Chỉnh sửa →</span></Link>; })}</div></section></div>;
 }

@@ -46,17 +46,17 @@ describe("OpenAPI contract", () => {
     };
     await SwaggerParser.validate(document as never);
     const operations = Object.entries(document.paths).flatMap(([path, item]) => Object.entries(item).filter(([method]) => ["get", "post", "put", "patch", "delete"].includes(method)).map(([method, operation]) => `${method.toUpperCase()} ${path}`));
-    expect(operations).toHaveLength(39);
-    expect(new Set(operations).size).toBe(39);
+    expect(operations).toHaveLength(37);
+    expect(new Set(operations).size).toBe(37);
     expect(operations.every((operation) => document.paths[operation.split(" ")[1]][operation.split(" ")[0].toLowerCase()].operationId)).toBe(true);
-    expect(new Set(Object.values(document.paths).flatMap((item) => Object.values(item).map((operation) => operation.operationId))).size).toBe(39);
+    expect(new Set(Object.values(document.paths).flatMap((item) => Object.values(item).map((operation) => operation.operationId))).size).toBe(37);
     expect(operations).toContain("POST /api/checkout");
     expect(operations).toContain("PATCH /api/admin/payment-reviews/{id}");
     expect(operations).not.toContain("GET /api/fake");
 
     // Must not leak raw internal responses or secrets
     const docString = JSON.stringify(document);
-    expect(docString).not.toMatch(/rawResponse|DATABASE_URL|DIRECT_URL|MOMO_SECRET_KEY|MOMO_ACCESS_KEY|R2_SECRET_ACCESS_KEY|AUTH_SECRET|CRON_SECRET|LEAD_RATE_LIMIT_SECRET|@gmail\.com/i);
+    expect(docString).not.toMatch(/rawResponse|DATABASE_URL|DIRECT_URL|SEPAY_WEBHOOK_SECRET|R2_SECRET_ACCESS_KEY|AUTH_SECRET|CRON_SECRET|LEAD_RATE_LIMIT_SECRET|@gmail\.com/i);
     expect(docString).toContain("providerTransactionId");
 
     // Session cookie and cron bearer security schemes

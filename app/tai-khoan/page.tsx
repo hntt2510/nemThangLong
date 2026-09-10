@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { auth } from "@/auth";
+import { auth, signOut } from "@/auth";
 import { getPrisma } from "@/lib/db";
 import { getAccountProfile } from "@/lib/account";
 import { formatVnd } from "@/lib/format";
@@ -32,12 +32,24 @@ export default async function AccountPage() {
   const showcaseOrders = showcase ? getShowcaseOrders().slice(0, 2) : [];
   const showcaseAddresses = showcase ? getShowcaseAddresses().slice(0, 1) : [];
 
+  async function signOutAction() {
+    "use server";
+    await signOut({ redirectTo: "/" });
+  }
+
   return (
     <main className="account-page container">
       <header className="account-header">
-        <p className="eyebrow">TÀI KHOẢN KHÁCH HÀNG</p>
-        <h1>{displayName}</h1>
-        <p className="muted account-email">{displayEmail}</p>
+        <div>
+          <p className="eyebrow">TÀI KHOẢN KHÁCH HÀNG</p>
+          <h1>{displayName}</h1>
+          <p className="muted account-email">{displayEmail}</p>
+        </div>
+        {!showcase && session?.user?.id && (
+          <form action={signOutAction}>
+            <button className="account-signout" type="submit">Đăng xuất</button>
+          </form>
+        )}
       </header>
 
       <div className="account-overview-grid">

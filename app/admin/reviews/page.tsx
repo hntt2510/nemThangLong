@@ -1,2 +1,4 @@
-import Link from "next/link";
-export default function AdminReviewsPage() { return <main className="admin-placeholder"><Link href="/admin">← Product editor</Link><p className="eyebrow">ADMIN / REVIEWS</p><h1>Reviews</h1><p>Chỉ review approved mới render trên storefront.</p></main>; }
+import { getPrisma } from "@/lib/db";
+import { AdminReviewManager } from "@/components/admin-review-manager";
+export const dynamic = "force-dynamic";
+export default async function ReviewsPage() { const prisma = getPrisma(); if (!prisma) return <section className="ops-empty-state"><h2>Database chưa sẵn sàng</h2></section>; const items = await prisma.review.findMany({ include: { product: { select: { name: true, slug: true } } }, orderBy: { createdAt: "desc" } }); return <div className="ops-stack"><section className="ops-page-heading"><div><p className="ops-overline">SẢN PHẨM</p><h2>Đánh giá</h2><p>Duyệt phản hồi thật; dữ liệu mẫu luôn được tách riêng.</p></div></section><AdminReviewManager initialReviews={items.map((item) => ({ ...item, createdAt: item.createdAt.toISOString() }))} /></div>; }

@@ -9,23 +9,16 @@ import { productMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-const PDP_SLUGS = ["america", "classic", "hoat-tinh", "memory-foam", "cao-su-thien-nhien"] as const;
-
-function isPdpSlug(slug: string): slug is (typeof PDP_SLUGS)[number] {
-  return PDP_SLUGS.includes(slug as (typeof PDP_SLUGS)[number]);
-}
-
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  if (!isPdpSlug(slug)) return { title: "Dòng nệm — Nệm Thăng Long" };
   const product = await getStorefrontProduct(slug);
-  return productMetadata(product, "/nem/" + slug);
+  return product ? productMetadata(product, "/nem/" + slug) : { title: "Dòng nệm — Nệm Thăng Long" };
 }
 
 export default async function GenericProductRoute({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  if (!isPdpSlug(slug)) notFound();
   const [product, related, settings] = await Promise.all([getStorefrontProduct(slug), getRelatedCatalogProducts(slug), getSiteSettings()]);
+  if (!product) notFound();
   return (
     <>
       <SiteHeader solid />

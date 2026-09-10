@@ -1,15 +1,43 @@
 import Link from "next/link";
+import { getMenuItems } from "@/lib/storefront-cms";
 
-export function SiteFooter({ contactPhone, contactEmail }: { contactPhone?: string | null; contactEmail?: string | null }) {
+export async function SiteFooter({ contactPhone, contactEmail }: { contactPhone?: string | null; contactEmail?: string | null }) {
+  const [explore, support] = await Promise.all([getMenuItems("footer-explore"), getMenuItems("footer-support")]);
+
   return (
-    <footer className="home-footer" id="about">
-      <div className="container home-footer-grid">
-        <div><Link href="/" className="brand"><span>THĂNG LONG</span><small>Sleep, considered.</small></Link><p>Comfortable. Trustworthy. Modern Vietnamese.</p></div>
-        <div><p className="footer-heading">Khám phá</p><Link href={"/nem" as never}>Dòng nệm</Link><Link href="/#shop-by-need">Theo nhu cầu</Link><Link href="/nem/luxury">Luxury</Link><Link href={"/khach-san-du-an" as never}>Khách sạn &amp; dự án</Link></div>
-        <div><p className="footer-heading">Hỗ trợ</p><Link href={"/tim-nem" as never}>Tìm nệm phù hợp</Link><Link href={"/so-sanh" as never}>So sánh</Link><Link href={"/lien-he" as never}>Liên hệ tư vấn</Link></div>
-        <div><p className="footer-heading">Liên hệ</p>{contactPhone && <a href={"tel:" + contactPhone}>{contactPhone}</a>}{contactEmail && <a href={"mailto:" + contactEmail}>{contactEmail}</a>}{!contactPhone && !contactEmail && <span>Thông tin đang cập nhật</span>}</div>
+    <footer className="border-t border-brand-ink/10 bg-brand-canvas text-brand-copy" id="about">
+      <div className="mx-auto grid w-[min(calc(100%-40px),1280px)] gap-9 py-12 md:w-[min(calc(100%-64px),1280px)] md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr] lg:gap-12 lg:py-15">
+        <div>
+          <Link href="/" className="inline-flex items-center gap-2.5 text-brand-ink" aria-label="Thăng Long trang chủ">
+            <span className="font-brand-display border-r border-brand-ink/30 pr-2 text-3xl font-semibold leading-none tracking-[-0.08em]" aria-hidden="true">TL</span>
+            <span className="flex flex-col leading-none">
+              <b className="font-brand-display text-base font-semibold tracking-[0.12em]">THĂNG LONG</b>
+              <small className="mt-1 text-[0.56rem] font-bold tracking-[0.15em] text-brand-copy">GIẤC NGỦ VIỆT</small>
+            </span>
+          </Link>
+          <p className="mt-5 max-w-xs text-sm leading-6">Giấc ngủ tốt hơn, cuộc sống đẹp hơn.</p>
+        </div>
+        <div className="grid content-start gap-3 text-sm">
+          <p className="mb-1 text-xs font-bold tracking-[0.14em] text-brand-ink">KHÁM PHÁ</p>
+          {explore.map((item) => <Link key={item.href} href={item.href as never} className="w-fit hover:text-brand-accent">{item.label}</Link>)}
+        </div>
+        <div className="grid content-start gap-3 text-sm">
+          <p className="mb-1 text-xs font-bold tracking-[0.14em] text-brand-ink">HỖ TRỢ</p>
+          {support.map((item) => <Link key={item.href} href={item.href as never} className="w-fit hover:text-brand-accent">{item.label}</Link>)}
+        </div>
+        <div className="grid content-start gap-3 text-sm">
+          <p className="mb-1 text-xs font-bold tracking-[0.14em] text-brand-ink">LIÊN HỆ</p>
+          {contactPhone ? <a href={`tel:${contactPhone}`} className="w-fit hover:text-brand-accent">{contactPhone}</a> : null}
+          {contactEmail ? <a href={`mailto:${contactEmail}`} className="w-fit hover:text-brand-accent">{contactEmail}</a> : null}
+          {!contactPhone && !contactEmail ? <span>Thông tin đang cập nhật</span> : null}
+        </div>
       </div>
-      <div className="container home-footer-bottom"><span>© Thăng Long</span><span>Hình ảnh mang tính chất minh họa trải nghiệm.</span></div>
+      <div className="border-t border-brand-ink/10">
+        <div className="mx-auto flex w-[min(calc(100%-40px),1280px)] flex-col gap-2 py-5 text-xs leading-5 md:w-[min(calc(100%-64px),1280px)] md:flex-row md:justify-between">
+          <span>© Thăng Long</span>
+          <span>Hình ảnh mang tính chất minh họa trải nghiệm.</span>
+        </div>
+      </div>
     </footer>
   );
 }

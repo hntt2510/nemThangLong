@@ -1,7 +1,6 @@
 import "server-only";
 
 import type { PrismaClient, LeadStatus, LeadType, LeadSource } from "@prisma/client";
-import { CATALOG_SLUGS } from "@/lib/product-data";
 import { normalizePhone, type PublicLeadInput, type LeadTypeValue } from "@/lib/lead-validation";
 import { consumeLeadRateLimitBucket, getLeadRateLimitSecret, hashLeadRateLimitKey, LEAD_IP_LIMIT, LEAD_IP_WINDOW_MS, LEAD_PHONE_LIMIT, LEAD_PHONE_WINDOW_MS, cleanupExpiredLeadRateLimitBuckets } from "@/lib/lead-rate-limit";
 
@@ -29,8 +28,7 @@ function requestedProductSlug(input: PublicLeadInput) {
 
 async function publishedProductExists(prisma: Pick<PrismaClient, "product">, productSlug: string | undefined) {
   if (!productSlug) return null;
-  if (!CATALOG_SLUGS.includes(productSlug as (typeof CATALOG_SLUGS)[number])) throw new LeadValidationError("Sản phẩm không hợp lệ.");
-  const product = await prisma.product.findFirst({ where: { slug: productSlug, status: "PUBLISHED" }, select: { slug: true } });
+  const product = await prisma.product.findFirst({ where: { slug: productSlug, status: "PUBLISHED", saleStatus: { not: "HIDDEN" } }, select: { slug: true } });
   if (!product) throw new LeadValidationError("Sản phẩm không hợp lệ.");
   return product.slug;
 }

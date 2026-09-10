@@ -18,15 +18,17 @@ const envSchema = z.object({
   R2_SECRET_ACCESS_KEY: optionalString,
   R2_BUCKET: optionalString,
   R2_PUBLIC_URL: optionalUrl,
-  MOMO_PARTNER_CODE: optionalString,
-  MOMO_ACCESS_KEY: optionalString,
-  MOMO_SECRET_KEY: optionalString,
-  MOMO_ENDPOINT: z.string().url().default("https://test-payment.momo.vn/v2/gateway/api/create"),
+  SEPAY_TEST_MODE: z.enum(["true", "false"]).default("false"),
+  SEPAY_WEBHOOK_SECRET: optionalSecret,
+  SEPAY_TEST_BANK: optionalString,
+  SEPAY_TEST_ACCOUNT_NUMBER: optionalString,
+  SEPAY_TEST_ACCOUNT_NAME: optionalString,
+  SEPAY_PUBLIC_BASE_URL: optionalUrl,
   NEXT_PUBLIC_SITE_URL: z.string().url().default("http://localhost:3000"),
 }).superRefine((value, context) => {
   if (context) {
     const optionalGroups = [
-      { label: "MoMo", fields: ["MOMO_PARTNER_CODE", "MOMO_ACCESS_KEY", "MOMO_SECRET_KEY"] as const, signal: ["MOMO_PARTNER_CODE", "MOMO_ACCESS_KEY", "MOMO_SECRET_KEY"] as const },
+      { label: "SePay Test Mode", fields: ["SEPAY_WEBHOOK_SECRET", "SEPAY_TEST_BANK", "SEPAY_TEST_ACCOUNT_NUMBER", "SEPAY_TEST_ACCOUNT_NAME", "SEPAY_PUBLIC_BASE_URL"] as const, signal: ["SEPAY_WEBHOOK_SECRET", "SEPAY_TEST_BANK", "SEPAY_TEST_ACCOUNT_NUMBER", "SEPAY_TEST_ACCOUNT_NAME", "SEPAY_PUBLIC_BASE_URL"] as const },
       { label: "R2", fields: ["R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET", "R2_PUBLIC_URL"] as const, signal: ["R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_PUBLIC_URL"] as const },
     ];
     for (const group of optionalGroups) {
@@ -65,24 +67,8 @@ export function validateEnvironment(source: Record<string, string | undefined> =
         }
       }
 
-      const momoEnabled = Boolean(value.MOMO_PARTNER_CODE || value.MOMO_ACCESS_KEY || value.MOMO_SECRET_KEY);
-      if (momoEnabled) {
-        if (!source.MOMO_ENDPOINT) {
-          context.addIssue({ code: z.ZodIssueCode.custom, path: ["MOMO_ENDPOINT"], message: "must be explicitly configured when MoMo is enabled in production" });
-        } else {
-          try {
-            const endpointUrl = new URL(source.MOMO_ENDPOINT);
-            const host = endpointUrl.hostname.replace(/^\[|\]$/g, "");
-            if (endpointUrl.protocol !== "https:") {
-              context.addIssue({ code: z.ZodIssueCode.custom, path: ["MOMO_ENDPOINT"], message: "must use HTTPS in production" });
-            }
-            if (host === "test-payment.momo.vn" || host.includes("test-payment.momo.vn")) {
-              context.addIssue({ code: z.ZodIssueCode.custom, path: ["MOMO_ENDPOINT"], message: "cannot use test-payment.momo.vn in production" });
-            }
-          } catch {
-            // malformed url handled by zod base schema
-          }
-        }
+      if (value.SEPAY_TEST_MODE === "true" || value.SEPAY_WEBHOOK_SECRET || value.SEPAY_TEST_BANK || value.SEPAY_TEST_ACCOUNT_NUMBER || value.SEPAY_TEST_ACCOUNT_NAME || value.SEPAY_PUBLIC_BASE_URL) {
+        context.addIssue({ code: z.ZodIssueCode.custom, path: ["SEPAY_TEST_MODE"], message: "SePay Test Mode cannot be enabled in production" });
       }
     }
   }).safeParse(source);

@@ -2,11 +2,15 @@
 
 import { useRef } from "react";
 import gsap from "gsap";
+import { CustomEase } from "gsap/CustomEase";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 
+const revealEase = "thang-long-reveal";
+
 if (typeof window !== "undefined") {
-  gsap.registerPlugin(useGSAP, ScrollTrigger);
+  gsap.registerPlugin(useGSAP, ScrollTrigger, CustomEase);
+  CustomEase.create(revealEase, "M0,0 C0.16,1 0.3,1 1,1");
 }
 
 export type GsapRevealVariant = "fade-up" | "stagger" | "hero" | "editorial";
@@ -47,11 +51,11 @@ export function GsapReveal({
             return;
           }
 
-          const ease = "power2.out";
+          const ease = revealEase;
 
           if (variant === "hero") {
-            const copyElements = container.querySelectorAll(".home-hero-copy > *");
-            const mediaElement = container.querySelector(".home-hero-media");
+            const copyElements = container.querySelectorAll(".home-hero-copy > *, [data-gsap-hero-copy] > *");
+            const mediaElement = container.querySelector(".home-hero-media, [data-gsap-hero-media]");
 
             const tl = gsap.timeline({ delay });
 
@@ -101,16 +105,16 @@ export function GsapReveal({
 
           if (variant === "editorial") {
             const textSide = container.querySelector(
-              ".home-luxury-copy, .home-latex-copy, .home-project-copy, .editorial-copy",
+              ".home-luxury-copy, .home-latex-copy, .home-project-copy, .home-construction-copy, .landing-construction-copy, .editorial-copy, [data-gsap-editorial-copy]",
             );
             const mediaSide = container.querySelector(
-              ".home-luxury-media, .home-latex-media, .home-project-media, .editorial-image",
+              ".home-luxury-media, .home-latex-media, .home-project-media, .home-construction-media, .landing-construction-visual, .editorial-image, [data-gsap-editorial-media]",
             );
 
             const tl = gsap.timeline({
               scrollTrigger: {
                 trigger: container,
-                start: "top 92%",
+                start: "top 80%",
                 once: true,
               },
               delay,
@@ -176,7 +180,7 @@ export function GsapReveal({
                   clearProps: "opacity,transform",
                   scrollTrigger: {
                     trigger: container,
-                    start: "top 95%",
+                    start: "top 80%",
                     once: true,
                   },
                 },
@@ -197,7 +201,7 @@ export function GsapReveal({
               clearProps: "opacity,transform",
               scrollTrigger: {
                 trigger: container,
-                start: "top 95%",
+                start: "top 80%",
                 once: true,
               },
             },

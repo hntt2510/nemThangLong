@@ -8,9 +8,9 @@ import { formatDimension, formatVnd } from "@/lib/format";
 import { useCart } from "@/lib/cart-context";
 import type { Product, ProductVariant } from "@/lib/types";
 import { GsapReveal } from "./gsap-reveal";
-import { MattressLabTeaser } from "./mattress-lab-teaser";
 import { resolvePdpCta } from "@/lib/product-cta";
-import { isUiShowcaseMode } from "@/lib/ui-showcase";
+import { ProductRating, ProductReviews } from "@/components/product-rating";
+import { PurchaseReassurance } from "@/components/purchase-reassurance";
 
 import { activeVariants, dimensionOptions, initialSelection, resolveVariant, selectVariant, selectionFromVariant, type VariantDimension } from "@/lib/variant-selection";
 
@@ -22,15 +22,13 @@ export function LuxuryPdp({ product }: { product: Product }) {
   const [mediaIndex, setMediaIndex] = useState(0);
   const selected = resolveVariant(variants, selection);
   const media = product.media[mediaIndex] ?? product.media[0];
-  const isShowcase = product.source === "showcase" || Boolean(product.isShowcase) || Boolean(product.previewPurchasable) || isUiShowcaseMode();
   const canPurchase = Boolean(
-    (!product.isDemo || isShowcase) &&
-    selected &&
+    product.purchasable && selected &&
     selected.price !== null &&
     selected.price > 0 &&
     selected.stock > 0
   );
-  const price = (!product.isDemo || isShowcase) && selected?.price && selected.price > 0 ? formatVnd(selected.price) : "Liên hệ tư vấn";
+  const price = selected?.price && selected.price > 0 ? formatVnd(selected.price) : "Liên hệ tư vấn";
   const cta = resolvePdpCta(canPurchase, "/lien-he?product=luxury", {
     purchase: "Mua ngay",
     contact: "Liên hệ tư vấn",
@@ -124,18 +122,16 @@ export function LuxuryPdp({ product }: { product: Product }) {
                 }}
               />
             )}
-            {product.isDemo && (
-              <span className="demo-badge">Ảnh minh họa</span>
-            )}
           </div>
         </div>
         <div className="hero-copy">
           <p className="eyebrow">{product.eyebrow}</p>
           <h1>{product.name}</h1>
           <p className="hero-description">{product.description}</p>
+          <ProductRating reviews={product.reviews} compact />
           <div className="price-row" aria-live="polite">
             <strong>{price}</strong>
-            {!product.isDemo && selected?.compareAtPrice && (
+            {selected?.compareAtPrice && (
               <del>{formatVnd(selected.compareAtPrice)}</del>
             )}
           </div>
@@ -244,11 +240,7 @@ export function LuxuryPdp({ product }: { product: Product }) {
               {cta.label}
             </button>
           )}
-          <div id="trust" className="trust-list">
-            <span>✓ Chọn kích thước theo cấu hình hiện có</span>
-            <span>✓ Giá hoặc tư vấn hiển thị theo từng lựa chọn</span>
-            <span>✓ Có thể liên hệ tư vấn trước khi đặt hàng</span>
-          </div>
+          <PurchaseReassurance product={product} contactHref="/lien-he?product=luxury" />
           <div className="hero-actions">
             <button aria-label="Thêm vào yêu thích">♡ Yêu thích</button>
             <button
@@ -335,7 +327,6 @@ export function LuxuryPdp({ product }: { product: Product }) {
           </div>
         </section>
       )}
-      <MattressLabTeaser product={product} />
       {materialStory && (
         <section id="natural-latex" className="latex-section container">
           <div className="latex-copy">
@@ -355,44 +346,8 @@ export function LuxuryPdp({ product }: { product: Product }) {
           </div>
         </section>
       )}
-      <section id="compare" className="compare-section container">
-        <div>
-          <p className="section-label">SO SÁNH</p>
-          <h2>Đặt cạnh những lựa chọn khác.</h2>
-        </div>
-        <div className="compare-options">
-          {["01", "02", "03"].map((number) => (
-            <div key={number}>
-              <span>{number}</span>
-              <strong>Lựa chọn đang cập nhật</strong>
-              <small>Thông tin so sánh đang được cập nhật chi tiết.</small>
-            </div>
-          ))}
-        </div>
-      </section>
-      <section className="info-grid container">
-        <article>
-          <p className="section-label">GIAO HÀNG</p>
-          <h3>Thông tin đang cập nhật.</h3>
-          <p>Thông tin giao hàng áp dụng theo cấu hình đơn hàng.</p>
-          <Link href={"/lien-he?product=luxury" as never} className="text-link">
-            Xem chính sách →
-          </Link>
-        </article>
-        <article>
-          <p className="section-label">BẢO HÀNH</p>
-          <h3>Thông tin đang cập nhật.</h3>
-          <p>Thông tin bảo hành sẽ hiển thị khi có dữ liệu chính thức.</p>
-          <Link href={"/lien-he?product=luxury" as never} className="text-link">
-            Xem chính sách →
-          </Link>
-        </article>
-        <article id="about">
-          <p className="section-label">VỀ THĂNG LONG</p>
-          <h3>Modern Vietnamese comfort.</h3>
-          <p>Định hướng mang lại trải nghiệm nghỉ ngơi thư thái và phù hợp.</p>
-        </article>
-      </section>
+      <section id="compare" className="compare-section container"><div><p className="section-label">SO SÁNH</p><h2>Đặt cạnh những lựa chọn khác.</h2><p>So sánh các thông tin sản phẩm đã công bố trước khi chọn.</p></div><Link href="/so-sanh?items=luxury" className="button button-secondary">Mở bảng so sánh</Link></section>
+      <ProductReviews reviews={product.reviews} />
       <section id="contact" className="contact-section">
         <div className="container">
           <p className="eyebrow">TƯ VẤN LỰA CHỌN</p>

@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   const email = parsed.data.email.toLowerCase();
   try {
     if (await prisma.user.findUnique({ where: { email } })) return NextResponse.json({ error: "Email này đã được sử dụng." }, { status: 409 });
-    await prisma.user.create({ data: { name: parsed.data.name, email, passwordHash: await bcrypt.hash(parsed.data.password, 12) } });
+    await prisma.user.create({ data: { name: parsed.data.name, email, passwordHash: await bcrypt.hash(parsed.data.password, 12), role: "CUSTOMER" } });
     return NextResponse.json({ ok: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : "";

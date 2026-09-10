@@ -114,6 +114,7 @@ export function FinderWizard({
           </button>
         ))}
       </div>
+      <p className="finder-current-step" aria-live="polite">Bước {step + 1}/3 — {steps[step].label}</p>
 
       {step === 0 && (
         <fieldset className="finder-step-content">

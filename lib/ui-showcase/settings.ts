@@ -25,7 +25,7 @@ export const SHOWCASE_SETTINGS: {
   navigation: {
     items: [
       {
-        label: "Nệm",
+        label: "Sản phẩm",
         href: "/nem",
         children: [
           { label: "Nệm Thăng Long America", href: "/nem/america" },
@@ -37,11 +37,10 @@ export const SHOWCASE_SETTINGS: {
         ],
       },
       { label: "Theo nhu cầu", href: "/tim-nem" },
-      { label: "Luxury", href: "/nem/luxury" },
       { label: "Khách sạn & dự án", href: "/khach-san-du-an" },
-      { label: "Về Thăng Long", href: "/lien-he" },
+      { label: "Về Thăng Long", href: "/ve-thang-long" },
+      { label: "Blog", href: "/kien-thuc-giac-ngu" },
     ],
   },
   updatedAt: new Date("2026-08-22T00:00:00Z"),
 };
-

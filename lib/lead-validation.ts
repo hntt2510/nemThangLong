@@ -1,9 +1,8 @@
 import { z } from "zod";
-import { CATALOG_SLUGS } from "@/lib/product-data";
 
 const optionalEmail = z.preprocess((value) => value === "" ? undefined : value, z.string().trim().max(254).email().transform((value) => value.toLowerCase()).optional());
 const optionalText = (max: number) => z.preprocess((value) => value === "" ? undefined : value, z.string().trim().max(max).optional());
-const slug = z.enum(CATALOG_SLUGS).optional();
+const slug = z.string().trim().min(1).max(120).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional();
 
 export function normalizePhone(value: string) {
   const trimmed = value.trim();

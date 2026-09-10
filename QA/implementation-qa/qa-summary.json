@@ -1,0 +1,170 @@
+[
+  {
+    "name": "desktop_1440_home.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "desktop_1440_catalog.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "desktop_1440_pdp_america.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "desktop_1440_pdp_luxury.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "desktop_1440_finder.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "desktop_1440_compare.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "desktop_1440_cart.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "desktop_1440_checkout.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "tablet_768_home.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "tablet_768_catalog.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "tablet_768_pdp_america.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "tablet_768_pdp_luxury.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "tablet_768_finder.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "tablet_768_compare.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "tablet_768_cart.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "tablet_768_checkout.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "mobile_390_home.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "mobile_390_catalog.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "mobile_390_pdp_america.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "mobile_390_pdp_luxury.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "mobile_390_finder.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "mobile_390_compare.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "mobile_390_cart.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  },
+  {
+    "name": "mobile_390_checkout.png",
+    "showcase": true,
+    "overflow": false,
+    "headerTop": 0,
+    "h1": true
+  }
+]

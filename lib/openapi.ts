@@ -8,14 +8,14 @@ import { adminOrderActionSchema, orderFiltersSchema } from "@/lib/admin-order-va
 import { inventoryAdjustmentSchema } from "@/lib/inventory-validation";
 import { paymentReviewResolutionSchema } from "@/lib/payment-review-validation";
 import { adminProductDocumentSchema, catalogSlugSchema } from "@/lib/admin-product-validation";
-import { adminSettingsSchema, momoCreateSchema, registerSchema, uploadFinalizeSchema, uploadPresignSchema } from "@/lib/api-validation";
+import { adminSettingsSchema, registerSchema, sepayWebhookSchema, uploadFinalizeSchema, uploadPresignSchema } from "@/lib/api-validation";
 
 extendZodWithOpenApi(z);
 
 export const OPENAPI_ROUTE_INVENTORY = [
   ["PATCH", "/api/account/addresses/[id]"], ["DELETE", "/api/account/addresses/[id]"], ["GET", "/api/account/addresses"], ["POST", "/api/account/addresses"], ["POST", "/api/account/after-sales"], ["PATCH", "/api/account/profile"],
-  ["GET", "/api/admin/after-sales/[id]"], ["PATCH", "/api/admin/after-sales/[id]"], ["GET", "/api/admin/after-sales"], ["GET", "/api/admin/dashboard"], ["GET", "/api/admin/inventory"], ["POST", "/api/admin/inventory"], ["GET", "/api/admin/leads/[id]"], ["PATCH", "/api/admin/leads/[id]"], ["GET", "/api/admin/leads"], ["GET", "/api/admin/orders/[id]"], ["PATCH", "/api/admin/orders/[id]"], ["GET", "/api/admin/orders"], ["GET", "/api/admin/payment-reviews/[id]"], ["PATCH", "/api/admin/payment-reviews/[id]"], ["GET", "/api/admin/payment-reviews"], ["GET", "/api/admin/products/[slug]"], ["PUT", "/api/admin/products/[slug]"], ["GET", "/api/admin/products"], ["POST", "/api/admin/products"], ["GET", "/api/admin/settings"], ["PUT", "/api/admin/settings"],
-  ["POST", "/api/auth/register"], ["POST", "/api/checkout"], ["GET", "/api/cron/release-reservations"], ["POST", "/api/leads"], ["GET", "/api/orders/result/[token]"], ["POST", "/api/payments/momo/create"], ["POST", "/api/payments/momo/ipn"], ["POST", "/api/uploads/finalize"], ["POST", "/api/uploads/presign"],
+  ["GET", "/api/admin/after-sales/[id]"], ["PATCH", "/api/admin/after-sales/[id]"], ["GET", "/api/admin/after-sales"], ["GET", "/api/admin/dashboard"], ["GET", "/api/admin/data-quality"], ["GET", "/api/admin/inventory"], ["POST", "/api/admin/inventory"], ["GET", "/api/admin/leads/[id]"], ["PATCH", "/api/admin/leads/[id]"], ["GET", "/api/admin/leads"], ["GET", "/api/admin/orders/[id]"], ["PATCH", "/api/admin/orders/[id]"], ["GET", "/api/admin/orders"], ["GET", "/api/admin/payment-reviews/[id]"], ["PATCH", "/api/admin/payment-reviews/[id]"], ["GET", "/api/admin/payment-reviews"], ["GET", "/api/admin/products/[slug]"], ["PUT", "/api/admin/products/[slug]"], ["GET", "/api/admin/products"], ["POST", "/api/admin/products"], ["GET", "/api/admin/settings"], ["PUT", "/api/admin/settings"], ["GET", "/api/admin/sources"], ["POST", "/api/admin/sources"], ["PATCH", "/api/admin/sources/[id]"],
+  ["POST", "/api/auth/register"], ["POST", "/api/checkout"], ["GET", "/api/cron/release-reservations"], ["POST", "/api/leads"], ["GET", "/api/orders/result/[token]"], ["POST", "/api/payments/sepay/webhook"], ["POST", "/api/uploads/finalize"], ["POST", "/api/uploads/presign"],
   ["GET", "/api/openapi"], ["GET", "/api/health/live"], ["GET", "/api/health/ready"],
 ] as const;
 
@@ -55,6 +55,7 @@ const leadFilters = z.object({ status: z.enum(["NEW", "IN_PROGRESS", "CLOSED"]).
 const afterSalesFilters = z.object({ type: z.enum(["WARRANTY_REVIEW", "PRODUCT_SUPPORT"]).optional(), status: z.enum(["SUBMITTED", "REVIEWING", "RESOLVED", "CLOSED"]).optional(), q: z.string().max(100).optional(), page: z.coerce.number().int().positive().max(1000).optional() }).strict();
 const inventoryFilters = z.object({ slug: z.string().max(80).optional(), active: z.enum(["0", "1"]).optional(), zeroStock: z.literal("1").optional(), page: z.coerce.number().int().positive().max(1000).optional() }).strict();
 const dashboardQuery = z.object({ range: z.enum(["7d", "30d"]).optional() }).strict();
+const sourceInput = z.object({ url: z.string().url(), title: z.string().min(1), publisher: z.string().nullable().optional(), sourceType: z.enum(["OFFICIAL_WEBSITE", "FACEBOOK", "OWNER_DOCUMENT", "INTERNAL_FIXTURE"]), notes: z.string().nullable().optional() }).strict();
 
 register({ method: "patch", path: "/api/account/profile", tags: ["Account"], operationId: "updateAccountProfile", ...customer, request: { body: body(profileUpdateSchema) }, responses: { "200": response(profileSchema), ...errors([400, 401, 503]) } });
 register({ method: "get", path: "/api/account/addresses", tags: ["Account"], operationId: "listAccountAddresses", ...customer, responses: { "200": response(z.array(addressSchema)), ...errors([401, 503]) } });
@@ -67,6 +68,7 @@ register({ method: "get", path: "/api/admin/after-sales", tags: ["After Sales"],
 register({ method: "get", path: "/api/admin/after-sales/{id}", tags: ["After Sales"], operationId: "getAdminAfterSales", ...admin, request: { params: pathId }, responses: { "200": response(anyObject), ...errors([401, 403, 404, 503]) } });
 register({ method: "patch", path: "/api/admin/after-sales/{id}", tags: ["After Sales"], operationId: "updateAdminAfterSales", ...admin, request: { params: pathId, body: body(afterSalesAdminUpdateSchema) }, responses: { "200": response(anyObject), ...errors([400, 401, 403, 404, 409, 503]) } });
 register({ method: "get", path: "/api/admin/dashboard", tags: ["Internal"], operationId: "getAdminDashboard", ...admin, request: { query: dashboardQuery }, responses: { "200": response(anyObject), ...errors([401, 403, 503]) } });
+register({ method: "get", path: "/api/admin/data-quality", tags: ["Data Quality"], operationId: "getDataQuality", ...admin, responses: { "200": response(anyArray), ...errors([401, 403, 503]) } });
 register({ method: "get", path: "/api/admin/inventory", tags: ["Inventory"], operationId: "listInventory", ...admin, request: { query: inventoryFilters }, responses: { "200": response(anyObject), ...errors([401, 403, 503]) } });
 register({ method: "post", path: "/api/admin/inventory", tags: ["Inventory"], operationId: "adjustInventory", ...admin, request: { body: body(inventoryAdjustmentSchema) }, responses: { "201": response(anyObject), ...errors([400, 401, 403, 404, 409, 503]) } });
 register({ method: "get", path: "/api/admin/leads", tags: ["Leads"], operationId: "listAdminLeads", ...admin, request: { query: leadFilters }, responses: { "200": response(anyObject), ...errors([401, 403, 503]) } });
@@ -84,14 +86,16 @@ register({ method: "get", path: "/api/admin/products/{slug}", tags: ["Admin Prod
 register({ method: "put", path: "/api/admin/products/{slug}", tags: ["Admin Products"], operationId: "saveAdminProduct", ...editor, request: { params: pathSlug, body: body(adminProductDocumentSchema) }, responses: { "200": response(anyObject), ...errors([400, 401, 403, 404, 409, 503]) } });
 register({ method: "get", path: "/api/admin/settings", tags: ["Settings"], operationId: "getAdminSettings", ...editor, responses: { "200": response(anyObject), ...errors([401, 403, 503]) } });
 register({ method: "put", path: "/api/admin/settings", tags: ["Settings"], operationId: "updateAdminSettings", ...editor, request: { body: body(adminSettingsSchema) }, responses: { "200": response(anyObject), ...errors([400, 401, 403, 503]) } });
+register({ method: "get", path: "/api/admin/sources", tags: ["Data Quality"], operationId: "listSourceReferences", ...admin, responses: { "200": response(anyArray), ...errors([401, 403, 503]) } });
+register({ method: "post", path: "/api/admin/sources", tags: ["Data Quality"], operationId: "createSourceReference", ...admin, request: { body: body(sourceInput) }, responses: { "201": response(anyObject), ...errors([400, 401, 403, 409, 503]) } });
+register({ method: "patch", path: "/api/admin/sources/{id}", tags: ["Data Quality"], operationId: "updateSourceReference", ...admin, request: { params: pathId, body: body(sourceInput.partial()) }, responses: { "200": response(anyObject), ...errors([400, 401, 403, 404, 503]) } });
 
 register({ method: "post", path: "/api/auth/register", tags: ["Storefront"], operationId: "registerAccount", request: { body: body(registerSchema) }, responses: { "200": response(okSchema), ...errors([400, 409, 503]) } });
 register({ method: "post", path: "/api/checkout", tags: ["Checkout"], operationId: "createCheckout", security: [{ sessionCookie: [] }, {}], description: "Guest checkout is supported when guestEmail is supplied.", request: { body: body(checkoutSchema) }, responses: { "200": response(anyObject), ...errors([400, 409, 503]) } });
 register({ method: "get", path: "/api/cron/release-reservations", tags: ["Internal"], operationId: "releaseExpiredReservations", security: [{ cronBearer: [] }], description: "Internal scheduled job authenticated with an opaque cron bearer token; not a JWT.", responses: { "200": response(anyObject), ...errors([401, 503]) } });
 register({ method: "post", path: "/api/leads", tags: ["Leads"], operationId: "createPublicLead", request: { body: body(publicLeadSchema) }, responses: { "201": response(okSchema), ...errors([400, 413, 429, 503]) } });
 register({ method: "get", path: "/api/orders/result/{token}", tags: ["Checkout"], operationId: "getOrderResult", request: { params: pathToken }, responses: { "200": response(anyObject), ...errors([404, 503]) } });
-register({ method: "post", path: "/api/payments/momo/create", tags: ["Payments"], operationId: "createMomoPayment", request: { body: body(momoCreateSchema) }, responses: { "200": response(anyObject), ...errors([404, 409, 502, 503]) } });
-register({ method: "post", path: "/api/payments/momo/ipn", tags: ["Payments"], operationId: "receiveMomoIpn", description: "MoMo provider callback authenticated by its signed request body. No session cookie is used.", request: { body: body(anyObject) }, responses: { "204": { description: "Callback accepted or ignored." }, ...errors([503]) } });
+register({ method: "post", path: "/api/payments/sepay/webhook", tags: ["Payments"], operationId: "receiveSePayWebhook", description: "SePay Test Mode callback. The raw request body is authenticated by X-SePay-Signature and X-SePay-Timestamp; no session cookie is used.", request: { body: body(sepayWebhookSchema) }, responses: { "200": response(okSchema), ...errors([400, 401, 503]) } });
 register({ method: "post", path: "/api/uploads/presign", tags: ["Uploads"], operationId: "presignUpload", ...editor, request: { body: body(uploadPresignSchema) }, responses: { "200": response(anyObject), ...errors([400, 401, 403, 429, 503]) } });
 register({ method: "post", path: "/api/uploads/finalize", tags: ["Uploads"], operationId: "finalizeUpload", ...editor, request: { body: body(uploadFinalizeSchema) }, responses: { "200": response(anyObject), ...errors([400, 401, 403, 409, 503]) } });
 register({ method: "get", path: "/api/openapi", tags: ["Internal"], operationId: "getOpenApi", ...admin, responses: { "200": response(anyObject), ...errors([401, 403]) } });
@@ -106,7 +110,7 @@ export function getOpenApiDocument() {
       openapi: "3.1.0",
       info: { title: "Nệm Thăng Long API", version: "1.0.0", description: "OpenAPI contract for the existing Next.js Route Handlers." },
       servers: [{ url: "/" }],
-      tags: ["Storefront", "Checkout", "Payments", "Account", "Leads", "After Sales", "Admin Products", "Admin Orders", "Inventory", "Payment Review", "Uploads", "Settings", "Internal"].map((name) => ({ name })),
+      tags: ["Storefront", "Checkout", "Payments", "Account", "Leads", "After Sales", "Admin Products", "Admin Orders", "Inventory", "Payment Review", "Uploads", "Settings", "Data Quality", "Internal"].map((name) => ({ name })),
     }) as unknown as Record<string, unknown>;
     cachedDocument = {
       ...generated,

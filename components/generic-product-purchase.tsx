@@ -9,7 +9,8 @@ import { useCart } from "@/lib/cart-context";
 import type { Product } from "@/lib/types";
 import { isDemoMedia, mediaAlt } from "@/lib/product-media";
 import { resolvePdpCta } from "@/lib/product-cta";
-import { isUiShowcaseMode } from "@/lib/ui-showcase";
+import { ProductRating } from "@/components/product-rating";
+import { PurchaseReassurance } from "@/components/purchase-reassurance";
 
 export function GenericProductPurchase({ product, contactHref }: { product: Product; contactHref: string | null }) {
   const router = useRouter();
@@ -19,9 +20,8 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
   const [mediaIndex, setMediaIndex] = useState(0);
   const selected = resolveVariant(variants, selection);
   const media = product.media[mediaIndex] ?? product.media[0];
-  const isShowcase = product.source === "showcase" || Boolean(product.isShowcase) || Boolean(product.previewPurchasable) || isUiShowcaseMode();
-  const canPurchase = Boolean((!product.isDemo || isShowcase) && selected && selected.price !== null && selected.price > 0 && selected.stock > 0);
-  const price = (!product.isDemo || isShowcase) && selected?.price && selected.price > 0 ? formatVnd(selected.price) : "Liên hệ";
+  const canPurchase = Boolean(product.purchasable && selected && selected.price !== null && selected.price > 0 && selected.stock > 0);
+  const price = selected?.price && selected.price > 0 ? formatVnd(selected.price) : "Liên hệ";
   const cta = resolvePdpCta(canPurchase, contactHref, {
     purchase: "Mua ngay",
     contact: "Tư vấn",
@@ -98,8 +98,11 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
         <p className="eyebrow">{product.eyebrow}</p>
         <h1>{product.name}</h1>
         <p className="hero-description">{product.description}</p>
+        <ProductRating reviews={product.reviews} compact />
         <div className="price-row" aria-live="polite">
           <strong>{price}</strong>
+          {selected?.compareAtPrice && <del>{formatVnd(selected.compareAtPrice)}</del>}
+          {selected?.priceStatus === "PLACEHOLDER" && <small>Giá thử nghiệm</small>}
         </div>
         {variants.length > 0 ? (
           <div className="variant-block">
@@ -176,7 +179,7 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
         {selected && (
           <p className="generic-availability" aria-live="polite">
             <span className={"status-dot " + (selected.stock > 0 ? "in-stock" : "out-of-stock")} />
-            {selected.stock > 0 ? "Còn hàng" : "Tạm hết hàng"}
+            {selected.stock > 0 ? selected.stockStatus === "PLACEHOLDER" ? "Tồn kho thử nghiệm" : "Còn hàng" : "Tạm hết hàng"}
             {selected.price === null || selected.price <= 0 ? " · Giá đang cập nhật" : ""}
           </p>
         )}
@@ -196,10 +199,7 @@ export function GenericProductPurchase({ product, contactHref }: { product: Prod
         ) : (
           <p className="generic-contact-pending">Thông tin tư vấn đang được cập nhật.</p>
         )}
-        <div className="trust-list">
-          <span>✓ Chọn kích thước theo các biến thể hiện có</span>
-          <span>✓ Có thể liên hệ tư vấn trước khi đặt hàng</span>
-        </div>
+        <PurchaseReassurance product={product} contactHref={contactHref} />
       </div>
 
       <div className="mobile-sticky-cta">

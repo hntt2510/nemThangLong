@@ -20,6 +20,8 @@ export type ProductVariant = {
   sku: string;
   stock: number;
   active: boolean;
+  priceStatus?: "PLACEHOLDER" | "VERIFIED" | "SOURCE_CONFLICT";
+  stockStatus?: "PLACEHOLDER" | "VERIFIED" | "SOURCE_CONFLICT";
 };
 
 export type ProductLayer = {
@@ -55,8 +57,12 @@ export type Product = {
   modelUrl?: string | null;
   posterUrl?: string | null;
   mattressLab: boolean;
-  reviews: Array<{ rating: number; comfort?: number; quality?: number; value?: number }>;
+  reviews: Array<{ authorName: string; rating: number; comfort?: number; quality?: number; value?: number; body: string; createdAt: string; isFixture?: boolean }>;
+  facts?: Array<{ key: string; label: string; value: string; dataStatus: "PLACEHOLDER" | "VERIFIED" | "SOURCE_CONFLICT" }>;
   content?: ProductContent | null;
+  presentation?: "STANDARD" | "LUXURY";
+  saleStatus?: "HIDDEN" | "CONTACT_ONLY" | "ACTIVE";
+  verificationStatus?: "PLACEHOLDER" | "VERIFIED";
   isDemo: boolean;
   source: "database" | "demo" | "showcase";
   purchasable: boolean;

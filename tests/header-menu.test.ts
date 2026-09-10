@@ -19,11 +19,26 @@ describe("shared header menu state", () => {
   });
 
   it("renders the cart, independent controls and primary navigation in static markup", () => {
-    const markup = renderToStaticMarkup(createElement(CartProvider, null, createElement(SiteHeaderClient, { navigation: defaultNavigation, solid: true })));
+    const navigation = {
+      ...defaultNavigation,
+      primary: [
+        { label: "Theo nhu cầu", href: "/tim-nem" },
+        { label: "Khách sạn & dự án", href: "/khach-san-du-an" },
+      ],
+    };
+    const markup = renderToStaticMarkup(createElement(CartProvider, null, createElement(SiteHeaderClient, { navigation, solid: true })));
     expect(markup).toContain('href="/gio-hang"');
     expect(markup).toContain('aria-controls="mobile-navigation"');
     expect(markup).toContain('aria-controls="mattress-menu"');
     expect(markup).toContain("Theo nhu cầu");
     expect(markup).toContain("Khách sạn &amp; dự án");
+    expect(markup).toContain('href="/dang-nhap"');
+    expect(markup).toContain("Đăng nhập");
+  });
+
+  it("links a signed-in customer directly to account management", () => {
+    const markup = renderToStaticMarkup(createElement(CartProvider, null, createElement(SiteHeaderClient, { navigation: defaultNavigation, solid: true, isAuthenticated: true })));
+    expect(markup).toContain('href="/tai-khoan"');
+    expect(markup).toContain("Tài khoản của tôi");
   });
 });
