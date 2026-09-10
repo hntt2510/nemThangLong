@@ -34,6 +34,8 @@ async function getHomepageReviews() {
   }
 }
 
+import { fallbackHomepageProducts, fallbackReviews } from "@/lib/homepage-fallback-data";
+
 export function getContactHref(settings: HomepageData["settings"]): string | null {
   return settings?.contactPhone ? `tel:${settings.contactPhone}` : settings?.contactEmail ? `mailto:${settings.contactEmail}` : null;
 }
@@ -41,8 +43,8 @@ export function getContactHref(settings: HomepageData["settings"]): string | nul
 export async function getHomepageData(): Promise<HomepageData> {
   const [{ products, databaseAvailable }, settings, reviews] = await Promise.all([getCatalogProducts(), getSiteSettings(), getHomepageReviews()]);
   return {
-    products,
-    reviews,
+    products: products.length > 0 ? products : fallbackHomepageProducts,
+    reviews: reviews.length > 0 ? reviews : fallbackReviews,
     databaseAvailable,
     settings: settings ? { shippingFee: settings.shippingFee, contactPhone: settings.contactPhone, contactEmail: settings.contactEmail, navigation: settings.navigation } : null,
   };

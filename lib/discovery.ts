@@ -123,6 +123,9 @@ export async function getDiscoveryProducts(): Promise<DiscoveryData> {
       .filter((record) => record.status === "PUBLISHED")
       .map((record, index) => toDiscoveryProduct(mapProduct(record), index))
       .sort((a, b) => a.catalogueIndex - b.catalogueIndex);
+    if (products.length === 0) {
+      return discoveryData(getDemoCatalogProducts().map((product, index) => toDiscoveryProduct(product, index)), false);
+    }
     return discoveryData(products, true);
   } catch {
     return discoveryData(getDemoCatalogProducts().map((product, index) => toDiscoveryProduct(product, index)), false);

@@ -21,7 +21,8 @@
     "db:migrate:deploy": "node --env-file-if-exists=.env.local node_modules/prisma/build/index.js migrate deploy",
     "db:migrate:status": "node --env-file-if-exists=.env.local --import tsx scripts/database-command.ts status",
     "db:studio": "node --env-file-if-exists=.env.local --import tsx scripts/database-command.ts studio",
-    "db:seed": "npm run db:dev:bootstrap",
+    "db:seed": "node --env-file-if-exists=.env.local --import tsx scripts/seed-production.ts",
+    "db:seed:dev": "npm run db:dev:bootstrap",
     "db:sync-navigation": "node --env-file-if-exists=.env.local --import tsx scripts/sync-storefront-navigation.ts",
     "sepay:test:check": "node --env-file-if-exists=.env.local --import tsx scripts/sepay-test-check.ts"
   },

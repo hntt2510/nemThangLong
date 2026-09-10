@@ -10,6 +10,8 @@ import { getContactHref, type HomepageProductSummary } from "@/lib/homepage";
 import { sleepJournalPosts } from "@/lib/sleep-journal";
 import type { HomeHero } from "@/lib/storefront-cms";
 
+import { fallbackHomepageProducts, fallbackReviews, type FallbackReview } from "@/lib/homepage-fallback-data";
+
 type HomepageSettings = { shippingFee: number | null; contactPhone: string | null; contactEmail: string | null; navigation: unknown };
 type HomepageReview = { authorName: string; body: string; rating: number; productName: string };
 type LandingReview = HomepageReview & { detail?: string };
@@ -19,12 +21,6 @@ const trustItems = [
   { title: "Thông tin rõ ràng", body: "Xem dòng nệm, kích thước và mức giá trước khi quyết định." },
   { title: "Giao hàng theo khu vực", body: "Chi phí và thời gian giao được xác nhận trước khi đặt hàng." },
   { title: "Hỗ trợ sau mua", body: "Nhận hướng dẫn sử dụng, bảo quản và thông tin bảo hành." },
-];
-
-const fallbackReviews: LandingReview[] = [
-  { authorName: "Chị Thu Hà", detail: "Quận 7, TP. Hồ Chí Minh", productName: "Nệm Thăng Long Classic", rating: 5, body: "Tư vấn dễ hiểu, chọn được kích thước vừa với phòng. Nệm nằm êm và gia đình dùng thấy ổn." },
-  { authorName: "Anh Minh Quân", detail: "Hải Châu, Đà Nẵng", productName: "Nệm cao su thiên nhiên Thăng Long 3/4", rating: 5, body: "Được xem kỹ từng lựa chọn trước khi đặt. Nhân viên hỗ trợ nhiệt tình, giao hàng đúng hẹn đã trao đổi." },
-  { authorName: "Chị Bích Ngọc", detail: "Biên Hòa, Đồng Nai", productName: "Nệm Thăng Long Hoạt Tính", rating: 5, body: "Gia đình cần nệm cho phòng nhỏ, được tư vấn đúng nhu cầu. Cách dùng và bảo quản cũng được hướng dẫn rõ." },
 ];
 
 const faqItems = [
@@ -45,8 +41,9 @@ const landingHoverImages: Record<string, string> = {
 
 export function Homepage({ products, reviews, settings, hero, databaseAvailable }: { products: HomepageProductSummary[]; reviews: HomepageReview[]; settings: HomepageSettings | null; hero: HomeHero | null; databaseAvailable: boolean }) {
   const contactHref = getContactHref(settings);
-  const productCards = products.slice(0, 6);
-  const displayedReviews: LandingReview[] = reviews.length > 0 ? reviews : fallbackReviews;
+  const effectiveProducts = products && products.length > 0 ? products : fallbackHomepageProducts;
+  const productCards = effectiveProducts.slice(0, 6);
+  const displayedReviews: LandingReview[] = reviews && reviews.length > 0 ? reviews : fallbackReviews;
 
   if (!databaseAvailable && productCards.length === 0) return <main className="storefront-unavailable container"><p className="eyebrow">TẠM THỜI KHÔNG THỂ KẾT NỐI</p><h1>Dữ liệu cửa hàng đang tạm thời không sẵn sàng.</h1><p>Vui lòng thử lại sau ít phút.</p></main>;
 

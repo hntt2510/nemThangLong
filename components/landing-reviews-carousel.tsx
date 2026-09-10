@@ -18,14 +18,15 @@ export type LandingCarouselReview = {
 const desktopVisibleCount = 4;
 
 export function LandingReviewsCarousel({ reviews }: { reviews: LandingCarouselReview[] }) {
+  const isLooping = reviews.length > desktopVisibleCount;
   const scope = useRef<HTMLElement>(null);
   const track = useRef<HTMLDivElement>(null);
-  const activeIndex = useRef(desktopVisibleCount);
+  const activeIndex = useRef(isLooping ? desktopVisibleCount : 0);
   const paused = useRef(false);
   const pointerStartX = useRef<number | null>(null);
   const dragDistance = useRef(0);
 
-  const loopedReviews = reviews.length > desktopVisibleCount
+  const loopedReviews = isLooping
     ? [...reviews.slice(-desktopVisibleCount), ...reviews, ...reviews.slice(0, desktopVisibleCount)]
     : reviews;
 
@@ -37,6 +38,10 @@ export function LandingReviewsCarousel({ reviews }: { reviews: LandingCarouselRe
   };
 
   const setTrackPosition = (index = activeIndex.current, offset = 0) => {
+    if (!isLooping) {
+      if (track.current) gsap.set(track.current, { x: offset });
+      return;
+    }
     const distance = step();
     if (!distance || !track.current) return;
     gsap.set(track.current, { x: -(index * distance) + offset });
@@ -118,12 +123,13 @@ export function LandingReviewsCarousel({ reviews }: { reviews: LandingCarouselRe
     paused.current = false;
     const distance = dragDistance.current;
     dragDistance.current = 0;
-    if (Math.abs(distance) >= 44) {
+    if (Math.abs(distance) >= 44 && isLooping) {
       move(distance < 0 ? 1 : -1);
       return;
     }
     if (track.current) {
-      gsap.to(track.current, { x: -(activeIndex.current * step()), duration: 0.28, ease: "power2.out", overwrite: "auto" });
+      const targetX = isLooping ? -(activeIndex.current * step()) : 0;
+      gsap.to(track.current, { x: targetX, duration: 0.28, ease: "power2.out", overwrite: "auto" });
     }
     event.currentTarget.releasePointerCapture(event.pointerId);
   };

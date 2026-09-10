@@ -84,6 +84,17 @@ describe("homepage repository", () => {
     expect(data.products.map((product) => product.slug)).toEqual(["america", "classic", "hoat-tinh", "memory-foam", "cao-su-thien-nhien", "luxury"]);
     expect(data.products.some((product) => product.minPrice !== null || product.purchasable)).toBe(false);
   });
+
+  it("provides fallback customer reviews when review query returns empty", async () => {
+    getPrisma.mockReturnValue({
+      product: { findMany: vi.fn().mockResolvedValue([]) },
+      review: { findMany: vi.fn().mockResolvedValue([]) },
+      siteSettings: { findUnique: vi.fn().mockResolvedValue(null) },
+    } as never);
+    const data = await getHomepageData();
+    expect(data.reviews.length).toBeGreaterThanOrEqual(3);
+    expect(data.reviews.every((r) => r.authorName && r.body && r.rating === 5)).toBe(true);
+  });
 });
 
 describe("navigation parser", () => {

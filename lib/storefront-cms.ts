@@ -2,7 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 import { getPrisma } from "@/lib/db";
-import type { NavigationItem, SiteNavigation } from "@/lib/navigation";
+import { defaultNavigation, type NavigationItem, type SiteNavigation } from "@/lib/navigation";
 
 const heroPayloadSchema = z.object({
   eyebrow: z.string(), title: z.string(), body: z.string(),
@@ -31,15 +31,23 @@ export async function getMenuItems(key: string): Promise<NavigationItem[]> {
 export async function getStorefrontNavigation(): Promise<SiteNavigation> {
   try {
     const prisma = getPrisma();
-    if (!prisma) return { mattressLines: [], needs: [], primary: [] };
+    if (!prisma) return defaultNavigation;
     const menus = await prisma.menu.findMany({
       where: { key: { in: ["header-mattress", "header-needs", "header-primary"] } },
       include: { items: { where: { parentId: null }, orderBy: { sortOrder: "asc" } } },
     });
+    if (!menus || menus.length === 0) return defaultNavigation;
     const byKey = new Map(menus.map((menu) => [menu.key, asItems(menu.items)]));
-    return { mattressLines: byKey.get("header-mattress") ?? [], needs: byKey.get("header-needs") ?? [], primary: byKey.get("header-primary") ?? [] };
+    const mattressLines = byKey.get("header-mattress") ?? [];
+    const needs = byKey.get("header-needs") ?? [];
+    const primary = byKey.get("header-primary") ?? [];
+    return {
+      mattressLines: mattressLines.length > 0 ? mattressLines : defaultNavigation.mattressLines,
+      needs: needs.length > 0 ? needs : defaultNavigation.needs,
+      primary: primary.length > 0 ? primary : defaultNavigation.primary,
+    };
   } catch {
-    return { mattressLines: [], needs: [], primary: [] };
+    return defaultNavigation;
   }
 }
 
