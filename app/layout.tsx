@@ -19,6 +19,37 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="vi" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                if (typeof window === 'undefined') return;
+                try {
+                  var origSetAttribute = Element.prototype.setAttribute;
+                  Element.prototype.setAttribute = function(name, value) {
+                    if (name === 'bis_skin_checked') return;
+                    return origSetAttribute.apply(this, arguments);
+                  };
+                } catch (e) {}
+                window.addEventListener('error', function(e) {
+                  if (e.filename && (e.filename.indexOf('chrome-extension://') !== -1 || e.filename.indexOf('moz-extension://') !== -1)) {
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+                  }
+                }, true);
+                window.addEventListener('unhandledrejection', function(e) {
+                  var stack = (e.reason && (e.reason.stack || e.reason.message)) || '';
+                  if (typeof stack === 'string' && (stack.indexOf('chrome-extension://') !== -1 || stack.indexOf('moz-extension://') !== -1)) {
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+                  }
+                }, true);
+              })();
+            `,
+          }}
+        />
+      </head>
       <body suppressHydrationWarning className={ui.variable}>
         <AppProviders>{children}</AppProviders>
       </body>
