@@ -349,14 +349,26 @@ export function ShowroomLocator({ className = "", contactPhone }: ShowroomLocato
             </div>
 
             {/* Embedded Google Maps Location Preview */}
-            <div className="relative w-full h-[220px] sm:h-[260px] rounded-xl overflow-hidden border border-slate-200 shadow-inner bg-slate-100">
+            <div className="relative w-full h-[240px] sm:h-[280px] rounded-xl overflow-hidden border border-slate-200 shadow-inner bg-slate-100 group">
               <iframe
                 title={`Bản đồ chỉ đường ${activeShowroom.name}`}
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(activeShowroom.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(activeShowroom.name + " " + activeShowroom.address)}&t=&z=16&ie=UTF8&iwloc=B&output=embed`}
                 className="absolute inset-0 w-full h-full border-0"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
               />
+
+              {/* Visual Brand Pin Overlay: Floating Luxury Badge with Pulse Effect */}
+              <div className="absolute top-3 left-3 z-10 pointer-events-none">
+                <div className="flex items-center gap-2 rounded-full bg-slate-900/90 backdrop-blur-md px-3.5 py-1.5 text-xs font-bold text-white shadow-xl border border-amber-400/40 ring-1 ring-white/10">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
+                  </span>
+                  <ShieldCheck className="size-3.5 text-amber-400 shrink-0" />
+                  <span>📍 Nệm Thăng Long · Chi nhánh {activeShowroom.shortName}</span>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2 text-xs sm:text-sm text-slate-700">

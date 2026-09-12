@@ -135,6 +135,9 @@ export function toCatalogProduct(product: Product): CatalogProductSummary {
     hasPlaceholderPrices: variants.some((variant) => variant.price !== null && variant.price > 0 && variant.priceStatus === "PLACEHOLDER"),
     isShowcase: product.isShowcase,
     previewPurchasable: product.previewPurchasable,
+    curPrice: product.curPrice,
+    oldPrice: product.oldPrice,
+    badge: product.badge,
   };
 }
 

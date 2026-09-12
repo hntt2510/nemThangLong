@@ -11,6 +11,23 @@ interface LandingProductCollectionProps {
   hoverImages?: Record<string, string>;
 }
 
+const DEFAULT_CARD_PRICING: Record<
+  string,
+  {
+    curPrice: number;
+    oldPrice: number;
+    badge?: "BEST_SELLER" | "HOT_DEAL" | "DOCTOR_RECOMMENDED";
+  }
+> = {
+  classic: { curPrice: 6290000, oldPrice: 8500000, badge: "BEST_SELLER" },
+  "cao-su-thien-nhien": { curPrice: 12900000, oldPrice: 17500000, badge: "DOCTOR_RECOMMENDED" },
+  "hoat-tinh": { curPrice: 8900000, oldPrice: 11900000, badge: "HOT_DEAL" },
+  "memory-foam": { curPrice: 10900000, oldPrice: 14800000, badge: "DOCTOR_RECOMMENDED" },
+  "khach-san": { curPrice: 18900000, oldPrice: 25500000, badge: "BEST_SELLER" },
+  america: { curPrice: 4900000, oldPrice: 6900000, badge: "HOT_DEAL" },
+  luxury: { curPrice: 18900000, oldPrice: 25500000, badge: "BEST_SELLER" },
+};
+
 export function LandingProductCollection({
   products,
   hoverImages = {},
@@ -24,10 +41,22 @@ export function LandingProductCollection({
     { id: "DOCTOR_RECOMMENDED", label: "⭐ Khuyên Dùng Cho Cột Sống" },
   ];
 
+  const enrichedProducts = useMemo(() => {
+    return products.map((product) => {
+      const fallback = DEFAULT_CARD_PRICING[product.slug];
+      return {
+        ...product,
+        curPrice: product.curPrice ?? fallback?.curPrice ?? product.minPrice,
+        oldPrice: product.oldPrice ?? fallback?.oldPrice ?? null,
+        badge: product.badge ?? fallback?.badge ?? null,
+      };
+    });
+  }, [products]);
+
   const filteredProducts = useMemo(() => {
-    if (activeFilter === "ALL") return products;
-    return products.filter((p) => p.badge === activeFilter);
-  }, [products, activeFilter]);
+    if (activeFilter === "ALL") return enrichedProducts;
+    return enrichedProducts.filter((p) => p.badge === activeFilter);
+  }, [enrichedProducts, activeFilter]);
 
   return (
     <div className="w-full">

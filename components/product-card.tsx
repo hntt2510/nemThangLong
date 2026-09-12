@@ -32,6 +32,23 @@ export type ProductCardProduct = Pick<
   badge?: "BEST_SELLER" | "HOT_DEAL" | "DOCTOR_RECOMMENDED" | string | null;
 };
 
+const DEFAULT_CARD_PRICING: Record<
+  string,
+  {
+    curPrice: number;
+    oldPrice: number;
+    badge?: "BEST_SELLER" | "HOT_DEAL" | "DOCTOR_RECOMMENDED";
+  }
+> = {
+  classic: { curPrice: 6290000, oldPrice: 8500000, badge: "BEST_SELLER" },
+  "cao-su-thien-nhien": { curPrice: 12900000, oldPrice: 17500000, badge: "DOCTOR_RECOMMENDED" },
+  "hoat-tinh": { curPrice: 8900000, oldPrice: 11900000, badge: "HOT_DEAL" },
+  "memory-foam": { curPrice: 10900000, oldPrice: 14800000, badge: "DOCTOR_RECOMMENDED" },
+  "khach-san": { curPrice: 18900000, oldPrice: 25500000, badge: "BEST_SELLER" },
+  america: { curPrice: 4900000, oldPrice: 6900000, badge: "HOT_DEAL" },
+  luxury: { curPrice: 18900000, oldPrice: 25500000, badge: "BEST_SELLER" },
+};
+
 export function ProductCard({
   product,
   className = "",
@@ -63,6 +80,21 @@ export function ProductCard({
     setTilt({ x: 0, y: 0 });
     setIsHovered(false);
   };
+
+  const fallback = DEFAULT_CARD_PRICING[product.slug];
+  const effectiveCurPrice = product.curPrice ?? fallback?.curPrice ?? (product.minPrice ?? null);
+  const effectiveOldPrice = product.oldPrice ?? fallback?.oldPrice ?? null;
+  const effectiveBadge = product.badge ?? fallback?.badge ?? null;
+
+  const hasDiscount = Boolean(
+    effectiveOldPrice &&
+      effectiveCurPrice &&
+      effectiveOldPrice > effectiveCurPrice
+  );
+  const discountAmount = hasDiscount ? effectiveOldPrice! - effectiveCurPrice! : 0;
+  const discountPercent = hasDiscount
+    ? Math.round((discountAmount / effectiveOldPrice!) * 100)
+    : 0;
 
   const priceLabel = product.minPrice
     ? `Từ ${formatVnd(product.minPrice)}`
@@ -117,20 +149,25 @@ export function ProductCard({
 
           {/* Top badges */}
           <div className="absolute top-3 left-3 right-3 flex items-start justify-between pointer-events-none z-10 gap-1.5">
-            <div className="flex flex-col gap-1 items-start">
-              {product.badge === "BEST_SELLER" && (
-                <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/95 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs backdrop-blur-xs">
+            <div className="flex flex-col gap-1.5 items-start">
+              {effectiveBadge === "BEST_SELLER" && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/95 px-2.5 py-1 text-[11px] font-bold text-white shadow-xs backdrop-blur-xs">
                   🔥 Bán chạy nhất
                 </span>
               )}
-              {product.badge === "HOT_DEAL" && (
-                <span className="inline-flex items-center gap-1 rounded-md bg-rose-600/95 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs backdrop-blur-xs">
+              {effectiveBadge === "HOT_DEAL" && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-rose-600/95 px-2.5 py-1 text-[11px] font-bold text-white shadow-xs backdrop-blur-xs">
                   🏷️ Giảm giá sốc
                 </span>
               )}
-              {product.badge === "DOCTOR_RECOMMENDED" && (
-                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-600/95 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs backdrop-blur-xs">
+              {effectiveBadge === "DOCTOR_RECOMMENDED" && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-600/95 px-2.5 py-1 text-[11px] font-bold text-white shadow-xs backdrop-blur-xs">
                   ⭐ Khuyên dùng cho cột sống
+                </span>
+              )}
+              {hasDiscount && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-[#DC2626] px-2.5 py-1 text-[11px] font-extrabold text-white shadow-md">
+                  Tiết kiệm {formatVnd(discountAmount)} (-{discountPercent}%)
                 </span>
               )}
               {product.imageIsDemo && (
@@ -189,23 +226,23 @@ export function ProductCard({
           {/* Bottom Bar: Price and CTA button aligned via mt-auto */}
           <div className="mt-auto pt-4 border-t border-stone-100 flex items-end justify-between gap-2">
             <div className="flex flex-col">
-              {product.oldPrice && product.curPrice && product.oldPrice > product.curPrice ? (
+              {hasDiscount ? (
                 <div className="flex items-center gap-1.5 mb-0.5">
-                  <del className="text-xs text-stone-400 font-semibold line-through">
-                    {formatVnd(product.oldPrice)}
+                  <del className="text-xs sm:text-sm text-stone-400 font-semibold line-through">
+                    {formatVnd(effectiveOldPrice!)}
                   </del>
-                  <span className="text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-200/80 px-1 py-0.2 rounded">
-                    -{Math.round(((product.oldPrice - product.curPrice) / product.oldPrice) * 100)}%
+                  <span className="text-[10px] sm:text-[11px] font-extrabold text-rose-700 bg-rose-50 border border-rose-200/80 px-1.5 py-0.2 rounded-md">
+                    -{discountPercent}%
                   </span>
                 </div>
               ) : (
                 <span className="text-xs text-stone-400 font-medium">Giá trực tiếp xưởng</span>
               )}
 
-              <span className="font-brand-ui text-lg sm:text-xl font-bold text-red-600 tracking-tight">
-                {product.curPrice ? formatVnd(product.curPrice) : priceLabel}
+              <span className="font-brand-ui text-lg sm:text-xl font-extrabold text-[#DC2626] tracking-tight">
+                {effectiveCurPrice ? formatVnd(effectiveCurPrice) : priceLabel}
               </span>
-              {product.hasPlaceholderPrices && (
+              {product.hasPlaceholderPrices && !effectiveCurPrice && (
                 <span className="text-[10px] text-amber-700 font-medium">Giá thử nghiệm</span>
               )}
             </div>

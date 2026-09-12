@@ -29,6 +29,59 @@ import {
   MapPin,
 } from "lucide-react";
 
+type GalleryItem = {
+  id: string;
+  url: string;
+  alt: string;
+  label: string;
+  category: "hero" | "delivery" | "material" | "certification" | "bedroom";
+};
+
+const STANDARD_GALLERIES: Record<string, GalleryItem[]> = {
+  classic: [
+    { id: "hero", url: "/images/products/classic/catalog-v2.png", alt: "Nệm Thăng Long Classic - Góc chụp studio chính hãng", label: "Ảnh nệm chính diện", category: "hero" },
+    { id: "delivery", url: "/images/products/classic/02.webp", alt: "Hình ảnh thực tế giao nệm Thăng Long Classic tận giường cho khách hàng", label: "Giao tận giường", category: "delivery" },
+    { id: "material", url: "/images/products/classic/03.webp", alt: "Cận cảnh bề mặt vải nệm thoáng khí và kết cấu nâng đỡ", label: "Chất liệu nệm", category: "material" },
+    { id: "cert", url: "/images/products/classic/04.webp", alt: "Tem chứng nhận Quatest 3 và phiếu bảo hành chính hãng 15 năm", label: "Chứng nhận Quatest 3", category: "certification" },
+    { id: "bedroom", url: "/images/products/classic/01.webp", alt: "Phòng ngủ thực tế lắp đặt nệm Thăng Long Classic", label: "Thực tế tại nhà", category: "bedroom" },
+  ],
+  "cao-su-thien-nhien": [
+    { id: "hero", url: "/images/products/cao-su-thien-nhien/catalog-v2.png", alt: "Nệm cao su thiên nhiên Thăng Long 3/4 - Nâng đỡ êm ái", label: "Ảnh nệm chính diện", category: "hero" },
+    { id: "delivery", url: "/images/products/cao-su-thien-nhien/02.webp", alt: "Hình ảnh thực tế nhân viên xưởng giao nệm cao su tận phòng cho khách", label: "Giao tận giường", category: "delivery" },
+    { id: "material", url: "/images/products/cao-su-thien-nhien/03.webp", alt: "Cận cảnh hai mặt lỗ thông khí kép và lớp áo lưới 4D tản nhiệt", label: "75% Cao su tự nhiên", category: "material" },
+    { id: "cert", url: "/images/products/cao-su-thien-nhien/04.webp", alt: "Tem kiểm định Quatest 3 đạt chuẩn an toàn không kích ứng", label: "Chứng nhận Quatest 3", category: "certification" },
+    { id: "bedroom", url: "/images/products/cao-su-thien-nhien/01.webp", alt: "Không gian phòng ngủ thực tế dùng nệm cao su Thăng Long", label: "Thực tế tại nhà", category: "bedroom" },
+  ],
+  "hoat-tinh": [
+    { id: "hero", url: "/images/products/hoat-tinh/catalog-v2.png", alt: "Nệm Thăng Long Hoạt Tính - Khử mùi kháng khuẩn", label: "Ảnh nệm chính diện", category: "hero" },
+    { id: "delivery", url: "/images/products/hoat-tinh/02.webp", alt: "Hình ảnh thực tế xe xưởng giao nệm than hoạt tính tận nhà cho khách", label: "Giao tận giường", category: "delivery" },
+    { id: "material", url: "/images/products/hoat-tinh/03.webp", alt: "Cận cảnh lõi than hoạt tính kháng khuẩn và nâng đỡ đa vùng cột sống", label: "Than hoạt tính", category: "material" },
+    { id: "cert", url: "/images/products/hoat-tinh/04.webp", alt: "Tem chứng nhận kiểm định chất lượng Quatest 3 và bảo hành 15 năm", label: "Chứng nhận Quatest 3", category: "certification" },
+    { id: "bedroom", url: "/images/products/hoat-tinh/01.webp", alt: "Trải nghiệm nệm Thăng Long Hoạt Tính tại phòng ngủ", label: "Thực tế tại nhà", category: "bedroom" },
+  ],
+  "memory-foam": [
+    { id: "hero", url: "/images/products/memory-foam/catalog-v2.png", alt: "Nệm Thăng Long Memory Foam - Chống đau mỏi lưng", label: "Ảnh nệm chính diện", category: "hero" },
+    { id: "delivery", url: "/images/products/memory-foam/02.webp", alt: "Hình ảnh thực tế giao nệm Memory Foam tận phòng ngủ cho khách hàng", label: "Giao tận giường", category: "delivery" },
+    { id: "material", url: "/images/products/memory-foam/03.webp", alt: "Cận cảnh lõi Memory Foam chậm đàn hồi ôm sát đường cong cột sống", label: "Lõi Memory Foam", category: "material" },
+    { id: "cert", url: "/images/products/memory-foam/04.webp", alt: "Tem kiểm định Quatest 3 về độ bền chịu lực đàn hồi", label: "Chứng nhận Quatest 3", category: "certification" },
+    { id: "bedroom", url: "/images/products/memory-foam/01.webp", alt: "Không gian sang trọng với Nệm Memory Foam", label: "Thực tế tại nhà", category: "bedroom" },
+  ],
+  "khach-san": [
+    { id: "hero", url: "/images/products/khach-san/catalog-v2.png", alt: "Nệm Cao Su Cho Khách Sạn - Chuẩn phòng suite 5 sao", label: "Ảnh nệm chính diện", category: "hero" },
+    { id: "delivery", url: "/images/products/khach-san/02.webp", alt: "Hình ảnh thực tế bàn giao nệm khách sạn cho dự án khu nghỉ dưỡng", label: "Giao dự án tận nơi", category: "delivery" },
+    { id: "material", url: "/images/products/khach-san/03.webp", alt: "Cận cảnh vải gấm dệt hoa văn chần bông êm ái đạt chuẩn khách sạn 5 sao", label: "Vải gấm 5 sao", category: "material" },
+    { id: "cert", url: "/images/products/khach-san/04.webp", alt: "Chứng nhận kiểm định tiêu chuẩn độ bền nén ép 100.000 chu kỳ", label: "Độ bền 5 sao", category: "certification" },
+    { id: "bedroom", url: "/images/products/khach-san/01.webp", alt: "Phòng nghỉ khách sạn cao cấp trang bị Nệm Thăng Long", label: "Không gian resort", category: "bedroom" },
+  ],
+  america: [
+    { id: "hero", url: "/images/products/america/catalog-v2.png", alt: "Nệm Cao Su Thăng Long America - Đàn hồi tối đa", label: "Ảnh nệm chính diện", category: "hero" },
+    { id: "delivery", url: "/images/products/america/02.webp", alt: "Hình ảnh thực tế giao nệm America bọc nilon 2 lớp tận phòng khách hàng", label: "Giao tận giường", category: "delivery" },
+    { id: "material", url: "/images/products/america/03.webp", alt: "Cận cảnh lõi nệm cao su chịu lực vững chãi chống xẹp lún", label: "Nâng đỡ đàn hồi", category: "material" },
+    { id: "cert", url: "/images/products/america/04.webp", alt: "Tem kiểm định Quatest 3 và phiếu bảo hành chính hãng", label: "Bảo hành 15 năm", category: "certification" },
+    { id: "bedroom", url: "/images/products/america/01.webp", alt: "Phòng ngủ hiện đại lắp đặt nệm Thăng Long America", label: "Thực tế tại nhà", category: "bedroom" },
+  ],
+};
+
 export function GenericProductPurchase({
   product,
   contactHref,
@@ -42,8 +95,48 @@ export function GenericProductPurchase({
   const [selection, setSelection] = useState(() => initialSelection(variants));
   const [mediaIndex, setMediaIndex] = useState(0);
 
+  const galleryItems = useMemo<GalleryItem[]>(() => {
+    const fromConfig = STANDARD_GALLERIES[product.slug];
+    if (fromConfig && fromConfig.length > 0) return fromConfig;
+
+    if (product.media && product.media.length > 0) {
+      return product.media.map((m, idx) => ({
+        id: m.id || `media-${idx}`,
+        url: m.url,
+        alt: mediaAlt(product, m),
+        label:
+          idx === 0
+            ? "Ảnh nệm chính diện"
+            : idx === 1
+            ? "Giao tận giường"
+            : idx === 2
+            ? "Chất liệu nệm"
+            : idx === 3
+            ? "Chứng nhận chất lượng"
+            : "Thực tế tại nhà",
+        category:
+          idx === 0
+            ? "hero"
+            : idx === 1
+            ? "delivery"
+            : idx === 2
+            ? "material"
+            : idx === 3
+            ? "certification"
+            : "bedroom",
+      }));
+    }
+
+    return [
+      { id: "hero", url: product.posterUrl || "/images/luxury-hero.webp", alt: product.name, label: "Ảnh nệm chính diện", category: "hero" },
+      { id: "delivery", url: "/images/luxury-lifestyle.webp", alt: "Hình ảnh thực tế giao nệm cho khách hàng", label: "Giao tận giường", category: "delivery" },
+      { id: "material", url: "/images/luxury-detail.webp", alt: "Cận cảnh chất liệu nệm", label: "Chất liệu nệm", category: "material" },
+      { id: "cert", url: "/images/landing-quality-v2.png", alt: "Chứng nhận chất lượng Quatest 3 và bảo hành", label: "Chứng nhận chất lượng", category: "certification" },
+    ];
+  }, [product]);
+
+  const activeImage = galleryItems[mediaIndex] ?? galleryItems[0];
   const selected = resolveVariant(variants, selection);
-  const media = product.media[mediaIndex] ?? product.media[0];
   const canPurchase = Boolean(
     product.purchasable && selected && selected.price !== null && selected.price > 0 && selected.stock > 0
   );
@@ -74,7 +167,7 @@ export function GenericProductPurchase({
   }
 
   function addToCart() {
-    if (!canPurchase || !selected || !media) return;
+    if (!canPurchase || !selected) return;
     addItem({
       variantId: selected.id,
       quantity: 1,
@@ -85,7 +178,7 @@ export function GenericProductPurchase({
       thickness: selected.thickness,
       price: selected.price!,
       sku: selected.sku,
-      image: media.url,
+      image: activeImage.url,
     });
   }
 
@@ -100,81 +193,95 @@ export function GenericProductPurchase({
       <div className="grid gap-10 lg:grid-cols-12 lg:items-start lg:gap-12">
         {/* LEFT: 7 Columns Main Lifestyle Photo Gallery */}
         <div className="lg:col-span-7 flex flex-col gap-4">
-          <div className="flex flex-col-reverse gap-4 sm:flex-row">
-            {/* Thumbnail Rail */}
-            {product.media.length > 1 && (
-              <div className="flex sm:flex-col gap-2.5 overflow-x-auto sm:overflow-y-auto sm:max-h-[580px] pb-2 sm:pb-0 scrollbar-none shrink-0">
-                {product.media.map((item, index) => {
-                  const isActive = index === mediaIndex;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setMediaIndex(index)}
-                      className={`relative size-16 sm:size-20 overflow-hidden rounded-xl border transition-all cursor-pointer shrink-0 ${
-                        isActive
-                          ? "border-stone-900 ring-2 ring-stone-900 shadow-sm"
-                          : "border-stone-200 opacity-70 hover:opacity-100 hover:border-stone-300"
-                      }`}
-                      aria-label={`Xem ảnh ${index + 1}`}
-                    >
-                      <Image
-                        src={item.url}
-                        alt={mediaAlt(product, item)}
-                        fill
-                        sizes="80px"
-                        className="object-cover"
-                      />
-                      {isDemoMedia(product, item) && (
-                        <span className="absolute bottom-0 inset-x-0 bg-stone-900/80 py-0.5 text-[9px] font-bold text-white text-center">
-                          Minh họa
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+          {/* Main Hero Gallery Image */}
+          <div className="relative aspect-[4/3] sm:aspect-[16/11] w-full overflow-hidden rounded-2xl border border-stone-200/90 bg-stone-100 shadow-sm">
+            {activeImage && (
+              <Image
+                src={activeImage.url}
+                alt={activeImage.alt}
+                fill
+                priority
+                sizes="(max-width: 1023px) 100vw, 55vw"
+                className="object-cover transition-all duration-300 hover:scale-105"
+              />
             )}
 
-            {/* Main Hero Gallery Image */}
-            <div className="relative aspect-[4/3] sm:aspect-[1/1] w-full flex-1 overflow-hidden rounded-2xl border border-stone-200/90 bg-stone-100 shadow-sm">
-              {media && (
-                <Image
-                  src={media.url}
-                  alt={mediaAlt(product, media)}
-                  fill
-                  priority
-                  sizes="(max-width: 1023px) 100vw, 55vw"
-                  className="object-cover transition-transform duration-500 hover:scale-105"
-                  style={{
-                    objectFit: media.fit ?? "cover",
-                    objectPosition: `${(media.focalX ?? 0.5) * 100}% ${(media.focalY ?? 0.5) * 100}%`,
-                  }}
-                />
+            {/* Badges on main image */}
+            <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none">
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-stone-900/85 px-3 py-1 text-xs font-bold text-white shadow-md backdrop-blur-xs">
+                <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
+                {activeImage.label}
+              </span>
+              {discountPercent > 0 && (
+                <span className="rounded-lg bg-[#DC2626] px-3 py-1 text-xs font-bold text-white shadow-md">
+                  Tiết kiệm {discountPercent}%
+                </span>
               )}
+            </div>
 
-              {/* Badges on main image */}
-              <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none">
-                {media && isDemoMedia(product, media) && (
-                  <span className="rounded-lg bg-stone-900/80 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-xs">
-                    Hình ảnh minh họa
-                  </span>
-                )}
-                {discountPercent && (
-                  <span className="rounded-lg bg-rose-600 px-2.5 py-1 text-xs font-bold text-white shadow-sm">
-                    Tiết kiệm {discountPercent}%
-                  </span>
-                )}
-              </div>
+            {/* Counter badge in top right */}
+            <div className="absolute top-4 right-4 pointer-events-none">
+              <span className="rounded-full bg-stone-900/70 backdrop-blur-xs px-2.5 py-1 text-xs font-bold text-white shadow-xs">
+                {mediaIndex + 1} / {galleryItems.length}
+              </span>
             </div>
           </div>
 
+          {/* Interactive Thumbnail Row below Main Image */}
+          <div
+            className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none sm:grid sm:grid-cols-5"
+            role="tablist"
+            aria-label="Bộ sưu tập ảnh sản phẩm và giao hàng thực tế"
+          >
+            {galleryItems.map((item, index) => {
+              const isActive = index === mediaIndex;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setMediaIndex(index)}
+                  className={`group relative h-20 w-24 sm:h-22 sm:w-auto overflow-hidden rounded-xl border-2 transition-all cursor-pointer shrink-0 ${
+                    isActive
+                      ? "border-[#DC2626] ring-2 ring-[#DC2626]/30 shadow-md scale-[1.02]"
+                      : "border-stone-200 opacity-75 hover:opacity-100 hover:border-stone-400"
+                  }`}
+                  aria-label={`Xem ảnh ${index + 1}: ${item.label}`}
+                >
+                  <Image
+                    src={item.url}
+                    alt={item.alt}
+                    fill
+                    sizes="120px"
+                    className="object-cover"
+                  />
+                  <span
+                    className={`absolute bottom-0 inset-x-0 py-0.5 text-[9px] font-bold text-center truncate px-1 transition-colors ${
+                      isActive
+                        ? "bg-[#DC2626] text-white"
+                        : "bg-stone-900/75 text-white group-hover:bg-stone-900"
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Dedicated Trust Banner directly under images */}
+          <div className="flex items-center justify-center gap-2 rounded-2xl bg-amber-50/90 border border-amber-200/90 px-4 py-3 text-center text-xs sm:text-sm font-bold text-amber-950 shadow-xs">
+            <Truck className="size-4 text-amber-700 shrink-0 animate-bounce" />
+            <span>🚚 Hình ảnh thực tế giao tận giường cho khách hàng · Miễn phí đổi trả 100 đêm</span>
+          </div>
+
           {/* Value proposition badges under media */}
-          <div className="mt-2 grid grid-cols-3 gap-3 rounded-2xl border border-stone-200/80 bg-stone-50/70 p-4 text-center">
+          <div className="grid grid-cols-3 gap-3 rounded-2xl border border-stone-200/80 bg-stone-50/70 p-4 text-center">
             <div className="flex flex-col items-center gap-1.5">
               <ShieldCheck className="size-5 text-[#C5A880]" />
               <span className="text-xs font-bold text-stone-900">Bảo hành 15 năm</span>
-              <span className="text-[11px] text-stone-500 hidden sm:inline">Chính hãng tại nhà</span>
+              <span className="text-[11px] text-stone-500 hidden sm:inline">Chính hãng tại xưởng</span>
             </div>
             <div className="flex flex-col items-center gap-1.5 border-x border-stone-200/80">
               <RotateCcw className="size-5 text-[#C5A880]" />
