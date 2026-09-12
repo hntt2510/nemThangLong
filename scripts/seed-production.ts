@@ -68,6 +68,9 @@ export async function seedProduction(prisma: PrismaClient) {
           verificationStatus: "VERIFIED",
           sortOrder: product.sortOrder,
           mattressLab: false,
+          curPrice: product.curPrice,
+          oldPrice: product.oldPrice,
+          badge: product.badge,
         },
         create: {
           categoryId: category.id,
@@ -82,6 +85,9 @@ export async function seedProduction(prisma: PrismaClient) {
           verificationStatus: "VERIFIED",
           sortOrder: product.sortOrder,
           mattressLab: false,
+          curPrice: product.curPrice,
+          oldPrice: product.oldPrice,
+          badge: product.badge,
         },
       });
       savedProducts.set(product.slug, saved.id);

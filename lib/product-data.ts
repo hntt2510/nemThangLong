@@ -38,12 +38,12 @@ export const luxuryProduct = demoProduct;
 
 export const CATALOG_SLUGS = ["america", "classic", "hoat-tinh", "memory-foam", "cao-su-thien-nhien", "luxury"] as const;
 
-const demoCatalogConfig: Record<Exclude<(typeof CATALOG_SLUGS)[number], "luxury">, { name: string; eyebrow: string; image: string }> = {
-  america: { name: "Nệm Thăng Long America", eyebrow: "EVERYDAY COMFORT", image: "/images/homepage-range.webp" },
-  classic: { name: "Nệm Thăng Long Classic", eyebrow: "THE EVERYDAY STANDARD", image: "/images/homepage-hero.webp" },
-  "hoat-tinh": { name: "Nệm Thăng Long Hoạt Tính", eyebrow: "RESPONSIVE COMFORT", image: "/images/homepage-hoat-tinh.webp" },
-  "memory-foam": { name: "Nệm Thăng Long Memory Foam", eyebrow: "CONTOURED COMFORT", image: "/images/homepage-memory-foam.webp" },
-  "cao-su-thien-nhien": { name: "Nệm Cao Su Thiên Nhiên", eyebrow: "THE NATURAL STANDARD", image: "/images/homepage-natural-latex.webp" },
+const demoCatalogConfig: Record<Exclude<(typeof CATALOG_SLUGS)[number], "luxury">, { name: string; eyebrow: string; image: string; curPrice: number; oldPrice: number; badge: "BEST_SELLER" | "HOT_DEAL" | "DOCTOR_RECOMMENDED" }> = {
+  america: { name: "Nệm Thăng Long America", eyebrow: "EVERYDAY COMFORT", image: "/images/homepage-range.webp", curPrice: 4900000, oldPrice: 6900000, badge: "HOT_DEAL" },
+  classic: { name: "Nệm Thăng Long Classic", eyebrow: "THE EVERYDAY STANDARD", image: "/images/homepage-hero.webp", curPrice: 6290000, oldPrice: 8500000, badge: "BEST_SELLER" },
+  "hoat-tinh": { name: "Nệm Thăng Long Hoạt Tính", eyebrow: "RESPONSIVE COMFORT", image: "/images/homepage-hoat-tinh.webp", curPrice: 8900000, oldPrice: 11900000, badge: "HOT_DEAL" },
+  "memory-foam": { name: "Nệm Thăng Long Memory Foam", eyebrow: "CONTOURED COMFORT", image: "/images/homepage-memory-foam.webp", curPrice: 10900000, oldPrice: 14800000, badge: "DOCTOR_RECOMMENDED" },
+  "cao-su-thien-nhien": { name: "Nệm Cao Su Thiên Nhiên", eyebrow: "THE NATURAL STANDARD", image: "/images/homepage-natural-latex.webp", curPrice: 12900000, oldPrice: 17500000, badge: "DOCTOR_RECOMMENDED" },
 };
 
 export function getDemoProduct(slug: string): Product {
@@ -56,6 +56,9 @@ export function getDemoProduct(slug: string): Product {
     slug,
     name: config.name,
     eyebrow: config.eyebrow,
+    curPrice: config.curPrice,
+    oldPrice: config.oldPrice,
+    badge: config.badge,
     description: "Thông tin sản phẩm đang được cập nhật từ CMS. Vui lòng liên hệ để được tư vấn.",
     mattressLab: false,
     modelUrl: null,

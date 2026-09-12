@@ -67,6 +67,7 @@ export function mapProduct(record: ProductRecord, source: "database" = "database
     reviews: reviews.map((review) => ({ authorName: review.authorName, rating: review.rating, comfort: review.comfort ?? undefined, quality: review.quality ?? undefined, value: review.value ?? undefined, body: review.body, createdAt: review.createdAt ? (typeof review.createdAt === "string" ? review.createdAt : (review.createdAt as Date).toISOString()) : new Date().toISOString(), isFixture: review.isFixture })),
     facts: (record.facts ?? []).filter((fact) => fact.dataStatus === "VERIFIED" || process.env.NODE_ENV !== "production").map((fact) => ({ key: fact.key, label: fact.label, value: fact.value, dataStatus: fact.dataStatus })),
     content, isDemo, source, presentation: record.presentation, saleStatus: record.saleStatus, verificationStatus: record.verificationStatus,
+    curPrice: record.curPrice, oldPrice: record.oldPrice, badge: record.badge,
     purchasable: record.status === "PUBLISHED" && isProductSellable(record.verificationStatus ?? "VERIFIED", record.saleStatus ?? "ACTIVE") && variants.some((variant) => variant.active && variant.price !== null && variant.price > 0 && variant.stock > 0 && (process.env.NODE_ENV !== "production" || (variant.priceStatus === "VERIFIED" && variant.stockStatus === "VERIFIED"))),
   };
 }

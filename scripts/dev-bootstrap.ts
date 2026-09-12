@@ -73,11 +73,13 @@ export async function bootstrapDevelopment(prisma: PrismaClient, source: NodeJS.
           categoryId: category.id, name: product.name, eyebrow: product.eyebrow, description: product.description,
           status: "PUBLISHED", isDemo: false, presentation: product.presentation, saleStatus: "ACTIVE",
           verificationStatus: "PLACEHOLDER", sortOrder: product.sortOrder, mattressLab: false, modelUrl: null,
+          curPrice: product.curPrice, oldPrice: product.oldPrice, badge: product.badge,
         },
         create: {
           categoryId: category.id, slug: product.slug, name: product.name, eyebrow: product.eyebrow,
           description: product.description, status: "PUBLISHED", isDemo: false, presentation: product.presentation,
           saleStatus: "ACTIVE", verificationStatus: "PLACEHOLDER", sortOrder: product.sortOrder, mattressLab: false,
+          curPrice: product.curPrice, oldPrice: product.oldPrice, badge: product.badge,
         },
       });
       savedProducts.set(product.slug, saved);

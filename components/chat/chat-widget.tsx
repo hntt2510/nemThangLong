@@ -172,8 +172,8 @@ export function ChatWidget() {
 
   return (
     <>
-      {/* Floating Trigger Button (Bottom-Right) */}
-      <div className="fixed bottom-5 right-5 z-50 flex items-center">
+      {/* Floating Trigger Button (Bottom-Right, above mobile sticky call bar) */}
+      <div className="fixed bottom-20 lg:bottom-5 right-4 sm:right-5 z-50 flex items-center">
         {!isOpen && (
           <button
             onClick={() => setIsOpen(true)}

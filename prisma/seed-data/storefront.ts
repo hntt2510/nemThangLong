@@ -38,6 +38,7 @@ const genericBlocks = (audience: string): ContentBlocks => ({
 export const localStorefrontProducts = [
   {
     slug: "classic", name: "Nệm Thăng Long Classic", eyebrow: "THĂNG LONG CLASSIC", sortOrder: 10, presentation: "STANDARD" as const,
+    curPrice: 6290000, oldPrice: 8500000, badge: "BEST_SELLER" as const,
     description: "Dòng Classic trong danh mục Nệm Thăng Long; thông số vật liệu chi tiết cần được đối chiếu thêm trước khi xác minh.",
     profile: ["Đang xác minh", null, null, null, null] as const, profileStatus: "SOURCE_CONFLICT" as const,
     media: ["/images/products/classic/catalog-v2.png", "/images/products/classic/01.webp", "/images/products/classic/02.webp", "/images/products/classic/03.webp", "/images/products/classic/04.webp"],
@@ -47,6 +48,7 @@ export const localStorefrontProducts = [
   },
   {
     slug: "cao-su-thien-nhien", name: "Nệm cao su thiên nhiên Thăng Long 3/4", eyebrow: "NATURAL LATEX 3/4", sortOrder: 20, presentation: "LUXURY" as const,
+    curPrice: 12900000, oldPrice: 17500000, badge: "DOCTOR_RECOMMENDED" as const,
     description: "Nệm cao su thiên nhiên Thăng Long 3/4 với cấu trúc hai mặt lỗ thoáng và áo lưới 4D theo thông tin nhà sản xuất công bố.",
     profile: ["Đang xác minh", null, null, null, null] as const, profileStatus: "PLACEHOLDER" as const,
     media: ["/images/products/cao-su-thien-nhien/catalog-v2.png", "/images/products/cao-su-thien-nhien/01.webp", "/images/products/cao-su-thien-nhien/02.webp", "/images/products/cao-su-thien-nhien/03.webp", "/images/products/cao-su-thien-nhien/04.webp"],
@@ -56,6 +58,7 @@ export const localStorefrontProducts = [
   },
   {
     slug: "hoat-tinh", name: "Nệm Thăng Long Hoạt Tính", eyebrow: "THĂNG LONG HOẠT TÍNH", sortOrder: 30, presentation: "STANDARD" as const,
+    curPrice: 8900000, oldPrice: 11900000, badge: "HOT_DEAL" as const,
     description: "Dòng Nệm Thăng Long Hoạt Tính trong catalog chính thức; các chỉ số cảm giác nằm đang chờ nguồn kỹ thuật xác nhận.",
     profile: ["Đang xác minh", null, null, null, null] as const, profileStatus: "PLACEHOLDER" as const,
     media: ["/images/products/hoat-tinh/catalog-v2.png", "/images/products/hoat-tinh/01.webp", "/images/products/hoat-tinh/02.webp", "/images/products/hoat-tinh/03.webp", "/images/products/hoat-tinh/04.webp"],
@@ -64,6 +67,7 @@ export const localStorefrontProducts = [
   },
   {
     slug: "memory-foam", name: "Nệm Thăng Long Memoryfoam", eyebrow: "THĂNG LONG MEMORYFOAM", sortOrder: 40, presentation: "STANDARD" as const,
+    curPrice: 10900000, oldPrice: 14800000, badge: "DOCTOR_RECOMMENDED" as const,
     description: "Dòng Nệm Thăng Long Memoryfoam trong catalog chính thức; mô tả vật liệu chi tiết cần nguồn kỹ thuật bổ sung.",
     profile: ["Đang xác minh", null, null, null, null] as const, profileStatus: "PLACEHOLDER" as const,
     media: ["/images/products/memory-foam/catalog-v2.png", "/images/products/memory-foam/01.webp", "/images/products/memory-foam/02.webp", "/images/products/memory-foam/03.webp", "/images/products/memory-foam/04.webp"],
@@ -72,6 +76,7 @@ export const localStorefrontProducts = [
   },
   {
     slug: "khach-san", name: "Nệm Cao Su Cho Khách Sạn", eyebrow: "HOSPITALITY COLLECTION", sortOrder: 50, presentation: "STANDARD" as const,
+    curPrice: 18900000, oldPrice: 25500000, badge: "BEST_SELLER" as const,
     description: "Dòng nệm cao su cho khách sạn trong catalog chính thức; cần tư vấn trực tiếp để xác nhận cấu hình dự án.",
     profile: ["Đang xác minh", null, null, null, null] as const, profileStatus: "PLACEHOLDER" as const,
     media: ["/images/products/khach-san/catalog-v2.png", "/images/products/khach-san/01.webp", "/images/products/khach-san/02.webp", "/images/products/khach-san/03.webp", "/images/products/khach-san/04.webp"],
@@ -80,6 +85,7 @@ export const localStorefrontProducts = [
   },
   {
     slug: "america", name: "Nệm Cao Su Thăng Long America", eyebrow: "THĂNG LONG AMERICA", sortOrder: 60, presentation: "STANDARD" as const,
+    curPrice: 4900000, oldPrice: 6900000, badge: "HOT_DEAL" as const,
     description: "Dòng Nệm Cao Su Thăng Long America trong catalog chính thức; thông số kỹ thuật chi tiết đang chờ xác minh.",
     profile: ["Đang xác minh", null, null, null, null] as const, profileStatus: "PLACEHOLDER" as const,
     media: ["/images/products/america/catalog-v2.png", "/images/products/america/01.webp", "/images/products/america/02.webp", "/images/products/america/03.webp", "/images/products/america/04.webp"],

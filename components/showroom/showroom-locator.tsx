@@ -348,6 +348,17 @@ export function ShowroomLocator({ className = "", contactPhone }: ShowroomLocato
               ) : null}
             </div>
 
+            {/* Embedded Google Maps Location Preview */}
+            <div className="relative w-full h-[220px] sm:h-[260px] rounded-xl overflow-hidden border border-slate-200 shadow-inner bg-slate-100">
+              <iframe
+                title={`Bản đồ chỉ đường ${activeShowroom.name}`}
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(activeShowroom.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                className="absolute inset-0 w-full h-full border-0"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+
             <div className="space-y-2 text-xs sm:text-sm text-slate-700">
               <div className="flex items-start gap-2.5">
                 <MapPin className="size-4 text-[#C89D66] shrink-0 mt-0.5" aria-hidden="true" />
@@ -374,9 +385,9 @@ export function ShowroomLocator({ className = "", contactPhone }: ShowroomLocato
                   <strong>Hotline hỗ trợ:</strong>{" "}
                   <a
                     href={telHref}
-                    className="font-bold text-[#1E3A5F] hover:underline cursor-pointer"
+                    className="font-bold text-red-600 hover:underline cursor-pointer"
                   >
-                    {activeShowroom.phone}
+                    {activeShowroom.phone || "0911 251 004"}
                   </a>
                 </span>
               </div>
@@ -384,36 +395,33 @@ export function ShowroomLocator({ className = "", contactPhone }: ShowroomLocato
 
             {/* Action Bar */}
             <div className="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row gap-3">
-              {/* Primary: 1-Tap Google Maps Directions */}
+              {/* Primary: 1-Tap Google Maps Search & Directions */}
               <a
-                href={getGoogleMapsDirectionsUrl(activeShowroom.address)}
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activeShowroom.address)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl !bg-[#1E3A5F] bg-[#1E3A5F] hover:!bg-[#152843] hover:bg-[#152843] px-5 py-3 text-xs sm:text-sm font-semibold !text-white shadow-sm transition-all cursor-pointer"
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl !bg-[#1E3A5F] bg-[#1E3A5F] hover:!bg-[#152843] hover:bg-[#152843] px-5 py-3.5 text-xs sm:text-sm font-bold !text-white shadow-md transition-all cursor-pointer"
                 style={{ backgroundColor: "#1E3A5F", color: "#ffffff" }}
               >
                 <Navigation className="size-4 text-white shrink-0" aria-hidden="true" />
-                <span className="!text-white font-semibold text-xs sm:text-sm" style={{ color: "#ffffff" }}>
-                  Chỉ đường Google Maps
+                <span className="!text-white font-bold text-xs sm:text-sm" style={{ color: "#ffffff" }}>
+                  Mở Chỉ đường Google Maps
                 </span>
                 <ExternalLink className="size-3.5 text-white/70" aria-hidden="true" />
               </a>
 
               {/* Secondary: Direct Call */}
               <a
-                href={telHref}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 !bg-white bg-white hover:border-slate-400 hover:!bg-slate-50 px-5 py-3 text-xs sm:text-sm font-semibold !text-slate-800 shadow-sm transition-all cursor-pointer"
-                style={{ backgroundColor: "#ffffff", color: "#1e293b" }}
+                href="tel:0911251004"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 px-5 py-3.5 text-xs sm:text-sm font-bold text-red-700 shadow-xs transition-all cursor-pointer"
               >
-                <PhoneCall className="size-4 text-[#C89D66] shrink-0" aria-hidden="true" />
-                <span className="!text-slate-800 font-semibold text-xs sm:text-sm" style={{ color: "#1e293b" }}>
-                  Gọi chi nhánh
-                </span>
+                <PhoneCall className="size-4 text-red-600 shrink-0 animate-pulse" />
+                <span>Gọi chủ xưởng: 0911 251 004</span>
               </a>
             </div>
 
             <p className="text-[11px] text-slate-400 text-center pt-1">
-              Hỗ trợ giao nệm tận phòng ngủ · Đổi trả 100 đêm trải nghiệm
+              Hỗ trợ giao nệm tận phòng ngủ · Đổi trả 100 đêm trải nghiệm · Có chỗ đỗ xe ô tô
             </p>
           </motion.div>
         </div>
@@ -421,3 +429,5 @@ export function ShowroomLocator({ className = "", contactPhone }: ShowroomLocato
     </div>
   );
 }
+
+export const ShowroomFinder = ShowroomLocator;

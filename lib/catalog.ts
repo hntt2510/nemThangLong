@@ -43,6 +43,9 @@ export type CatalogProductSummary = {
   ratingAverage: number | null;
   ratingCount: number;
   hasPlaceholderPrices: boolean;
+  curPrice?: number | null;
+  oldPrice?: number | null;
+  badge?: "BEST_SELLER" | "HOT_DEAL" | "DOCTOR_RECOMMENDED" | string | null;
   isShowcase?: boolean;
   previewPurchasable?: boolean;
 };

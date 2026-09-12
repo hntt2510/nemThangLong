@@ -100,6 +100,12 @@ enum MediaReviewStatus {
   REJECTED
 }
 
+enum ProductBadge {
+  BEST_SELLER
+  HOT_DEAL
+  DOCTOR_RECOMMENDED
+}
+
 enum PageStatus {
   DRAFT
   PUBLISHED
@@ -221,6 +227,9 @@ model Product {
   presentation ProductPresentation @default(STANDARD)
   saleStatus  SaleStatus       @default(CONTACT_ONLY)
   verificationStatus VerificationStatus @default(PLACEHOLDER)
+  curPrice    Int?
+  oldPrice    Int?
+  badge       ProductBadge?
   sortOrder   Int              @default(0)
   seoTitle    String?
   seoDescription String?       @db.Text

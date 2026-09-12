@@ -46,6 +46,9 @@ export type DiscoveryProduct = {
   hasPlaceholderPrices?: boolean;
   ratingAverage: number | null;
   ratingCount: number;
+  curPrice?: number | null;
+  oldPrice?: number | null;
+  badge?: "BEST_SELLER" | "HOT_DEAL" | "DOCTOR_RECOMMENDED" | string | null;
   source: "database" | "demo" | "showcase";
   catalogueIndex: number;
   isShowcase?: boolean;
@@ -99,6 +102,9 @@ export function toDiscoveryProduct(product: Product, catalogueIndex = 0): Discov
     hasPlaceholderPrices: variants.some((variant) => variant.price !== null && variant.price > 0 && variant.priceStatus === "PLACEHOLDER"),
     ratingAverage: ratings.length ? ratings.reduce((total, rating) => total + rating, 0) / ratings.length : null,
     ratingCount: ratings.length,
+    curPrice: product.curPrice,
+    oldPrice: product.oldPrice,
+    badge: product.badge,
     source: product.source,
     catalogueIndex,
   };
