@@ -14,6 +14,8 @@ describe("Showrooms data and geolocation utilities", () => {
       expect(s.lat).toBeLessThan(12);
       expect(s.lng).toBeGreaterThan(105);
       expect(s.lng).toBeLessThan(108);
+      expect(s.latitude).toBe(s.lat);
+      expect(s.longitude).toBe(s.lng);
       expect(s.address.length).toBeGreaterThan(15);
       expect(s.phone).toBe("0911 251 004");
     });

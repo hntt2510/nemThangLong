@@ -348,27 +348,23 @@ export function ShowroomLocator({ className = "", contactPhone }: ShowroomLocato
               ) : null}
             </div>
 
-            {/* Embedded Google Maps Location Preview */}
-            <div className="relative w-full h-[240px] sm:h-[280px] rounded-xl overflow-hidden border border-slate-200 shadow-inner bg-slate-100 group">
+            {/* Embedded Google Maps Location Preview with Exact GPS Red Drop Pin */}
+            <div className="relative w-full h-[240px] sm:h-[280px] rounded-xl overflow-hidden border border-slate-200 shadow-inner bg-slate-100">
               <iframe
                 title={`Bản đồ chỉ đường ${activeShowroom.name}`}
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(activeShowroom.name + " " + activeShowroom.address)}&t=&z=16&ie=UTF8&iwloc=B&output=embed`}
+                src={`https://maps.google.com/maps?q=${activeShowroom.latitude || activeShowroom.lat},${activeShowroom.longitude || activeShowroom.lng}&hl=vi&z=16&output=embed`}
                 className="absolute inset-0 w-full h-full border-0"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
               />
+            </div>
 
-              {/* Visual Brand Pin Overlay: Floating Luxury Badge with Pulse Effect */}
-              <div className="absolute top-3 left-3 z-10 pointer-events-none">
-                <div className="flex items-center gap-2 rounded-full bg-slate-900/90 backdrop-blur-md px-3.5 py-1.5 text-xs font-bold text-white shadow-xl border border-amber-400/40 ring-1 ring-white/10">
-                  <span className="relative flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
-                  </span>
-                  <ShieldCheck className="size-3.5 text-amber-400 shrink-0" />
-                  <span>📍 Nệm Thăng Long · Chi nhánh {activeShowroom.shortName}</span>
-                </div>
-              </div>
+            {/* Clean Showroom Location & Parking Info Bar Below Map */}
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-700 bg-amber-50/80 border border-amber-200/70 rounded-xl px-3.5 py-2.5 shadow-xs">
+              <span className="text-base shrink-0 leading-none">📍</span>
+              <span className="leading-relaxed">
+                <strong>Ghim đỏ trên bản đồ là vị trí chính xác của Showroom</strong> · Có chỗ đậu ô tô rộng rãi
+              </span>
             </div>
 
             <div className="space-y-2 text-xs sm:text-sm text-slate-700">
@@ -409,7 +405,7 @@ export function ShowroomLocator({ className = "", contactPhone }: ShowroomLocato
             <div className="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row gap-3">
               {/* Primary: 1-Tap Google Maps Search & Directions */}
               <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activeShowroom.address)}`}
+                href={`https://www.google.com/maps/dir/?api=1&destination=${activeShowroom.latitude || activeShowroom.lat},${activeShowroom.longitude || activeShowroom.lng}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl !bg-[#1E3A5F] bg-[#1E3A5F] hover:!bg-[#152843] hover:bg-[#152843] px-5 py-3.5 text-xs sm:text-sm font-bold !text-white shadow-md transition-all cursor-pointer"
@@ -417,7 +413,7 @@ export function ShowroomLocator({ className = "", contactPhone }: ShowroomLocato
               >
                 <Navigation className="size-4 text-white shrink-0" aria-hidden="true" />
                 <span className="!text-white font-bold text-xs sm:text-sm" style={{ color: "#ffffff" }}>
-                  Mở Chỉ đường Google Maps
+                  Chỉ đường Google Maps
                 </span>
                 <ExternalLink className="size-3.5 text-white/70" aria-hidden="true" />
               </a>

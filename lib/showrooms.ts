@@ -9,6 +9,8 @@ export interface Showroom {
   address: string;
   lat: number;
   lng: number;
+  latitude: number;
+  longitude: number;
   phone: string;
   hours: string;
   landmark?: string;
@@ -26,8 +28,10 @@ export const SHOWROOMS_DATA: Showroom[] = [
     shortName: "Trảng Bom",
     province: "Đồng Nai",
     address: "18/2 Ấp Thanh Hoá, Xã Hố Nai 3, Huyện Trảng Bom, Đồng Nai",
-    lat: 10.9575,
-    lng: 106.9142,
+    lat: 10.9658,
+    lng: 107.0125,
+    latitude: 10.9658,
+    longitude: 107.0125,
     phone: SITE_CONFIG.contact.hotlineDisplay,
     hours: "07:30 - 21:00 hàng ngày",
     landmark: "Cách Quốc lộ 1A 200m",
@@ -41,6 +45,8 @@ export const SHOWROOMS_DATA: Showroom[] = [
     address: "3/3 Ấp Gia Yên, Xã Gia Tân 3, Huyện Thống Nhất, Đồng Nai",
     lat: 11.0267,
     lng: 107.1895,
+    latitude: 11.0267,
+    longitude: 107.1895,
     phone: SITE_CONFIG.contact.hotlineDisplay,
     hours: "07:30 - 21:00 hàng ngày",
     landmark: "Khu vực Gia Tân 3",
@@ -54,6 +60,8 @@ export const SHOWROOMS_DATA: Showroom[] = [
     address: "228 Phạm Văn Đồng, Hiệp Tân, Thị Xã Hoà Thành, Tây Ninh",
     lat: 11.2785,
     lng: 106.1268,
+    latitude: 11.2785,
+    longitude: 106.1268,
     phone: SITE_CONFIG.contact.hotlineDisplay,
     hours: "07:30 - 21:00 hàng ngày",
     landmark: "Trục đường chính Phạm Văn Đồng",
@@ -67,6 +75,8 @@ export const SHOWROOMS_DATA: Showroom[] = [
     address: "268 Lộc Du, Thị Xã Trảng Bàng, Tây Ninh",
     lat: 11.0345,
     lng: 106.3578,
+    latitude: 11.0345,
+    longitude: 106.3578,
     phone: SITE_CONFIG.contact.hotlineDisplay,
     hours: "07:30 - 21:00 hàng ngày",
     landmark: "Khu phố Lộc Du trung tâm",
@@ -80,6 +90,8 @@ export const SHOWROOMS_DATA: Showroom[] = [
     address: "74 Nguyễn Huệ, Thị Xã Bình Long, Bình Phước",
     lat: 11.6482,
     lng: 106.6022,
+    latitude: 11.6482,
+    longitude: 106.6022,
     phone: SITE_CONFIG.contact.hotlineDisplay,
     hours: "07:30 - 21:00 hàng ngày",
     landmark: "Mặt tiền đường Nguyễn Huệ",
@@ -93,6 +105,8 @@ export const SHOWROOMS_DATA: Showroom[] = [
     address: "761 ĐT825, TT. Đức Hòa, Huyện Đức Hòa, Long An",
     lat: 10.7513,
     lng: 106.4552,
+    latitude: 10.7513,
+    longitude: 106.4552,
     phone: SITE_CONFIG.contact.hotlineDisplay,
     hours: "07:30 - 21:00 hàng ngày",
     landmark: "Tuyến đường tỉnh 825 sầm uất",
@@ -106,6 +120,8 @@ export const SHOWROOMS_DATA: Showroom[] = [
     address: "Số 2 Đường 769, Hàng Gòn, Lộc An, Long Thành (Ngã 4 Lộc An), Đồng Nai",
     lat: 10.7786,
     lng: 106.9856,
+    latitude: 10.7786,
+    longitude: 106.9856,
     phone: SITE_CONFIG.contact.hotlineDisplay,
     hours: "07:30 - 21:00 hàng ngày",
     landmark: "Khu vực Ngã 4 Lộc An",
