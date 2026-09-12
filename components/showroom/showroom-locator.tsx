@@ -348,11 +348,11 @@ export function ShowroomLocator({ className = "", contactPhone }: ShowroomLocato
               ) : null}
             </div>
 
-            {/* Embedded Google Maps Location Preview with Exact GPS Red Drop Pin */}
+            {/* Embedded Google Maps Location Preview with Exact Address Red Drop Pin */}
             <div className="relative w-full h-[240px] sm:h-[280px] rounded-xl overflow-hidden border border-slate-200 shadow-inner bg-slate-100">
               <iframe
                 title={`Bản đồ chỉ đường ${activeShowroom.name}`}
-                src={`https://maps.google.com/maps?q=${activeShowroom.latitude || activeShowroom.lat},${activeShowroom.longitude || activeShowroom.lng}&hl=vi&z=16&output=embed`}
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(activeShowroom.address)}&z=16&output=embed`}
                 className="absolute inset-0 w-full h-full border-0"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
@@ -405,7 +405,7 @@ export function ShowroomLocator({ className = "", contactPhone }: ShowroomLocato
             <div className="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row gap-3">
               {/* Primary: 1-Tap Google Maps Search & Directions */}
               <a
-                href={`https://www.google.com/maps/dir/?api=1&destination=${activeShowroom.latitude || activeShowroom.lat},${activeShowroom.longitude || activeShowroom.lng}`}
+                href={getGoogleMapsDirectionsUrl(activeShowroom.address)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl !bg-[#1E3A5F] bg-[#1E3A5F] hover:!bg-[#152843] hover:bg-[#152843] px-5 py-3.5 text-xs sm:text-sm font-bold !text-white shadow-md transition-all cursor-pointer"
