@@ -1,8 +1,30 @@
+import {
+  PRICING_AMERICAN,
+  PRICING_CSTN_VINHA_LATEX,
+  PRICING_SUNHOME_PRO,
+  PRICING_THANG_LONG_GOLD,
+  PRICING_THANG_LONG_GRAY,
+  PRICING_THANG_LONG_LUXURY,
+  type CanonicalVariantPrice,
+} from "../../lib/canonical-pricing";
+
 export type SeedVariant = readonly [number, number, number, number | null, number | null, string, number];
 
-const officialSizes = [100, 120, 140, 160, 180].flatMap((width) =>
+const officialSizes = [100, 120, 140, 160, 180, 220].flatMap((width) =>
   [10, 15, 20].map((thickness) => [width, 200, thickness] as const),
 );
+
+function toSeedVariants(prefix: string, list: CanonicalVariantPrice[]): SeedVariant[] {
+  return list.map((item) => [
+    item.width,
+    item.length,
+    item.thickness,
+    item.curPrice,
+    item.oldPrice,
+    `${prefix}-${item.width}${item.length}${item.thickness}`,
+    10,
+  ] as const);
+}
 
 function variants(prefix: string, priced: SeedVariant[]): SeedVariant[] {
   const bySize = new Map(priced.map((item) => [`${item[0]}-${item[1]}-${item[2]}`, item]));
@@ -38,59 +60,59 @@ const genericBlocks = (audience: string): ContentBlocks => ({
 export const localStorefrontProducts = [
   {
     slug: "classic", name: "Nệm Thăng Long Classic", eyebrow: "THĂNG LONG CLASSIC", sortOrder: 10, presentation: "STANDARD" as const,
-    curPrice: 6290000, oldPrice: 8500000, badge: "BEST_SELLER" as const,
+    curPrice: 2400000, oldPrice: 2880000, badge: "BEST_SELLER" as const,
     description: "Dòng Classic trong danh mục Nệm Thăng Long; thông số vật liệu chi tiết cần được đối chiếu thêm trước khi xác minh.",
     profile: ["Đang xác minh", null, null, null, null] as const, profileStatus: "SOURCE_CONFLICT" as const,
     media: ["/images/products/classic/catalog-v2.png", "/images/products/classic/01.webp", "/images/products/classic/02.webp", "/images/products/classic/03.webp", "/images/products/classic/04.webp"],
     facts: [...commonFacts("classic"), { key: "material", label: "Vật liệu", value: "Website có mô tả cao su non nhưng chưa có tài liệu kỹ thuật độc lập để xác minh.", sourceKey: "classic", dataStatus: "SOURCE_CONFLICT" as const }],
     contentBlocks: { ...genericBlocks("Phù hợp để tham khảo theo nhu cầu và kích thước; đội ngũ tư vấn sẽ xác nhận dòng nệm phù hợp."), MATERIAL_STORY: "Thông tin vật liệu trên trang Classic đang được lưu với trạng thái cần đối chiếu thêm." },
-    variants: variants("TL-CL", [[120,200,10,6900000,7700000,"TL-CL-12020010",10],[140,200,10,7500000,8400000,"TL-CL-14020010",12],[160,200,10,8100000,9000000,"TL-CL-16020010",15],[160,200,15,8700000,9700000,"TL-CL-16020015",8],[180,200,15,9300000,10400000,"TL-CL-18020015",6],[180,200,20,9900000,11000000,"TL-CL-18020020",4]]),
+    variants: toSeedVariants("TL-CL", PRICING_THANG_LONG_GOLD),
   },
   {
     slug: "cao-su-thien-nhien", name: "Nệm cao su thiên nhiên Thăng Long 3/4", eyebrow: "NATURAL LATEX 3/4", sortOrder: 20, presentation: "LUXURY" as const,
-    curPrice: 12900000, oldPrice: 17500000, badge: "DOCTOR_RECOMMENDED" as const,
+    curPrice: 5970000, oldPrice: 7460000, badge: "DOCTOR_RECOMMENDED" as const,
     description: "Nệm cao su thiên nhiên Thăng Long 3/4 với cấu trúc hai mặt lỗ thoáng và áo lưới 4D theo thông tin nhà sản xuất công bố.",
     profile: ["Đang xác minh", null, null, null, null] as const, profileStatus: "PLACEHOLDER" as const,
     media: ["/images/products/cao-su-thien-nhien/catalog-v2.png", "/images/products/cao-su-thien-nhien/01.webp", "/images/products/cao-su-thien-nhien/02.webp", "/images/products/cao-su-thien-nhien/03.webp", "/images/products/cao-su-thien-nhien/04.webp"],
     facts: [...commonFacts("natural"), { key: "composition", label: "Thành phần", value: "75% cao su thiên nhiên, 25% cao su tổng hợp", sourceKey: "natural", dataStatus: "VERIFIED" as const }, { key: "ventilation", label: "Thông khí", value: "Hai mặt lỗ thoáng", sourceKey: "natural", dataStatus: "VERIFIED" as const }, { key: "cover", label: "Áo nệm", value: "Áo lưới 4D", sourceKey: "natural", dataStatus: "VERIFIED" as const }],
     contentBlocks: { ...genericBlocks("Người cần lựa chọn nệm cao su theo kích thước tiêu chuẩn; tư vấn viên sẽ hỗ trợ xác nhận độ dày phù hợp."), MATERIAL_STORY: "Theo website chính thức: nệm gồm 75% cao su thiên nhiên và 25% cao su tổng hợp; hai mặt lỗ thoáng, áo lưới 4D." },
-    variants: variants("TL-LT", [[120,200,10,12900000,14400000,"TL-LT-12020010",8],[140,200,10,14300000,15900000,"TL-LT-14020010",7],[160,200,10,15700000,17500000,"TL-LT-16020010",10],[160,200,15,17100000,19100000,"TL-LT-16020015",6],[180,200,15,18500000,20600000,"TL-LT-18020015",5],[180,200,20,19900000,22200000,"TL-LT-18020020",3]]),
+    variants: toSeedVariants("TL-LT", PRICING_CSTN_VINHA_LATEX),
   },
   {
     slug: "hoat-tinh", name: "Nệm Thăng Long Hoạt Tính", eyebrow: "THĂNG LONG HOẠT TÍNH", sortOrder: 30, presentation: "STANDARD" as const,
-    curPrice: 8900000, oldPrice: 11900000, badge: "HOT_DEAL" as const,
+    curPrice: 2150000, oldPrice: 2580000, badge: "HOT_DEAL" as const,
     description: "Dòng Nệm Thăng Long Hoạt Tính trong catalog chính thức; các chỉ số cảm giác nằm đang chờ nguồn kỹ thuật xác nhận.",
     profile: ["Đang xác minh", null, null, null, null] as const, profileStatus: "PLACEHOLDER" as const,
     media: ["/images/products/hoat-tinh/catalog-v2.png", "/images/products/hoat-tinh/01.webp", "/images/products/hoat-tinh/02.webp", "/images/products/hoat-tinh/03.webp", "/images/products/hoat-tinh/04.webp"],
     facts: commonFacts("hoat-tinh"), contentBlocks: genericBlocks("Tham khảo theo nhu cầu và kích thước; thông tin phù hợp cụ thể được tư vấn viên xác nhận."),
-    variants: variants("TL-HT", [[120,200,10,8900000,9900000,"TL-HT-12020010",8],[140,200,10,9700000,10800000,"TL-HT-14020010",10],[160,200,10,10500000,11700000,"TL-HT-16020010",12],[160,200,15,11300000,12600000,"TL-HT-16020015",8],[180,200,15,12100000,13500000,"TL-HT-18020015",5],[180,200,20,12900000,14400000,"TL-HT-18020020",3]]),
+    variants: toSeedVariants("TL-HT", PRICING_THANG_LONG_GRAY),
   },
   {
     slug: "memory-foam", name: "Nệm Thăng Long Memoryfoam", eyebrow: "THĂNG LONG MEMORYFOAM", sortOrder: 40, presentation: "STANDARD" as const,
-    curPrice: 10900000, oldPrice: 14800000, badge: "DOCTOR_RECOMMENDED" as const,
+    curPrice: 3612000, oldPrice: 4334400, badge: "DOCTOR_RECOMMENDED" as const,
     description: "Dòng Nệm Thăng Long Memoryfoam trong catalog chính thức; mô tả vật liệu chi tiết cần nguồn kỹ thuật bổ sung.",
     profile: ["Đang xác minh", null, null, null, null] as const, profileStatus: "PLACEHOLDER" as const,
     media: ["/images/products/memory-foam/catalog-v2.png", "/images/products/memory-foam/01.webp", "/images/products/memory-foam/02.webp", "/images/products/memory-foam/03.webp", "/images/products/memory-foam/04.webp"],
     facts: commonFacts("memory"), contentBlocks: genericBlocks("Tham khảo theo nhu cầu và kích thước; đội ngũ tư vấn sẽ xác nhận cấu hình phù hợp."),
-    variants: variants("TL-MF", [[140,200,15,10900000,12200000,"TL-MF-14020015",8],[160,200,15,12100000,13500000,"TL-MF-16020015",10],[160,200,20,13300000,14800000,"TL-MF-16020020",6],[180,200,15,14500000,16200000,"TL-MF-18020015",5],[180,200,20,15900000,17700000,"TL-MF-18020020",4]]),
+    variants: toSeedVariants("TL-MF", PRICING_SUNHOME_PRO),
   },
   {
     slug: "khach-san", name: "Nệm Cao Su Cho Khách Sạn", eyebrow: "HOSPITALITY COLLECTION", sortOrder: 50, presentation: "STANDARD" as const,
-    curPrice: 18900000, oldPrice: 25500000, badge: "BEST_SELLER" as const,
+    curPrice: 3864000, oldPrice: 4636800, badge: "BEST_SELLER" as const,
     description: "Dòng nệm cao su cho khách sạn trong catalog chính thức; cần tư vấn trực tiếp để xác nhận cấu hình dự án.",
     profile: ["Đang xác minh", null, null, null, null] as const, profileStatus: "PLACEHOLDER" as const,
     media: ["/images/products/khach-san/catalog-v2.png", "/images/products/khach-san/01.webp", "/images/products/khach-san/02.webp", "/images/products/khach-san/03.webp", "/images/products/khach-san/04.webp"],
     facts: commonFacts("hotel"), contentBlocks: { ...genericBlocks("Dành cho nhu cầu trang bị khách sạn và dự án; số lượng, độ dày và tiến độ được xác nhận khi tư vấn."), DELIVERY: "Phí và thời gian giao hàng được xác nhận theo dự án." },
-    variants: variants("TL-HS", [[140,200,15,18900000,21000000,"TL-HS-14020015",5],[160,200,15,20900000,23300000,"TL-HS-16020015",8],[160,200,20,22900000,25500000,"TL-HS-16020020",6],[180,200,15,24900000,27700000,"TL-HS-18020015",5],[180,200,20,26900000,29900000,"TL-HS-18020020",4]]),
+    variants: toSeedVariants("TL-HS", PRICING_THANG_LONG_LUXURY),
   },
   {
     slug: "america", name: "Nệm Cao Su Thăng Long America", eyebrow: "THĂNG LONG AMERICA", sortOrder: 60, presentation: "STANDARD" as const,
-    curPrice: 4900000, oldPrice: 6900000, badge: "HOT_DEAL" as const,
+    curPrice: 900000, oldPrice: 1170000, badge: "HOT_DEAL" as const,
     description: "Dòng Nệm Cao Su Thăng Long America trong catalog chính thức; thông số kỹ thuật chi tiết đang chờ xác minh.",
     profile: ["Đang xác minh", null, null, null, null] as const, profileStatus: "PLACEHOLDER" as const,
     media: ["/images/products/america/catalog-v2.png", "/images/products/america/01.webp", "/images/products/america/02.webp", "/images/products/america/03.webp", "/images/products/america/04.webp"],
     facts: commonFacts("america"), contentBlocks: genericBlocks("Tham khảo theo nhu cầu và kích thước; tư vấn viên sẽ xác nhận cấu hình phù hợp."),
-    variants: variants("TL-AM", [[100,200,10,4900000,5500000,"TL-AM-10020010",12],[120,200,10,5500000,6200000,"TL-AM-12020010",15],[140,200,10,6100000,6800000,"TL-AM-14020010",10],[160,200,10,6700000,7500000,"TL-AM-16020010",8],[160,200,15,7300000,8100000,"TL-AM-16020015",6],[180,200,15,7900000,8800000,"TL-AM-18020015",5]]),
+    variants: toSeedVariants("TL-AM", PRICING_AMERICAN),
   },
 ] as const;
 

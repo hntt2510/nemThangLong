@@ -19,13 +19,13 @@ const DEFAULT_CARD_PRICING: Record<
     badge?: "BEST_SELLER" | "HOT_DEAL" | "DOCTOR_RECOMMENDED";
   }
 > = {
-  classic: { curPrice: 6290000, oldPrice: 8500000, badge: "BEST_SELLER" },
-  "cao-su-thien-nhien": { curPrice: 12900000, oldPrice: 17500000, badge: "DOCTOR_RECOMMENDED" },
-  "hoat-tinh": { curPrice: 8900000, oldPrice: 11900000, badge: "HOT_DEAL" },
-  "memory-foam": { curPrice: 10900000, oldPrice: 14800000, badge: "DOCTOR_RECOMMENDED" },
-  "khach-san": { curPrice: 18900000, oldPrice: 25500000, badge: "BEST_SELLER" },
-  america: { curPrice: 4900000, oldPrice: 6900000, badge: "HOT_DEAL" },
-  luxury: { curPrice: 18900000, oldPrice: 25500000, badge: "BEST_SELLER" },
+  classic: { curPrice: 2400000, oldPrice: 2880000, badge: "BEST_SELLER" },
+  "cao-su-thien-nhien": { curPrice: 5970000, oldPrice: 7460000, badge: "DOCTOR_RECOMMENDED" },
+  "hoat-tinh": { curPrice: 2150000, oldPrice: 2580000, badge: "HOT_DEAL" },
+  "memory-foam": { curPrice: 3612000, oldPrice: 4334400, badge: "DOCTOR_RECOMMENDED" },
+  "khach-san": { curPrice: 3864000, oldPrice: 4636800, badge: "BEST_SELLER" },
+  america: { curPrice: 900000, oldPrice: 1170000, badge: "HOT_DEAL" },
+  luxury: { curPrice: 3864000, oldPrice: 4636800, badge: "BEST_SELLER" },
 };
 
 export function LandingProductCollection({

@@ -3,17 +3,17 @@ import { SITE_CONFIG } from "@/config/site-config";
 export type PriceTier = "TIER_BUDGET" | "TIER_MID" | "TIER_LUXURY";
 
 export const CANONICAL_TIER_PRICES: Record<string, number> = {
-  america: 4900000,
-  "nem-cao-su-america": 4900000,
-  classic: 6900000,
-  "nem-thang-long-classic": 6900000,
-  "hoat-tinh": 8900000,
-  "nem-thang-long-hoat-tinh": 8900000,
-  "memory-foam": 10900000,
-  "nem-thang-long-memoryfoam": 10900000,
-  "cao-su-thien-nhien": 14900000,
-  "nem-cao-su-thien-nhien-thang-long-34": 12900000,
-  "khach-san": 18900000,
+  america: 900000,
+  "nem-cao-su-america": 900000,
+  classic: 2400000,
+  "nem-thang-long-classic": 2400000,
+  "hoat-tinh": 2150000,
+  "nem-thang-long-hoat-tinh": 2150000,
+  "memory-foam": 3612000,
+  "nem-thang-long-memoryfoam": 3612000,
+  "cao-su-thien-nhien": 5970000,
+  "nem-cao-su-thien-nhien-thang-long-34": 5970000,
+  "khach-san": 3864000,
   "khach-san-du-an": 22000000,
   luxury: 22000000,
 };

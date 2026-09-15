@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client";
 import { getPrisma } from "@/lib/db";
 import type { Product, ProductContent } from "@/lib/types";
 import { sanitizeProductContent } from "@/lib/product-content";
+export { CANONICAL_LINES, CANONICAL_STOREFRONT_MAPPING, calculateSavings } from "@/lib/canonical-pricing";
 
 export const productInclude = {
   variants: { orderBy: [{ width: "asc" }, { length: "asc" }, { thickness: "asc" }] },

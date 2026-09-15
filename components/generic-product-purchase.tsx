@@ -333,7 +333,7 @@ export function GenericProductPurchase({
               )}
               {saveAmount > 0 && (
                 <span className="inline-flex items-center rounded-lg bg-red-600 px-2.5 py-1 text-xs font-bold text-white shadow-xs">
-                  Tiết kiệm {discountPercent}% (Giảm {formatVnd(saveAmount)})
+                  Tiết kiệm {formatVnd(saveAmount)} (-{discountPercent}%)
                 </span>
               )}
             </div>
